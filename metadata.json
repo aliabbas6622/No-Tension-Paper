@@ -1,0 +1,6 @@
+{
+  "name": "Exam Paper Maker",
+  "description": "Create, customize, and export professional intermediate examination question papers with live preview, drag-and-drop questions, custom subject templates, and direct export to PDF, Word, and Google Docs.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

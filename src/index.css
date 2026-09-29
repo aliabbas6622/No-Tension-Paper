@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply bg-black text-white antialiased font-sans selection:bg-white selection:text-black overflow-hidden;
+  }
+}
+
+/* Authentic Examination Paper Typography */
+.font-exam-serif {
+  font-family: "Times New Roman", Times, "Liberation Serif", "Nimbus Roman", serif;
+}
+
+.font-exam-classic {
+  font-family: Georgia, Cambria, "Times New Roman", Times, serif;
+}
+
+/* Minimalist Monochrome Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+::-webkit-scrollbar-thumb {
+  background: #262626;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #404040;
+}
+
+/* Print Rules for 100% Crisp PDF and Paper Output */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 12mm 14mm 12mm 14mm;
+  }
+
+  /* Reset outer viewport for print */
+  html, body {
+    overflow: visible !important;
+    height: auto !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  .no-print,
+  nav,
+  aside,
+  header,
+  button,
+  .print-hide {
+    display: none !important;
+  }
+
+  /* Show only the exam paper container */
+  #printable-exam-paper {
+    display: block !important;
+    visibility: visible !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    transform: none !important;
+  }
+
+  #printable-exam-paper * {
+    visibility: visible !important;
+    color: #000000 !important;
+  }
+
+  .page-break {
+    page-break-after: always;
+    break-after: page;
+  }
+
+  .avoid-break {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+}

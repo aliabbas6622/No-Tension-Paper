@@ -1,0 +1,98 @@
+{
+  "entities": {
+    "ExamPaper": {
+      "title": "ExamPaper",
+      "description": "Represents an assessment examination paper with sections, headers, and questions.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the paper."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user ID."
+        },
+        "title": {
+          "type": "string",
+          "description": "Title of the exam paper."
+        },
+        "subjectCategory": {
+          "type": "string",
+          "description": "Subject category like Math, Science, History, Computer Science."
+        },
+        "header": {
+          "type": "object",
+          "description": "Header details including examination title, month, group, subject, date, marks."
+        },
+        "sections": {
+          "type": "array",
+          "description": "Array of examination sections with questions."
+        },
+        "settings": {
+          "type": "object",
+          "description": "Paper display and print visibility settings."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp when paper was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp when paper was updated."
+        }
+      },
+      "required": ["id", "userId", "title", "header", "sections"]
+    },
+    "SubjectTemplate": {
+      "title": "SubjectTemplate",
+      "description": "Represents a reusable subject template layout.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the template."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user ID."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the template."
+        },
+        "subject": {
+          "type": "string",
+          "description": "Subject title."
+        },
+        "category": {
+          "type": "string",
+          "description": "Subject category."
+        },
+        "paper": {
+          "type": "object",
+          "description": "Full paper structure."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "ISO timestamp when created."
+        }
+      },
+      "required": ["id", "userId", "name", "paper"]
+    }
+  },
+  "firestore": {
+    "/exam_papers/{paperId}": {
+      "schema": {
+        "$ref": "#/entities/ExamPaper"
+      },
+      "description": "Collection of created exam papers authored by users."
+    },
+    "/custom_templates/{templateId}": {
+      "schema": {
+        "$ref": "#/entities/SubjectTemplate"
+      },
+      "description": "Collection of custom subject templates."
+    }
+  }
+}
