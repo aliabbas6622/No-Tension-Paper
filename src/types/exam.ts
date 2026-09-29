@@ -58,10 +58,47 @@ export interface PaperSettings {
 export interface ExamPaper {
   id: string;
   title: string;
+  classGrade?: string;
   subjectCategory?: string; // 'Computer Science' | 'Math' | 'Science' | 'History' | 'English' | etc.
   header: ExamHeader;
   sections: ExamSection[];
   settings: PaperSettings;
+  curriculumData?: CurriculumAnswersPayload;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CurriculumQuestionItem {
+  question_number: string;
+  question: string;
+  options?: string[];
+  answer?: string;
+}
+
+export interface CurriculumSectionItem {
+  type: string;
+  questions: CurriculumQuestionItem[];
+}
+
+export interface CurriculumUnitItem {
+  unit: string;
+  pages?: string[];
+  sections: CurriculumSectionItem[];
+}
+
+export interface CurriculumAnswersPayload {
+  curriculum_answers: CurriculumUnitItem[];
+}
+
+export interface CurriculumSubjectRecord {
+  id: string;
+  userId?: string;
+  classGrade: string;
+  subjectName: string;
+  group?: string;
+  category?: string;
+  curriculumAnswers: CurriculumUnitItem[];
+  paperId?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -70,9 +107,11 @@ export interface SubjectTemplate {
   id: string;
   name: string;
   subject: string;
+  classGrade?: string;
   group: string;
   category: 'Math' | 'Science' | 'History' | 'Computer Science' | 'English' | 'Other';
   description?: string;
   isBuiltIn?: boolean;
   paper: ExamPaper;
+  curriculumData?: CurriculumAnswersPayload;
 }

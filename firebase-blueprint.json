@@ -17,6 +17,10 @@
           "type": "string",
           "description": "Title of the exam paper."
         },
+        "classGrade": {
+          "type": "string",
+          "description": "Class or grade level (e.g. Class 11, Class 9)."
+        },
         "subjectCategory": {
           "type": "string",
           "description": "Subject category like Math, Science, History, Computer Science."
@@ -32,6 +36,10 @@
         "settings": {
           "type": "object",
           "description": "Paper display and print visibility settings."
+        },
+        "curriculumData": {
+          "type": "object",
+          "description": "Imported curriculum answers payload with units, pages, and answer keys."
         },
         "createdAt": {
           "type": "string",
@@ -65,13 +73,29 @@
           "type": "string",
           "description": "Subject title."
         },
+        "classGrade": {
+          "type": "string",
+          "description": "Class or grade level."
+        },
+        "group": {
+          "type": "string",
+          "description": "Academic stream or group."
+        },
         "category": {
           "type": "string",
           "description": "Subject category."
         },
+        "description": {
+          "type": "string",
+          "description": "Brief description of the template."
+        },
         "paper": {
           "type": "object",
           "description": "Full paper structure."
+        },
+        "curriculumData": {
+          "type": "object",
+          "description": "Source curriculum answers payload."
         },
         "createdAt": {
           "type": "string",
@@ -79,6 +103,54 @@
         }
       },
       "required": ["id", "userId", "name", "paper"]
+    },
+    "CurriculumSubject": {
+      "title": "CurriculumSubject",
+      "description": "Represents a subject with imported curriculum units, questions, and model answers.",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for curriculum subject."
+        },
+        "userId": {
+          "type": "string",
+          "description": "Creator user id or system."
+        },
+        "classGrade": {
+          "type": "string",
+          "description": "Class or grade level."
+        },
+        "subjectName": {
+          "type": "string",
+          "description": "Subject name."
+        },
+        "group": {
+          "type": "string",
+          "description": "Academic stream/group."
+        },
+        "category": {
+          "type": "string",
+          "description": "Subject category."
+        },
+        "curriculumAnswers": {
+          "type": "array",
+          "description": "Array of curriculum units with sections, questions, and answers."
+        },
+        "paperId": {
+          "type": "string",
+          "description": "Linked generated exam paper ID."
+        },
+        "createdAt": {
+          "type": "string",
+          "description": "Creation timestamp."
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "Update timestamp."
+        }
+      },
+      "required": ["id", "classGrade", "subjectName", "curriculumAnswers"]
     }
   },
   "firestore": {
@@ -93,6 +165,12 @@
         "$ref": "#/entities/SubjectTemplate"
       },
       "description": "Collection of custom subject templates."
+    },
+    "/curriculum_subjects/{subjectId}": {
+      "schema": {
+        "$ref": "#/entities/CurriculumSubject"
+      },
+      "description": "Collection of curriculum subjects imported with units, questions and answer keys."
     }
   }
 }

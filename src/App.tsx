@@ -8,10 +8,11 @@ import {
   PaperSettings,
 } from './types/exam';
 import { DEFAULT_EXAM_PAPER } from './data/defaultPaper';
-import { savePaperToLibrary } from './data/subjectTemplates';
+import { savePaperToLibrary, getCustomTemplates } from './data/subjectTemplates';
 import {
   saveExamPaperToFirestore,
   loadExamPapersFromFirestore,
+  loadTemplatesFromFirestore,
   initAuth,
 } from './services/firebase';
 import { HeaderNav } from './components/HeaderNav';
@@ -66,21 +67,47 @@ export default function App() {
     }
   };
 
-  // Sync Auth with Firestore
+  // Sync papers and templates with Firestore
   useEffect(() => {
-    initAuth(
-      async (user) => {
-        try {
-          const remotePapers = await loadExamPapersFromFirestore();
-          if (remotePapers && remotePapers.length > 0) {
-            remotePapers.forEach((p) => savePaperToLibrary(p));
-          }
-        } catch (e) {
-          console.warn('Sync notice:', e);
+    const syncWithFirestore = async () => {
+      try {
+        const [remotePapers, remoteTemplates] = await Promise.all([
+          loadExamPapersFromFirestore(),
+          loadTemplatesFromFirestore(),
+        ]);
+
+        if (remotePapers && remotePapers.length > 0) {
+          remotePapers.forEach((p) => savePaperToLibrary(p));
         }
+
+        if (remoteTemplates && remoteTemplates.length > 0) {
+          const currentCustom = getCustomTemplates();
+          const existingIds = new Set(currentCustom.map((t) => t.id));
+          const newToAdd = remoteTemplates.filter((t) => !existingIds.has(t.id));
+          if (newToAdd.length > 0) {
+            localStorage.setItem(
+              'custom_exam_subject_templates',
+              JSON.stringify([...currentCustom, ...newToAdd])
+            );
+          }
+        }
+      } catch (e) {
+        console.warn('Initial Firestore sync notice:', e);
+      }
+    };
+
+    syncWithFirestore();
+
+    const unsubscribe = initAuth(
+      async () => {
+        syncWithFirestore();
       },
       () => {}
     );
+
+    return () => {
+      if (typeof unsubscribe === 'function') unsubscribe();
+    };
   }, []);
 
   const updatePaper = (newPaper: ExamPaper) => {
@@ -545,6 +572,14 @@ export default function App() {
           }}
           onNewBlankPaper={handleNewBlankPaper}
           onOpenTemplatesModal={() => setIsTemplateModalOpen(true)}
+          onSubjectAdded={(newPaper, template, openWorkspace) => {
+            showNotification(
+              `Subject "${template.name}" added successfully with ${newPaper.sections.reduce(
+                (a, s) => a + s.questions.length,
+                0
+              )} questions from curriculum!`
+            );
+          }}
         />
         <TemplateModal
           isOpen={isTemplateModalOpen}

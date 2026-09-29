@@ -1,11 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ExamPaper, SubjectTemplate } from '../types/exam';
 import {
   BUILT_IN_TEMPLATES,
   getCustomTemplates,
   getAllSavedPapers,
   deletePaperFromLibrary,
+  savePaperToLibrary,
 } from '../data/subjectTemplates';
+import {
+  loadExamPapersFromFirestore,
+  loadTemplatesFromFirestore,
+  deleteExamPaperFromFirestore,
+} from '../services/firebase';
 import {
   Plus,
   FileText,
@@ -18,13 +24,17 @@ import {
   Sliders,
   FolderOpen,
   Search,
+  BookOpen,
+  BookPlus,
 } from 'lucide-react';
+import { SubjectAdderModal } from './SubjectAdderModal';
 
 interface DashboardProps {
   currentPaper: ExamPaper;
   onOpenPaper: (paper: ExamPaper) => void;
   onNewBlankPaper: () => void;
   onOpenTemplatesModal: () => void;
+  onSubjectAdded?: (paper: ExamPaper, template: SubjectTemplate, openWorkspace: boolean) => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -32,11 +42,50 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onOpenPaper,
   onNewBlankPaper,
   onOpenTemplatesModal,
+  onSubjectAdded,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [savedPapers, setSavedPapers] = useState<ExamPaper[]>(getAllSavedPapers());
-  const customTemplates = getCustomTemplates();
+  const [customTemplates, setCustomTemplates] = useState<SubjectTemplate[]>(getCustomTemplates());
+  const [isSubjectAdderOpen, setIsSubjectAdderOpen] = useState(false);
+
+  // Sync templates and papers from Firestore on load
+  useEffect(() => {
+    let isMounted = true;
+    const loadFromDb = async () => {
+      try {
+        const [remoteTemplates, remotePapers] = await Promise.all([
+          loadTemplatesFromFirestore(),
+          loadExamPapersFromFirestore(),
+        ]);
+
+        if (!isMounted) return;
+
+        if (remoteTemplates && remoteTemplates.length > 0) {
+          const current = getCustomTemplates();
+          const map = new Map<string, SubjectTemplate>();
+          current.forEach((t) => map.set(t.id, t));
+          remoteTemplates.forEach((t) => map.set(t.id, t));
+          const merged = Array.from(map.values());
+          localStorage.setItem('custom_exam_subject_templates', JSON.stringify(merged));
+          setCustomTemplates(merged);
+        }
+
+        if (remotePapers && remotePapers.length > 0) {
+          remotePapers.forEach((p) => savePaperToLibrary(p));
+          setSavedPapers(getAllSavedPapers());
+        }
+      } catch (err) {
+        console.warn('Dashboard Firestore sync notice:', err);
+      }
+    };
+
+    loadFromDb();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const allTemplates: SubjectTemplate[] = [...BUILT_IN_TEMPLATES, ...customTemplates];
 
@@ -54,16 +103,39 @@ export const Dashboard: React.FC<DashboardProps> = ({
       searchQuery === ''
         ? true
         : t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          t.subject.toLowerCase().includes(searchQuery.toLowerCase());
+          t.subject.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (t.classGrade && t.classGrade.toLowerCase().includes(searchQuery.toLowerCase()));
 
     return matchesCategory && matchesSearch;
   });
 
-  const handleDeleteSavedPaper = (e: React.MouseEvent, id: string) => {
+  const handleDeleteSavedPaper = async (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
     if (window.confirm('Delete this saved exam paper?')) {
       deletePaperFromLibrary(id);
       setSavedPapers(getAllSavedPapers());
+      try {
+        await deleteExamPaperFromFirestore(id);
+      } catch (err) {
+        console.warn('Failed to delete paper from Firestore:', err);
+      }
+    }
+  };
+
+  const handleSubjectCreated = (
+    paper: ExamPaper,
+    template: SubjectTemplate,
+    openWorkspace: boolean
+  ) => {
+    setCustomTemplates(getCustomTemplates());
+    setSavedPapers(getAllSavedPapers());
+
+    if (onSubjectAdded) {
+      onSubjectAdded(paper, template, openWorkspace);
+    }
+
+    if (openWorkspace) {
+      onOpenPaper(paper);
     }
   };
 
@@ -84,6 +156,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Subject Adder Button */}
+          <button
+            onClick={() => setIsSubjectAdderOpen(true)}
+            className="px-3.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-white text-xs font-semibold rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            title="Import curriculum answers JSON to add a new subject"
+          >
+            <BookPlus className="w-3.5 h-3.5 text-white" />
+            <span>+ Subject Adder</span>
+          </button>
+
           {/* Quick Return to Active Paper Workspace */}
           <button
             onClick={() => onOpenPaper(currentPaper)}
@@ -91,7 +173,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             title="Resume editing current paper"
           >
             <FolderOpen className="w-3.5 h-3.5" />
-            <span>Open Current Workspace</span>
+            <span>Open Workspace</span>
           </button>
 
           {/* New Blank Paper Button */}
@@ -135,6 +217,36 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
 
+        {/* Featured Curriculum Subject Adder Hero Banner */}
+        <div className="border border-neutral-800 bg-gradient-to-r from-neutral-950 via-neutral-900/50 to-neutral-950 p-6 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="space-y-2 max-w-2xl">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-mono tracking-widest uppercase px-2 py-0.5 rounded bg-white text-black font-bold">
+                Feature
+              </span>
+              <span className="text-xs font-semibold text-white tracking-wide uppercase">
+                Curriculum Subject Adder
+              </span>
+            </div>
+            <h3 className="text-base font-bold text-white tracking-tight">
+              Add New Subject from Curriculum Answers JSON
+            </h3>
+            <p className="text-xs text-neutral-400 leading-relaxed">
+              Specify your <strong>Class</strong> (e.g. Class 11, Class 9) and <strong>Subject</strong>, then paste curriculum JSON with Units, Pages, MCQs, short questions, and answer keys. The system instantly structures an official exam paper and stores it in your subject templates library.
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => setIsSubjectAdderOpen(true)}
+              className="px-4 py-2.5 bg-white hover:bg-neutral-200 text-black font-semibold text-xs rounded-xl transition flex items-center gap-2 cursor-pointer shadow-sm"
+            >
+              <BookPlus className="w-4 h-4 text-black" />
+              <span>Launch Subject Adder</span>
+            </button>
+          </div>
+        </div>
+
         {/* Section: Subject Templates */}
         <div className="space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-800 pb-3">
@@ -143,20 +255,31 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 Subject Templates
               </h3>
               <p className="text-xs text-neutral-400">
-                Choose a pre-formatted subject template or create your own
+                Choose a pre-formatted subject template or create your own with the Subject Adder
               </p>
             </div>
 
-            {/* Search Input */}
-            <div className="relative w-full sm:w-64">
-              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
-              <input
-                type="text"
-                placeholder="Search subject templates..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-neutral-950 border border-neutral-800 rounded-lg pl-9 pr-3 py-1.5 text-xs text-white placeholder-neutral-500 focus:outline-hidden focus:border-white"
-              />
+            <div className="flex items-center gap-2">
+              {/* Add Subject Button */}
+              <button
+                onClick={() => setIsSubjectAdderOpen(true)}
+                className="px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-white text-xs font-semibold rounded-lg transition flex items-center gap-1.5 shrink-0 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5 text-white" />
+                <span>Add Subject</span>
+              </button>
+
+              {/* Search Input */}
+              <div className="relative w-full sm:w-60">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+                <input
+                  type="text"
+                  placeholder="Search templates..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-neutral-950 border border-neutral-800 rounded-lg pl-9 pr-3 py-1.5 text-xs text-white placeholder-neutral-500 focus:outline-hidden focus:border-white"
+                />
+              </div>
             </div>
           </div>
 
@@ -187,9 +310,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
               >
                 <div className="space-y-2">
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-neutral-900 text-neutral-400 border border-neutral-800">
-                      {template.category}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-neutral-900 text-neutral-300 border border-neutral-800">
+                        {template.category}
+                      </span>
+                      {template.classGrade && (
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white text-black font-bold">
+                          {template.classGrade}
+                        </span>
+                      )}
+                    </div>
                     <span className="text-[11px] text-neutral-400 font-mono">
                       {template.paper.header.maxMarks} Marks
                     </span>
@@ -273,6 +403,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         )}
       </main>
+
+      {/* Subject Adder Modal */}
+      <SubjectAdderModal
+        isOpen={isSubjectAdderOpen}
+        onClose={() => setIsSubjectAdderOpen(false)}
+        onSubjectAdded={handleSubjectCreated}
+      />
     </div>
   );
 };

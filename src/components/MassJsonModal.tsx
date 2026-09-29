@@ -124,15 +124,43 @@ export const MassJsonModal: React.FC<MassJsonModalProps> = ({
     }
 
     try {
-      const parsed = JSON.parse(input);
-      const items = Array.isArray(parsed)
-        ? parsed
-        : Array.isArray(parsed.questions)
-        ? parsed.questions
-        : null;
+      const sanitized = input
+        .replace(/<--[^\n\r]*/g, '')
+        .replace(/\/\/[^\n\r]*/g, '')
+        .trim();
+
+      const parsed = JSON.parse(sanitized);
+      let items: any[] = [];
+
+      if (parsed && Array.isArray(parsed.curriculum_answers)) {
+        parsed.curriculum_answers.forEach((unit: any) => {
+          if (Array.isArray(unit.sections)) {
+            unit.sections.forEach((sec: any) => {
+              if (Array.isArray(sec.questions)) {
+                sec.questions.forEach((q: any) => {
+                  const isMcq =
+                    (sec.type && (sec.type.toLowerCase().includes('mcq') || sec.type.toLowerCase().includes('encircle'))) ||
+                    (q.options && q.options.length > 0);
+                  items.push({
+                    number: q.question_number,
+                    text: q.question || q.text,
+                    type: isMcq ? 'mcq' : 'short',
+                    options: q.options,
+                    answerKey: q.answer || q.answerKey,
+                  });
+                });
+              }
+            });
+          }
+        });
+      } else if (Array.isArray(parsed)) {
+        items = parsed;
+      } else if (Array.isArray(parsed.questions)) {
+        items = parsed.questions;
+      }
 
       if (!items || items.length === 0) {
-        setValidationError('Input must be a JSON array of questions, e.g. [ { ... }, { ... } ]');
+        setValidationError('Input must be a JSON array of questions, e.g. [ { ... }, { ... } ] or { "curriculum_answers": [ ... ] }');
         setParsedQuestions(null);
         return;
       }

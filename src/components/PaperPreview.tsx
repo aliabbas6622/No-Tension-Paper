@@ -8,6 +8,7 @@ import {
   Printer,
   Copy,
   Check,
+  CheckCircle2,
 } from 'lucide-react';
 
 interface PaperPreviewProps {
@@ -18,8 +19,14 @@ interface PaperPreviewProps {
 export const PaperPreview: React.FC<PaperPreviewProps> = ({ paper, onPrint }) => {
   const [zoomLevel, setZoomLevel] = useState<number>(100);
   const [copied, setCopied] = useState(false);
+  const [showAnswerKeys, setShowAnswerKeys] = useState(false);
 
   const { header, sections, settings } = paper;
+
+  const totalAnswersInPaper = sections.reduce(
+    (acc, sec) => acc + sec.questions.filter((q) => Boolean(q.answerKey)).length,
+    0
+  );
 
   const fontClass =
     settings.fontFamily === 'sans'
@@ -86,6 +93,22 @@ export const PaperPreview: React.FC<PaperPreviewProps> = ({ paper, onPrint }) =>
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Answer Key Toggle Button (if paper has answer keys) */}
+          {totalAnswersInPaper > 0 && (
+            <button
+              onClick={() => setShowAnswerKeys(!showAnswerKeys)}
+              className={`p-1 px-2 rounded transition flex items-center gap-1 text-[11px] cursor-pointer ${
+                showAnswerKeys
+                  ? 'bg-white text-black font-semibold'
+                  : 'text-neutral-400 hover:text-white hover:bg-neutral-900 border border-neutral-800'
+              }`}
+              title="Toggle display of Answer Keys from curriculum"
+            >
+              <CheckCircle2 className="w-3 h-3" />
+              <span>Keys ({totalAnswersInPaper})</span>
+            </button>
+          )}
+
           {/* Copy Plaintext button */}
           <button
             onClick={handleCopyText}
@@ -259,6 +282,16 @@ export const PaperPreview: React.FC<PaperPreviewProps> = ({ paper, onPrint }) =>
                                 ))}
                               </div>
                             )}
+                          </div>
+                        )}
+
+                        {/* Model Answer / Answer Key (Visible when Answer Keys toggle is turned ON) */}
+                        {showAnswerKeys && q.answerKey && (
+                          <div className="mt-1.5 p-1.5 px-2 bg-neutral-100 border border-neutral-300 rounded text-[11px] font-sans text-neutral-800 flex items-baseline gap-1.5">
+                            <span className="font-bold uppercase tracking-wider text-[10px] bg-black text-white px-1.5 py-0.2 rounded">
+                              Answer Key
+                            </span>
+                            <span className="font-medium">{q.answerKey}</span>
                           </div>
                         )}
                       </div>

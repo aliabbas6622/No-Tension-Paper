@@ -15,7 +15,9 @@ import {
   Upload,
   Check,
   BookOpen,
+  BookPlus,
 } from 'lucide-react';
+import { SubjectAdderModal } from './SubjectAdderModal';
 
 interface TemplateModalProps {
   isOpen: boolean;
@@ -38,6 +40,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'builtIn' | 'custom'>('builtIn');
+  const [isSubjectAdderOpen, setIsSubjectAdderOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -50,6 +53,22 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
   }, [isOpen, currentPaper]);
 
   if (!isOpen) return null;
+
+  const handleSubjectCreated = (
+    paper: ExamPaper,
+    template: SubjectTemplate,
+    openWorkspace: boolean
+  ) => {
+    setCustomTemplates(getCustomTemplates());
+    if (openWorkspace) {
+      onSelectTemplate(paper);
+      onClose();
+    } else {
+      setActiveTab('custom');
+      setSuccessMsg(`Subject "${template.name}" added successfully!`);
+      setTimeout(() => setSuccessMsg(null), 3000);
+    }
+  };
 
   const handleSaveCurrent = (e: React.FormEvent) => {
     e.preventDefault();
@@ -171,13 +190,23 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
             </button>
           </div>
 
-          <button
-            onClick={() => setIsSaving(!isSaving)}
-            className="px-3 py-1 bg-neutral-900 hover:bg-neutral-800 text-white rounded-lg text-xs font-medium transition flex items-center gap-1 border border-neutral-700 cursor-pointer"
-          >
-            <Plus className="w-3 h-3 text-white" />
-            <span>Save Current</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setIsSubjectAdderOpen(true)}
+              className="px-3 py-1 bg-white hover:bg-neutral-200 text-black font-semibold rounded-lg text-xs transition flex items-center gap-1 cursor-pointer shadow-xs"
+              title="Add subject from curriculum answers JSON"
+            >
+              <BookPlus className="w-3.5 h-3.5 text-black" />
+              <span>+ Subject Adder</span>
+            </button>
+            <button
+              onClick={() => setIsSaving(!isSaving)}
+              className="px-3 py-1 bg-neutral-900 hover:bg-neutral-800 text-white rounded-lg text-xs font-medium transition flex items-center gap-1 border border-neutral-700 cursor-pointer"
+            >
+              <Plus className="w-3 h-3 text-white" />
+              <span>Save Current</span>
+            </button>
+          </div>
         </div>
 
         {/* Save Current Template Form */}
@@ -348,6 +377,13 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Embedded Subject Adder Modal */}
+      <SubjectAdderModal
+        isOpen={isSubjectAdderOpen}
+        onClose={() => setIsSubjectAdderOpen(false)}
+        onSubjectAdded={handleSubjectCreated}
+      />
     </div>
   );
 };

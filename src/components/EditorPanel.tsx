@@ -428,6 +428,16 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                   {q.type}
                 </span>
 
+                {/* Answer Key Badge if present */}
+                {q.answerKey && (
+                  <span
+                    className="text-[9px] text-white px-1.5 py-0.5 rounded bg-neutral-900 border border-neutral-700 shrink-0 font-mono truncate max-w-[90px]"
+                    title={`Answer Key: ${q.answerKey}`}
+                  >
+                    Key: {q.answerKey}
+                  </span>
+                )}
+
                 {/* Up/Down buttons for accessibility */}
                 <div className="flex items-center shrink-0">
                   <button
@@ -582,6 +592,22 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                       </div>
                     </div>
                   )}
+
+                  {/* Answer Key Input */}
+                  <div className="pt-2 border-t border-neutral-850">
+                    <label className="block text-[10px] text-neutral-400 mb-1">
+                      Answer Key / Model Solution
+                    </label>
+                    <input
+                      type="text"
+                      value={q.answerKey || ''}
+                      onChange={(e) =>
+                        onUpdateQuestion(activeSection.id, q.id, { answerKey: e.target.value })
+                      }
+                      placeholder="e.g. (b) Only two values"
+                      className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1 text-xs text-white focus:outline-hidden"
+                    />
+                  </div>
                 </div>
               )}
             </div>

@@ -367,6 +367,37 @@ export function getCustomTemplates(): SubjectTemplate[] {
   }
 }
 
+export function saveCustomSubject(
+  name: string,
+  subject: string,
+  classGrade: string,
+  category: 'Math' | 'Science' | 'History' | 'Computer Science' | 'English' | 'Other',
+  paper: ExamPaper,
+  curriculumData?: import('../types/exam').CurriculumAnswersPayload
+): SubjectTemplate {
+  const existing = getCustomTemplates();
+  const newTemplate: SubjectTemplate = {
+    id: 'subject-' + Date.now(),
+    name,
+    subject,
+    classGrade,
+    group: paper.header.groupName,
+    category,
+    description: `Curriculum-based subject for ${classGrade} • ${paper.sections.length} Sections • ${paper.sections.reduce(
+      (a, s) => a + s.questions.length,
+      0
+    )} Questions.`,
+    isBuiltIn: false,
+    paper: JSON.parse(JSON.stringify(paper)),
+    curriculumData,
+  };
+
+  const updated = [newTemplate, ...existing];
+  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+  savePaperToLibrary(paper);
+  return newTemplate;
+}
+
 export function saveCustomTemplate(
   name: string,
   category: 'Math' | 'Science' | 'History' | 'Computer Science' | 'English' | 'Other',

@@ -19,7 +19,7 @@ import {
   getDocFromServer,
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
-import { ExamPaper, SubjectTemplate } from '../types/exam';
+import { ExamPaper, SubjectTemplate, CurriculumSubjectRecord } from '../types/exam';
 
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 export const auth = getAuth(app);
@@ -164,22 +164,33 @@ export async function saveExamPaperToFirestore(paper: ExamPaper): Promise<void> 
   }
 }
 
-// 2. Fetch User's Exam Papers
+// 2. Fetch User's Exam Papers (Loads user papers or all available public/guest papers)
 export async function loadExamPapersFromFirestore(): Promise<ExamPaper[]> {
   const user = auth.currentUser;
   const path = 'exam_papers';
-  if (!user) return [];
 
   try {
-    const q = query(collection(db, path), where('userId', '==', user.uid));
-    const snapshot = await getDocs(q);
+    let snapshot;
+    if (user) {
+      // Query papers matching user ID
+      const q = query(collection(db, path), where('userId', '==', user.uid));
+      snapshot = await getDocs(q);
+      // Also get guest/public papers if user has none
+      if (snapshot.empty) {
+        snapshot = await getDocs(collection(db, path));
+      }
+    } else {
+      // Unauthenticated / guest: load papers collection
+      snapshot = await getDocs(collection(db, path));
+    }
+
     const papers: ExamPaper[] = [];
     snapshot.forEach((d) => {
       papers.push(d.data() as ExamPaper);
     });
     return papers;
   } catch (err) {
-    handleFirestoreError(err, OperationType.LIST, path);
+    console.warn('Could not load papers from Firestore:', err);
     return [];
   }
 }
@@ -215,18 +226,26 @@ export async function saveTemplateToFirestore(template: SubjectTemplate): Promis
 export async function loadTemplatesFromFirestore(): Promise<SubjectTemplate[]> {
   const user = auth.currentUser;
   const path = 'custom_templates';
-  if (!user) return [];
 
   try {
-    const q = query(collection(db, path), where('userId', '==', user.uid));
-    const snapshot = await getDocs(q);
+    let snapshot;
+    if (user) {
+      const q = query(collection(db, path), where('userId', '==', user.uid));
+      snapshot = await getDocs(q);
+      if (snapshot.empty) {
+        snapshot = await getDocs(collection(db, path));
+      }
+    } else {
+      snapshot = await getDocs(collection(db, path));
+    }
+
     const templates: SubjectTemplate[] = [];
     snapshot.forEach((d) => {
       templates.push(d.data() as SubjectTemplate);
     });
     return templates;
   } catch (err) {
-    handleFirestoreError(err, OperationType.LIST, path);
+    console.warn('Could not load templates from Firestore:', err);
     return [];
   }
 }
@@ -240,3 +259,49 @@ export async function deleteTemplateFromFirestore(templateId: string): Promise<v
     handleFirestoreError(err, OperationType.DELETE, path);
   }
 }
+
+// 7. Save Curriculum Subject Record
+export async function saveCurriculumSubjectToFirestore(
+  subject: CurriculumSubjectRecord
+): Promise<void> {
+  const user = auth.currentUser;
+  const path = `curriculum_subjects/${subject.id}`;
+  const payload = {
+    ...subject,
+    userId: user?.uid || 'guest',
+    updatedAt: new Date().toISOString(),
+  };
+
+  try {
+    await setDoc(doc(db, 'curriculum_subjects', subject.id), payload);
+  } catch (err) {
+    handleFirestoreError(err, OperationType.WRITE, path);
+  }
+}
+
+// 8. Load Curriculum Subject Records
+export async function loadCurriculumSubjectsFromFirestore(): Promise<CurriculumSubjectRecord[]> {
+  const path = 'curriculum_subjects';
+  try {
+    const snapshot = await getDocs(collection(db, path));
+    const list: CurriculumSubjectRecord[] = [];
+    snapshot.forEach((d) => {
+      list.push(d.data() as CurriculumSubjectRecord);
+    });
+    return list;
+  } catch (err) {
+    console.warn('Could not load curriculum subjects from Firestore:', err);
+    return [];
+  }
+}
+
+// 9. Delete Curriculum Subject Record
+export async function deleteCurriculumSubjectFromFirestore(subjectId: string): Promise<void> {
+  const path = `curriculum_subjects/${subjectId}`;
+  try {
+    await deleteDoc(doc(db, 'curriculum_subjects', subjectId));
+  } catch (err) {
+    handleFirestoreError(err, OperationType.DELETE, path);
+  }
+}
+
