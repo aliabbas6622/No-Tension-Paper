@@ -1,0 +1,1100 @@
+{
+  "curriculum_answers": [
+    {
+      "unit": "Unit 1: Computer Systems",
+      "pages": ["69", "70"],
+      "sections": [
+        {
+          "type": "Encircle the correct answer (MCQs)",
+          "questions": [
+            {
+              "question_number": "i",
+              "question": "A digital signal has:",
+              "options": ["(a) Infinite values", "(b) Only two values", "(c) Three values", "(d) Ten values"],
+              "answer": "(b) Only two values"
+            },
+            {
+              "question_number": "ii",
+              "question": "Which gate gives output 1 only when all inputs are 1?",
+              "options": ["(a) OR gate", "(b) AND gate", "(c) NOT gate", "(d) NOR gate"],
+              "answer": "(b) AND gate"
+            },
+            {
+              "question_number": "iii",
+              "question": "XOR gate gives output 1 when inputs are:",
+              "options": ["(a) Same", "(b) Different", "(c) Both 0", "(d) Both 1"],
+              "answer": "(b) Different"
+            },
+            {
+              "question_number": "iv",
+              "question": "Which phase comes first in SDLC?",
+              "options": ["(a) Testing", "(b) Requirement Analysis", "(c) Coding", "(d) Design"],
+              "answer": "(b) Requirement Analysis"
+            },
+            {
+              "question_number": "v",
+              "question": "In Agile, a short development cycle is called:",
+              "options": ["(a) Phase", "(b) Sprint", "(c) Module", "(d) Release"],
+              "answer": "(b) Sprint"
+            },
+            {
+              "question_number": "vi",
+              "question": "Which testing type does NOT require knowledge of code?",
+              "options": ["(a) White box testing", "(b) Black box testing", "(c) Unit testing", "(d) Code review"],
+              "answer": "(b) Black box testing"
+            },
+            {
+              "question_number": "vii",
+              "question": "What device operates at the Network layer (Layer 3) of the OSI model?",
+              "options": ["(a) Hub", "(b) Switch", "(c) Router", "(d) Repeater"],
+              "answer": "(c) Router"
+            },
+            {
+              "question_number": "viii",
+              "question": "How many layers does the TCP/IP model have?",
+              "options": ["(a) 3", "(b) 4", "(c) 5", "(d) 7"],
+              "answer": "(b) 4"
+            },
+            {
+              "question_number": "ix",
+              "question": "UDP is preferred over TCP for video streaming because:",
+              "options": ["(a) UDP is more reliable", "(b) UDP is slower but more accurate", "(c) UDP is faster and has lower delay", "(d) UDP guarantees delivery"],
+              "answer": "(c) UDP is faster and has lower delay"
+            },
+            {
+              "question_number": "x",
+              "question": "Which OSI layer is responsible for routing packets between networks?",
+              "options": ["(a) Physical", "(b) Data Link", "(c) Network", "(d) Transport"],
+              "answer": "(c) Network"
+            }
+          ]
+        },
+        {
+          "type": "Fill in the Blanks",
+          "questions": [
+            {
+              "question_number": "i",
+              "question": "An ___________ gate gives output 1 only when both the inputs are same.",
+              "answer": "XNOR"
+            },
+            {
+              "question_number": "ii",
+              "question": "The ___________ gate is also called an inverter.",
+              "answer": "NOT"
+            },
+            {
+              "question_number": "iii",
+              "question": "In Agile, a short development cycle is called a ___________.",
+              "answer": "Sprint"
+            },
+            {
+              "question_number": "iv",
+              "question": "SRS stands for ___________.",
+              "answer": "Software Requirements Specification"
+            },
+            {
+              "question_number": "v",
+              "question": "UDP stands for ___________.",
+              "answer": "User Datagram Protocol"
+            }
+          ]
+        },
+        {
+          "type": "Provide short descriptive answers",
+          "questions": [
+            {
+              "question_number": "i",
+              "question": "Define digital logic and give two examples of digital devices.",
+              "answer": "Digital logic is a branch of electronics that deals with discrete values (usually 0 and 1) to perform logical operations. It forms the basis of digital circuits and computers. Examples: Smartphones, Digital Watches, Computers, Digital Cameras."
+            },
+            {
+              "question_number": "ii",
+              "question": "What is the difference between analog and digital signals?",
+              "answer": "Analog Signals are continuous signals that vary smoothly over time and can take any value within a range (e.g., sound waves). Digital Signals are discrete signals that represent data as a sequence of binary values (0s and 1s) at specific intervals (e.g., computer data)."
+            },
+            {
+              "question_number": "iii",
+              "question": "Compare Waterfall and Agile models. When would we use each?",
+              "answer": "Waterfall is a linear, sequential approach where each phase must be completed before the next begins. Use for projects with well-defined, unchanging requirements. Agile is an iterative and incremental approach focusing on flexibility and delivering working software in short cycles. Use for projects with evolving requirements or high uncertainty."
+            },
+            {
+              "question_number": "iv",
+              "question": "What is the difference between an IP address and a MAC address?",
+              "answer": "IP Address (Logical): Assigned by a network or ISP, can change based on location, operates at the Network Layer (Layer 3), used for routing packets across networks. MAC Address (Physical): Hardcoded into the Network Interface Card (NIC) by the manufacturer, permanent, operates at the Data Link Layer (Layer 2), used for local delivery within a network."
+            },
+            {
+              "question_number": "v",
+              "question": "Explain the difference between TCP and UDP. Give one real-life example of each.",
+              "answer": "TCP (Transmission Control Protocol): Connection-oriented, reliable, ensures data arrives in order, slower due to error-checking. Example: Web browsing. UDP (User Datagram Protocol): Connectionless, unreliable, faster with lower latency. Example: Video streaming."
+            }
+          ]
+        },
+        {
+          "type": "Provide detailed answers",
+          "questions": [
+            {
+              "question_number": "i",
+              "question": "Explain all seven logic gates with their symbols, Boolean expressions, and truth tables.",
+              "answer": "1. AND Gate: Output is 1 only if all inputs are 1. Expression: Y = A · B. Symbol: D-shaped. 2. OR Gate: Output is 1 if at least one input is 1. Expression: Y = A + B. Symbol: Shield-shaped. 3. NOT Gate: Output is the opposite of the input. Expression: Y = A'. Symbol: Triangle with a bubble. 4. NAND Gate: Opposite of AND. Expression: Y = (A · B)'. Symbol: D-shape with a bubble. 5. NOR Gate: Opposite of OR. Expression: Y = (A + B)'. Symbol: Shield-shape with a bubble. 6. XOR Gate: Output is 1 if inputs are different. Expression: Y = A ⊕ B. Symbol: Shield-shape with an extra curved line. 7. XNOR Gate: Output is 1 if inputs are the same. Expression: Y = (A ⊕ B)'. Symbol: XOR symbol with a bubble."
+            },
+            {
+              "question_number": "ii",
+              "question": "Draw the truth table for the expression: Y = A' · B + C",
+              "answer": "A | B | C | A' | A'·B | Y\n0 | 0 | 0 | 1 | 0 | 0\n0 | 0 | 1 | 1 | 0 | 1\n0 | 1 | 0 | 1 | 1 | 1\n0 | 1 | 1 | 1 | 1 | 1\n1 | 0 | 0 | 0 | 0 | 0\n1 | 0 | 1 | 0 | 0 | 1\n1 | 1 | 0 | 0 | 0 | 0\n1 | 1 | 1 | 0 | 0 | 1"
+            },
+            {
+              "question_number": "iii",
+              "question": "Explain all phases of SDLC in detail with activities and deliverables.",
+              "answer": "1. Requirement Analysis: Gathering business needs. Activities: Interviews, surveys. Deliverables: SRS Document. 2. Design: Creating the blueprint. Activities: Architectural design. Deliverables: Design Document. 3. Implementation/Coding: Writing the code. Activities: Programming. Deliverables: Source Code. 4. Testing: Verifying the software. Activities: Integration testing, bug fixing. Deliverables: Test Cases. 5. Deployment: Releasing to users. Activities: Installation, training. Deliverables: User Manual. 6. Maintenance: Ongoing support. Activities: Bug fixes, updates. Deliverables: Updated Software."
+            },
+            {
+              "question_number": "iv",
+              "question": "Explain each layer of the OSI model in detail. For each layer, state its main function, one real-life analogy, and two protocols used.",
+              "answer": "1. Physical: Transmits raw bits. Analogy: Roads. Protocols: Ethernet, USB. 2. Data Link: Node-to-node transfer. Analogy: Traffic lights. Protocols: MAC, PPP. 3. Network: Logical addressing and routing. Analogy: GPS/Postal system. Protocols: IP, ICMP. 4. Transport: End-to-end communication. Analogy: Delivery trucks. Protocols: TCP, UDP. 5. Session: Manages connections. Analogy: Phone call session. Protocols: NetBIOS, RPC. 6. Presentation: Data translation, encryption. Analogy: Translators. Protocols: SSL/TLS, JPEG. 7. Application: Network services to apps. Analogy: Storefront. Protocols: HTTP, FTP."
+            },
+            {
+              "question_number": "v",
+              "question": "Describe the four types of software maintenance with examples.",
+              "answer": "1. Corrective: Fixing bugs. Example: Patching a security vulnerability. 2. Adaptive: Modifying to work in a new environment. Example: Updating an app for a new OS. 3. Perfective: Improving performance. Example: Refactoring code for speed. 4. Preventive: Modifying to prevent future issues. Example: Updating legacy code."
+            }
+          ]
+        },
+        {
+          "type": "Activities",
+          "questions": [
+            {
+              "question_number": "1",
+              "question": "Create a truth table for Y = A · B · C + A' · B",
+              "answer": "A | B | C | A' | A·B·C | A'·B | Y\n0 | 0 | 0 | 1 | 0 | 0 | 0\n0 | 0 | 1 | 1 | 0 | 0 | 0\n0 | 1 | 0 | 1 | 0 | 1 | 1\n0 | 1 | 1 | 1 | 0 | 1 | 1\n1 | 0 | 0 | 0 | 0 | 0 | 0\n1 | 0 | 1 | 0 | 0 | 0 | 0\n1 | 1 | 0 | 0 | 0 | 0 | 0\n1 | 1 | 1 | 0 | 1 | 0 | 1"
+            },
+            {
+              "question_number": "2",
+              "question": "Design a logic circuit for a simple burglar alarm that sounds when EITHER the door OR window is opened.",
+              "answer": "Inputs: D (Door sensor), W (Window sensor). Output: Alarm. Logic: OR gate. Boolean Expression: Alarm = D + W. Connect Door sensor and Window sensor to the inputs of an OR gate. Connect output to the alarm bell."
+            },
+            {
+              "question_number": "3",
+              "question": "Use an online LogiSim to verify your truth tables.",
+              "answer": "Practical activity - build the circuit in LogiSim and toggle inputs 0 and 1 to see if the output matches the truth tables."
+            },
+            {
+              "question_number": "4",
+              "question": "Create an SRS document for a simple calculator app.",
+              "answer": "Introduction: Purpose (perform basic arithmetic). Scope. Overall Description: User interface (buttons for 0-9, +, -, *, /, =, C), assumptions (works on mobile). Specific Requirements: Functional (Must add, subtract, multiply, divide. Must handle division by zero). Non-Functional (Response time under 1 second). External Interfaces (Touchscreen input)."
+            },
+            {
+              "question_number": "5",
+              "question": "Draw a flowchart for a program that checks if a number is even or odd.",
+              "answer": "1. Start. 2. Input Number (N). 3. Decision: Is N % 2 == 0? 4. Yes: Print 'Even' -> End. 5. No: Print 'Odd' -> End."
+            },
+            {
+              "question_number": "6",
+              "question": "Open the command prompt... ping www.google.com... Which OSI layer and protocol is being used? What does the output tell you about network connectivity?",
+              "answer": "OSI Layer: Network Layer (Layer 3). Protocol: ICMP (Internet Control Message Protocol). Output meaning: Tells you if the target host is reachable, the IP address resolved, Round-Trip Time (RTT) in milliseconds, and packet loss percentage."
+            },
+            {
+              "question_number": "7",
+              "question": "Draw a diagram showing the seven layers of the OSI model... Use the mnemonic 'Please Do Not Throw Sausage Pizza Away'.",
+              "answer": "Please - Physical (Layer 1)\nDo - Data Link (Layer 2)\nNot - Network (Layer 3)\nThrow - Transport (Layer 4)\nSausage - Session (Layer 5)\nPizza - Presentation (Layer 6)\nAway - Application (Layer 7)"
+            },
+            {
+              "question_number": "8",
+              "question": "Create a comparison table of TCP and UDP, listing at least five differences. For each protocol, give two examples of applications that use it and explain why.",
+              "answer": "Feature | TCP | UDP\nConnection | Connection-oriented | Connectionless\nReliability | Reliable | Unreliable\nSpeed | Slower | Faster\nOrdering | In order | Out of order\nHeader Size | Larger (20 bytes) | Smaller (8 bytes)\nApplications | Web (HTTP), Email (SMTP) | Video Streaming, VoIP\nWhy? | Needs accuracy, no data loss | Needs speed, losing frames is ok"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit": "Unit 2: Computational Thinking & Algorithm",
+      "pages": ["89"],
+      "sections": [
+        {
+          "type": "Encircle the correct answer (MCQs)",
+          "questions": [
+            {
+              "question_number": "i",
+              "question": "Which strategy involves ignoring the brand of a kettle when learning how to make tea?",
+              "options": ["(a) Decomposition", "(b) Pattern Recognition", "(c) Abstraction", "(d) Sorting"],
+              "answer": "(c) Abstraction"
+            },
+            {
+              "question_number": "ii",
+              "question": "Bubble Sort is also commonly known as:",
+              "options": ["(a) Linear Sort", "(b) Ripple Sort", "(c) Selection Sort", "(d) Binary Sort"],
+              "answer": "(b) Ripple Sort"
+            },
+            {
+              "question_number": "iii",
+              "question": "Which searching algorithm requires the data to be sorted before it can be used?",
+              "options": ["(a) Linear Search", "(b) Sequential Search", "(c) Binary Search", "(d) Bubble Search"],
+              "answer": "(c) Binary Search"
+            },
+            {
+              "question_number": "iv",
+              "question": "What is the main disadvantage of Selection Sort?",
+              "options": ["(a) It uses extra RAM", "(b) It is difficult to code", "(c) It must finish every loop even if the list is sorted", "(d) It only works on alphabetical data"],
+              "answer": "(c) It must finish every loop even if the list is sorted"
+            },
+            {
+              "question_number": "v",
+              "question": "An algorithm is considered \"correct\" if:",
+              "options": ["(a) It runs very fast", "(b) Its output matches expected outcomes for given inputs", "(c) It uses minimal memory", "(d) It is written in a specific programming language"],
+              "answer": "(b) Its output matches expected outcomes for given inputs"
+            },
+            {
+              "question_number": "vi",
+              "question": "What does the abbreviation CT stand for?",
+              "options": ["(a) Computer Technology", "(b) Computational Thinking", "(c) Central Terminal", "(d) Coding Technique"],
+              "answer": "(b) Computational Thinking"
+            },
+            {
+              "question_number": "vii",
+              "question": "Which operation is represented by MOD?",
+              "options": ["(a) Multiplication", "(b) Division", "(c) Subtraction", "(d) Finding the remainder after division"],
+              "answer": "(d) Finding the remainder after division"
+            },
+            {
+              "question_number": "viii",
+              "question": "In algorithms, what is the purpose of a PTR?",
+              "options": ["(a) To store text data", "(b) To perform calculations", "(c) To track positions in an array", "(d) To display output"],
+              "answer": "(c) To track positions in an array"
+            },
+            {
+              "question_number": "ix",
+              "question": "What does INT represent in an algorithm?",
+              "options": ["(a) Internet", "(b) Integer", "(c) Interval", "(d) Input"],
+              "answer": "(b) Integer"
+            },
+            {
+              "question_number": "x",
+              "question": "In the Binary Search algorithm, the abbreviations BEG, END, and MID represent:",
+              "options": ["(a) Input, Process, and Output", "(b) Beginning, End, and Middle positions", "(c) First, Last, and Next values", "(d) Start, Stop, and Result"],
+              "answer": "(b) Beginning, End, and Middle positions"
+            }
+          ]
+        },
+        {
+          "type": "Fill in the Blanks",
+          "questions": [
+            {
+              "question_number": "i",
+              "question": "___________ is a step-by-step logical procedure to solve a problem.",
+              "answer": "Algorithm"
+            },
+            {
+              "question_number": "ii",
+              "question": "Sorting may be Ascending or ___________.",
+              "answer": "Descending"
+            },
+            {
+              "question_number": "iii",
+              "question": "Algorithm is ___________ and language-independent.",
+              "answer": "logic"
+            },
+            {
+              "question_number": "iv",
+              "question": "___________ algorithm is designed to locate a specific element within list of data.",
+              "answer": "Searching"
+            },
+            {
+              "question_number": "v",
+              "question": "We measure any algorithm efficiency through ___________ and ___________ as resources.",
+              "answer": "time, space"
+            }
+          ]
+        },
+        {
+          "type": "Provide short descriptive answers",
+          "questions": [
+            {
+              "question_number": "i",
+              "question": "Define pattern recognition.",
+              "answer": "Pattern recognition is the process of identifying similarities, trends, or regularities in problems or data to solve them more efficiently."
+            },
+            {
+              "question_number": "ii",
+              "question": "Explain the concept of decomposition.",
+              "answer": "Decomposition is breaking down a complex problem or system into smaller, more manageable sub-problems that are easier to solve individually."
+            },
+            {
+              "question_number": "iii",
+              "question": "What is meant by correctness in problem-solving?",
+              "answer": "Correctness means that an algorithm produces the expected and accurate output for all valid inputs within a reasonable time."
+            },
+            {
+              "question_number": "iv",
+              "question": "Why is efficiency important in problem-solving?",
+              "answer": "Efficiency is important because it minimizes the time (time complexity) and memory (space complexity) required to solve a problem, especially for large datasets."
+            },
+            {
+              "question_number": "v",
+              "question": "What do you understand by clarity in problem-solving?",
+              "answer": "Clarity means the algorithm should be easy to understand, read, and follow step-by-step without ambiguity, making it simple to translate into code."
+            }
+          ]
+        },
+        {
+          "type": "Provide detailed answers",
+          "questions": [
+            {
+              "question_number": "i",
+              "question": "What is the difference between an algorithm and pseudocode?",
+              "answer": "An algorithm is the actual step-by-step logic or procedure used to solve a problem. Pseudocode is a simplified, informal, programming-like language used to write and represent the algorithm so humans can easily read it before coding."
+            },
+            {
+              "question_number": "ii",
+              "question": "What is abstraction in an algorithm, and why is it used?",
+              "answer": "Abstraction is the process of filtering out irrelevant details and focusing only on the essential features of a problem. It is used to simplify complex problems, making them easier to understand and solve."
+            },
+            {
+              "question_number": "iii",
+              "question": "Write the steps of the Selection Sort algorithm.",
+              "answer": "1. Find the minimum element in the unsorted array. 2. Swap it with the first element of the unsorted array. 3. Move the boundary of the unsorted array one step to the right. 4. Repeat the process until the entire array is sorted."
+            },
+            {
+              "question_number": "iv",
+              "question": "Write the steps of the Binary Search algorithm.",
+              "answer": "1. Find the middle element of the sorted array. 2. If the target equals the middle element, return its index. 3. If the target is less than the middle element, search the left half. 4. If the target is greater, search the right half. 5. Repeat until the target is found or the subarray becomes empty."
+            },
+            {
+              "question_number": "v",
+              "question": "Which searching algorithm is best for large datasets? Explain your answer.",
+              "answer": "Binary Search is best for large datasets. It has a time complexity of O(log n), meaning it halves the search space with each step. This makes it significantly faster than Linear Search (O(n)) which checks each element one by one, provided the data is already sorted."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit": "Unit 3: Programming Fundamentals",
+      "pages": ["136", "137"],
+      "sections": [
+        {
+          "type": "Encircle the correct answer (MCQs)",
+          "questions": [
+            {
+              "question_number": "i",
+              "question": "Which is the correct statement to insert Comments in Python code?",
+              "options": ["(a) // This is comment", "(b) /* This is comment*/", "(c) # This is comment", "(d) - - This is comment"],
+              "answer": "(c) # This is comment"
+            },
+            {
+              "question_number": "ii",
+              "question": "Which one is not a legal variable name?",
+              "options": ["(a) _myvar", "(b) my_var", "(c) Myvar", "(d) my-var"],
+              "answer": "(d) my-var"
+            },
+            {
+              "question_number": "iii",
+              "question": "Which one is the correct way to write if statement in Python?",
+              "options": ["(a) if (condition):", "(b) if(condition );", "(c) if (1):", "(d) none of these"],
+              "answer": "(a) if (condition):"
+            },
+            {
+              "question_number": "iv",
+              "question": "_____ is the operator can be used to compare two values?",
+              "options": ["(a) <>", "(b) ==", "(c) ><", "(d) ="],
+              "answer": "(b) =="
+            },
+            {
+              "question_number": "v",
+              "question": "_____ loop is used when the number of iterations is known in advance",
+              "options": ["(a) While", "(b) Do while", "(c) For", "(d) For each"],
+              "answer": "(c) For"
+            },
+            {
+              "question_number": "vi",
+              "question": "Which programming language is closest to binary (0s and 1s)?",
+              "options": ["(a) High Level language", "(b) Mid-Level Language", "(c) Low Level language", "(d) Script Language"],
+              "answer": "(c) Low Level language"
+            },
+            {
+              "question_number": "vii",
+              "question": "Standard indentation in Python?",
+              "options": ["(a) 2 spaces", "(b) 4 spaces", "(c) 6 spaces", "(d) 8 spaces"],
+              "answer": "(b) 4 spaces"
+            },
+            {
+              "question_number": "viii",
+              "question": "_____ data type does the input() function always return.",
+              "options": ["(a) Int", "(b) Float", "(c) String", "(d) Bool"],
+              "answer": "(c) String"
+            },
+            {
+              "question_number": "ix",
+              "question": "_____ statement exits a loop immediately",
+              "options": ["(a) Pass", "(b) Continue", "(c) Break", "(d) Exit"],
+              "answer": "(c) Break"
+            },
+            {
+              "question_number": "x",
+              "question": "_____ bitwise operator returns 1 only when BOTH bits are 1?",
+              "options": ["(a) AND", "(b) OR", "(c) NOT", "(d) XOR"],
+              "answer": "(a) AND"
+            }
+          ]
+        },
+        {
+          "type": "Fill in the Blanks",
+          "questions": [
+            {
+              "question_number": "i",
+              "question": "Remarks or notes added for the developer in the source code are called ___________.",
+              "answer": "Comments"
+            },
+            {
+              "question_number": "ii",
+              "question": "An identifier whose value can change during program execution is called a ___________.",
+              "answer": "Variable"
+            },
+            {
+              "question_number": "iii",
+              "question": "A ___________ cannot be used as a variable name in Python.",
+              "answer": "Keyword (or Reserved Word)"
+            },
+            {
+              "question_number": "iv",
+              "question": "The extension of Python source code files is ___________.",
+              "answer": ".py"
+            },
+            {
+              "question_number": "v",
+              "question": "The statement used to execute different blocks of code based on a condition in Python is called the ___________ statement.",
+              "answer": "if (or conditional/selection)"
+            }
+          ]
+        },
+        {
+          "type": "Provide short descriptive answers",
+          "questions": [
+            {
+              "question_number": "i",
+              "question": "What is a selection statement? Differentiate between if, elif, and else with an example.",
+              "answer": "A selection statement allows a program to choose different paths of execution based on conditions. `if`: Evaluates a condition. `elif`: Checks another condition if previous were false. `else`: Executes if all previous conditions were false. Example: score = 75; if score >= 90: print('A') elif score >= 70: print('B') else: print('C')"
+            },
+            {
+              "question_number": "ii",
+              "question": "What is the difference between a for loop and a while loop?",
+              "answer": "For loop: Used for iterating over a sequence or a known range of numbers. Used when the number of iterations is known in advance. While loop: Repeats a block of code as long as a given condition remains True. Used when the number of iterations is unknown."
+            },
+            {
+              "question_number": "iii",
+              "question": "What are the three types of errors in Python? Define each in one line.",
+              "answer": "1. Syntax Errors: Errors in the grammar/structure of the code that prevent the program from running. 2. Runtime Errors (Exceptions): Errors that occur while the program is running causing it to crash. 3. Logical Errors: Errors in the program's logic where it runs without crashing but produces incorrect results."
+            },
+            {
+              "question_number": "iv",
+              "question": "What is debugging? Explain the techniques used for debugging.",
+              "answer": "Debugging is the process of finding, analyzing, and fixing bugs (errors) in a program. Techniques: Print Statements, Using a Debugger (like pdb), Reading Tracebacks, Unit Testing."
+            },
+            {
+              "question_number": "v",
+              "question": "Define following terms: (a) Sequence (b) Datatype (c) Repetition (d) Variable (e) Arithmetic Operator",
+              "answer": "(a) Sequence: The default execution order of statements in a program, line by line. (b) Datatype: A classification specifying which type of value a variable can hold. (c) Repetition: The process of executing a block of code multiple times (looping). (d) Variable: A named storage location in memory used to hold data. (e) Arithmetic Operator: Symbols used to perform mathematical calculations (+, -, *, /)."
+            }
+          ]
+        },
+        {
+          "type": "Provide detailed answers",
+          "questions": [
+            {
+              "question_number": "i",
+              "question": "What are control structures in Python? Explain Sequence, Selection (if, if-else, if-elif-else, Nested if), and Repetition (for loop, while loop, Nested loop) with syntax and code examples for each.",
+              "answer": "Control structures dictate the flow of execution. Sequence: Code executed line by line. Selection: if condition: block; elif condition: block; else: block. Example: if x > 5: if x % 2 == 0: print('Positive even'). Repetition: for i in range(5): block OR while condition: block. Example: for i in range(3): for j in range(2): print(i, j)."
+            },
+            {
+              "question_number": "ii",
+              "question": "Explain variables and data types in Python. List all built-in data types with their names, type keywords, descriptions, and examples in the form of a table.",
+              "answer": "Data Type | Type Keyword | Description | Example\nInteger | int | Whole numbers | x = 10\nFloat | float | Decimal numbers | y = 10.5\nString | str | Sequence of characters | name = 'Ali'\nBoolean | bool | Truth values | is_true = True\nList | list | Ordered, mutable collection | fruits = ['apple', 'banana']\nTuple | tuple | Ordered, immutable collection | coords = (10, 20)\nDictionary | dict | Key-value pairs | student = {'name': 'Ali', 'age': 15}\nSet | set | Unordered unique items | nums = {1, 2, 3}\nNoneType | None | Absence of value | result = None"
+            },
+            {
+              "question_number": "iii",
+              "question": "Describe input and output handling in Python. Explain the print() and input() functions with their syntax, purpose, and at least two code examples each.",
+              "answer": "print(): Displays output to console. Syntax: print(value1, value2, sep=' ', end='\n'). Examples: print('Hello World'), print('Age:', 15, 'Years'). input(): Reads input from user as a string. Syntax: variable = input('Prompt'). Examples: name = input('Enter name: '), age = int(input('Enter age: '))"
+            },
+            {
+              "question_number": "iv",
+              "question": "Explain all Arithmetic and Assignment Operators in Python with their symbols, purpose, examples, and results in tabular form. Also write a code example for each.",
+              "answer": "Arithmetic: + (Addition, 5+3=8), - (Subtraction, 5-3=2), * (Multiplication, 5*3=15), / (Division, 5/2=2.5), // (Floor Division, 5//2=2), % (Modulus, 5%2=1), ** (Exponentiation, 5**2=25). Example: result = 10 + 5 * 2. Assignment: = (Assign, x=5), += (Add and Assign, x+=3), -= (Subtract and Assign, x-=3), *= (Multiply and Assign, x*=3), /= (Divide and Assign, x/=3). Example: x=10; x+=5; print(x) # 15"
+            },
+            {
+              "question_number": "v",
+              "question": "What is debugging in Python? Explain the types of errors in detail with code examples for each type. Also describe the technique of reading error messages (Tracebacks).",
+              "answer": "Debugging is identifying and removing errors. Syntax Error: print('Hello' (Missing parenthesis). Runtime Error: print(10 / 0) (ZeroDivisionError). Logical Error: Using + instead of * in a formula. Reading Tracebacks: Python prints a Traceback showing file name, line number, line of code, and type of error. Reading it bottom-up helps find the exact location and cause of the crash."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit": "Unit 4: Data and Analysis",
+      "pages": ["171", "172", "173"],
+      "sections": [
+        {
+          "type": "Encircle the correct answer (MCQs)",
+          "questions": [
+            {
+              "question_number": "i",
+              "question": "Which of the following is a DBMS?",
+              "options": ["(a) MS Word", "(b) MS Excel", "(c) MS Access", "(d) MS Paint"],
+              "answer": "(c) MS Access"
+            },
+            {
+              "question_number": "ii",
+              "question": "In an ER Model, a rectangle represents:",
+              "options": ["(a) Attribute", "(b) Relationship", "(c) Entity", "(d) Key"],
+              "answer": "(c) Entity"
+            },
+            {
+              "question_number": "iii",
+              "question": "A one-to-many relationship means",
+              "options": ["(a) One record relates to many", "(b) Many to one only", "(c) One to One", "(d) None"],
+              "answer": "(a) One record relates to many"
+            },
+            {
+              "question_number": "iv",
+              "question": "Which object is used to retrieve data?",
+              "options": ["(a) Table", "(b) Form", "(c) Query", "(d) Report"],
+              "answer": "(c) Query"
+            },
+            {
+              "question_number": "v",
+              "question": "Which function calculates average?",
+              "options": ["(a) Sum()", "(b) Count()", "(c) Avg()", "(d) Max()"],
+              "answer": "(c) Avg()"
+            },
+            {
+              "question_number": "vi",
+              "question": "Which key uniquely identifies each record in a table?",
+              "options": ["(a) Foreign Key", "(b) Primary Key", "(c) Alternate Key", "(d) Candidate Key"],
+              "answer": "(b) Primary Key"
+            },
+            {
+              "question_number": "vii",
+              "question": "Which relationship requires a junction table?",
+              "options": ["(a) One-to-One", "(b) One-to-Many", "(c) Many-to-Many", "(d) None"],
+              "answer": "(c) Many-to-Many"
+            },
+            {
+              "question_number": "viii",
+              "question": "Which database objects provides a user friendly interface for data entry?",
+              "options": ["(a) Query", "(b) Table", "(c) Report", "(d) Form"],
+              "answer": "(d) Form"
+            },
+            {
+              "question_number": "ix",
+              "question": "Which chart is best used to show trends over time?",
+              "options": ["(a) Pie Chart", "(b) Bar Chart", "(c) Line Chart", "(d) Column Chart"],
+              "answer": "(c) Line Chart"
+            },
+            {
+              "question_number": "x",
+              "question": "Which query operation combines records into categories for summarization?",
+              "options": ["(a) Sorting", "(b) Filtering", "(c) Group by", "(d) Validation"],
+              "answer": "(c) Group by"
+            }
+          ]
+        },
+        {
+          "type": "Fill in the Blanks",
+          "questions": [
+            {
+              "question_number": "i",
+              "question": "In a relational database, a ___________ key is used to establish a link between two tables by referring to the primary key of another table.",
+              "answer": "Foreign"
+            },
+            {
+              "question_number": "ii",
+              "question": "If two entities are connected through an intermediate entity instead of directly, this usually indicates the resolution of a ___________ relationship.",
+              "answer": "Many-to-Many"
+            },
+            {
+              "question_number": "iii",
+              "question": "When a record in one table is deleted, and related records in another table must also be removed automatically, this is controlled through ___________ rules.",
+              "answer": "Cascade Delete"
+            },
+            {
+              "question_number": "iv",
+              "question": "A table created to resolve a many-to-many relationship is commonly referred to as a ___________ table.",
+              "answer": "Junction (or Associative)"
+            },
+            {
+              "question_number": "v",
+              "question": "A candidate key that is not chosen as the primary key is known as ___________.",
+              "answer": "Alternate Key"
+            }
+          ]
+        },
+        {
+          "type": "Provide short descriptive answers",
+          "questions": [
+            {
+              "question_number": "i",
+              "question": "Differentiate between a field and a record.",
+              "answer": "A field is a single piece of information (a column) representing an attribute of an entity (e.g., 'Student Name'). A record is a complete set of related fields (a row) representing a single instance of an entity (e.g., all information for one specific student)."
+            },
+            {
+              "question_number": "ii",
+              "question": "What is referential integrity?",
+              "answer": "Referential integrity is a database concept that ensures relationships between tables remain consistent. It dictates that a foreign key value in one table must either match an existing primary key value in the related table or be null."
+            },
+            {
+              "question_number": "iii",
+              "question": "Explain the role of a Database Management System (DBMS).",
+              "answer": "A DBMS is software that acts as an interface between the database and its end users or programs. Its role is to store, retrieve, define, and manage data securely. It provides data independence, concurrency control, backup and recovery, and security mechanisms."
+            },
+            {
+              "question_number": "iv",
+              "question": "Explain a one-to-many relationship with an example.",
+              "answer": "In a one-to-many relationship, one record in Table A can be associated with many records in Table B, but one record in Table B is associated with only one record in Table A. Example: One Teacher can teach many Students, but a Student is assigned to one specific Teacher."
+            },
+            {
+              "question_number": "v",
+              "question": "Define data visualization and give one example.",
+              "answer": "Data visualization is the graphical representation of information and data. Example: A line chart showing monthly sales revenue over a year."
+            }
+          ]
+        },
+        {
+          "type": "Provide detailed answers",
+          "questions": [
+            {
+              "question_number": "i",
+              "question": "Define data and information with examples. Also explain the concept of a database and its advantages.",
+              "answer": "Data: Raw, unorganized facts (e.g., '25, 30, 22'). Information: Processed, organized data (e.g., 'The average age is 25'). Database: An organized collection of structured data stored electronically. Advantages: Reduces data redundancy, ensures data consistency, allows data sharing, provides data security, and enables easy backup and recovery."
+            },
+            {
+              "question_number": "ii",
+              "question": "What is a Database Management System (DBMS)? Explain its functions and advantages.",
+              "answer": "A DBMS is software (like MS Access, MySQL) used to create, manage, and interact with databases. Functions: Data definition, Data manipulation, Data security, Concurrency control, Data recovery. Advantages: Improved data sharing, better data integration, minimized data inconsistency, improved data access."
+            },
+            {
+              "question_number": "iii",
+              "question": "Explain the Entity-Relationship (ER) Model. Define entities, attributes, and relationships with suitable examples.",
+              "answer": "The ER Model is a conceptual tool used to design databases. Entity: A real-world object (e.g., Student). Attribute: A property of an entity (e.g., Student_ID). Relationship: An association between entities (e.g., Student Enrolls in Course)."
+            }
+          ]
+        },
+        {
+          "type": "Activities",
+          "questions": [
+            {
+              "question_number": "1",
+              "question": "Create a Student table in MS Access with at least five fields and assign an appropriate primary key.",
+              "answer": "Open MS Access, create a new table. Add fields: StudentID (AutoNumber), FirstName (Short Text), LastName (Short Text), DOB (Date/Time), Major (Short Text). Set StudentID as the Primary Key."
+            },
+            {
+              "question_number": "2",
+              "question": "Design an Entity-Relationship (ER) diagram for a school database showing the entities Student, Course, and Teacher along with their relationships.",
+              "answer": "Draw rectangles for Student, Course, and Teacher. Draw diamonds for relationships like Enrolls (between Student and Course) and Teaches (between Teacher and Course)."
+            },
+            {
+              "question_number": "3",
+              "question": "Create a data entry form for the Student table using the Form Wizard, and use it to enter student records.",
+              "answer": "Select the Student table, click 'Form Wizard', and follow the steps to generate a layout for easy data entry."
+            },
+            {
+              "question_number": "4",
+              "question": "Create queries to retrieve student records by displaying selected fields, applying filters, and using both AND and OR conditions.",
+              "answer": "Use Query Design. Drag the Student table in. Select fields. In the Criteria row, type 'A' for an AND condition (e.g., Major='CS' AND Year=2) or type 'A' Or 'B' for an OR condition."
+            },
+            {
+              "question_number": "5",
+              "question": "Generate a grouped query to summarize the number of students in each department, and present the results using a suitable chart (bar or pie chart).",
+              "answer": "Create a query using the 'Totals' button. Group by 'Department' and set the second column to 'Count' of StudentID. Then, create a Report or Form and insert a Bar Chart based on this query."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit": "Unit 5: Applications and Impacts of Computing",
+      "pages": ["191", "192", "193"],
+      "sections": [
+        {
+          "type": "Encircle the correct answer (MCQs)",
+          "questions": [
+            {
+              "question_number": "i",
+              "question": "A smartwatch records heart rate and sends it to a mobile phone. Which technology is mainly used here?",
+              "options": ["(a) Word Processing", "(b) Internet of Things", "(c) Printing Technology", "(d) Analog Technology"],
+              "answer": "(b) Internet of Things"
+            },
+            {
+              "question_number": "ii",
+              "question": "In a smart irrigation system, which device checks whether the soil is dry or wet?",
+              "options": ["(a) Actuator", "(b) Sensor", "(c) Monitor", "(d) Smart hearing aid"],
+              "answer": "(b) Sensor"
+            },
+            {
+              "question_number": "iii",
+              "question": "A school removes duplicate student records while preparing examination results. Which step of Data Analytics is this?",
+              "options": ["(a) Data collection", "(b) Data visualization", "(c) Data cleaning", "(d) Data storage"],
+              "answer": "(c) Data cleaning"
+            },
+            {
+              "question_number": "iv",
+              "question": "Which of the following is a primary source of information?",
+              "options": ["(a) Textbook", "(b) Interview", "(c) Dictionary", "(d) Summary website"],
+              "answer": "(b) Interview"
+            },
+            {
+              "question_number": "v",
+              "question": "A student uses an unknown website without an author name or references. This source is likely to be:",
+              "options": ["(a) Reliable", "(b) Primary", "(c) Unreliable", "(d) Official"],
+              "answer": "(c) Unreliable"
+            },
+            {
+              "question_number": "vi",
+              "question": "Which technology supports people with hearing, vision, learning, or movement difficulties?",
+              "options": ["(a) Gaming technology", "(b) Chatboard technology", "(c) Assistive technology", "(d) Antivirus technology"],
+              "answer": "(c) Assistive technology"
+            },
+            {
+              "question_number": "vii",
+              "question": "Which of the following is an actuator in a smart water system?",
+              "options": ["(a) Soil moisture sensor", "(b) Water valve", "(c) Temperature sensor", "(d) Camera sensor"],
+              "answer": "(b) Water valve"
+            },
+            {
+              "question_number": "viii",
+              "question": "Which type of source usually provides summarized information for quick reference?",
+              "options": ["(a) Primary source", "(b) Secondary source", "(c) Tertiary source", "(d) Unverified source"],
+              "answer": "(c) Tertiary source"
+            },
+            {
+              "question_number": "ix",
+              "question": "Which method is used to present data through charts and graphs?",
+              "options": ["(a) Data collection", "(b) Data storage", "(c) Data cleaning", "(d) Data visualization"],
+              "answer": "(d) Data visualization"
+            },
+            {
+              "question_number": "x",
+              "question": "Which assistive technology converts on-screen text into speech?",
+              "options": ["(a) Screen reader", "(b) Smart meter", "(c) Motion sensor", "(d) Water pump"],
+              "answer": "(a) Screen reader"
+            }
+          ]
+        },
+        {
+          "type": "Fill in the Blanks",
+          "questions": [
+            {
+              "question_number": "i",
+              "question": "A ___________ detects changes such as temperature, movement, light, or soil moisture.",
+              "answer": "sensor"
+            },
+            {
+              "question_number": "ii",
+              "question": "An ___________ performs a physical action, such as opening a valve or switching on a fan.",
+              "answer": "actuator"
+            },
+            {
+              "question_number": "iii",
+              "question": "Correcting duplicate, missing, or incorrect records is called data ___________.",
+              "answer": "cleaning (or cleansing)"
+            },
+            {
+              "question_number": "iv",
+              "question": "An interview is an example of a ___________ source of information.",
+              "answer": "primary"
+            },
+            {
+              "question_number": "v",
+              "question": "Screen readers and hearing aids are examples of ___________ technologies.",
+              "answer": "assistive"
+            }
+          ]
+        },
+        {
+          "type": "Provide short answers",
+          "questions": [
+            {
+              "question_number": "i",
+              "question": "How does Artificial Intelligence help a mobile phone recognize a user’s face?",
+              "answer": "AI uses computer vision and machine learning algorithms. It analyzes the unique geometric features of a face from the camera feed and compares it to the stored mathematical model of the user's face to authenticate them."
+            },
+            {
+              "question_number": "ii",
+              "question": "What is the difference between a sensor and an actuator?",
+              "answer": "A sensor is an input device that detects and measures a physical property from the environment and converts it into a digital signal. An actuator is an output device that receives a control signal and performs a physical action."
+            },
+            {
+              "question_number": "iii",
+              "question": "How does cloud computing support students and teachers in Pakistan?",
+              "answer": "Cloud computing allows students and teachers to access educational resources, submit assignments, and collaborate on projects from anywhere with an internet connection. It reduces the need for expensive hardware and physical textbooks."
+            },
+            {
+              "question_number": "iv",
+              "question": "What problems can occur if people become overdependent on technology?",
+              "answer": "Overdependence can lead to job loss due to automation, reduced critical thinking, physical health issues, social isolation, privacy concerns, and a decline in face-to-face communication skills."
+            },
+            {
+              "question_number": "v",
+              "question": "Why are communication and problem-solving skills important for future computing careers?",
+              "answer": "Computing professionals must communicate complex technical concepts to non-technical clients and team members. Problem-solving skills are essential for debugging code, designing efficient systems, and adapting to new technologies."
+            }
+          ]
+        },
+        {
+          "type": "Provide detailed answers",
+          "questions": [
+            {
+              "question_number": "i",
+              "question": "Explain how IoT components work together in a smart irrigation system for a farmer in Sindh. Include sensors, actuators, connectivity, data processing, and user interface in your answer.",
+              "answer": "Sensors: Soil moisture sensors measure water levels. Connectivity: Sensor data is transmitted wirelessly to a cloud server. Data Processing: The cloud server analyzes the data and triggers an action if moisture is below a threshold. Actuators: The system sends a signal to a water valve actuator to open and start irrigation. User Interface: The farmer receives a notification on a mobile app and can monitor or override the system."
+            },
+            {
+              "question_number": "ii",
+              "question": "A college wants to improve its examination result system. Explain how Data Analytics can help from data collection to data visualization.",
+              "answer": "Data Collection: Gather raw marks, attendance, demographics. Data Cleaning: Remove errors and handle missing marks. Data Analysis: Calculate averages, pass/fail rates, and identify correlations. Data Visualization: Create dashboards with bar charts and line graphs to help administration make informed decisions."
+            },
+            {
+              "question_number": "iii",
+              "question": "A student finds information from a social media post and an official government website. Explain how the student should decide which source is more reliable.",
+              "answer": "The student should evaluate using the CRAAP test: Authority (government website has known author, social media may be anonymous), Accuracy (government sites provide verified data), Purpose (government sites are for public information). The official government website is far more reliable."
+            },
+            {
+              "question_number": "iv",
+              "question": "Analyze the positive and negative impacts of computing.",
+              "answer": "Positive Impacts: Increased efficiency, global connectivity, easy access to information, advancements in healthcare, automation of dangerous tasks. Negative Impacts: Job displacement, privacy and security risks, spread of misinformation, digital divide, environmental impact, health issues from screen time."
+            },
+            {
+              "question_number": "v",
+              "question": "Discuss the career opportunities related to AI, IoT, Data Analytics, and Assistive Technologies in Pakistan. What skills should students develop for these careers?",
+              "answer": "AI/Machine Learning: Opportunities in software houses, fintech. Skills: Python, TensorFlow, Math. IoT: Opportunities in agriculture, smart cities. Skills: Embedded C/C++, Networking, Cloud Platforms. Data Analytics: Opportunities in banking, telecom. Skills: SQL, Python/R, Data Visualization. Assistive Tech: Opportunities in special education, healthcare. Skills: UI/UX Design, Python, Empathy."
+            }
+          ]
+        },
+        {
+          "type": "Activities",
+          "questions": [
+            {
+              "question_number": "1",
+              "question": "Think of one smart device used in your home, school, or community. Does it use AI, IoT, or Data Analytics? Explain your answer in two or three sentences.",
+              "answer": "A Smart TV uses IoT (to connect to the internet) and AI (for voice recognition and content recommendations). It also uses basic Data Analytics to track viewing habits."
+            },
+            {
+              "question_number": "2",
+              "question": "Which smart city application is most needed in your city or town? Write one reason for your answer.",
+              "answer": "Traffic monitoring is most needed in Karachi/Lahore. It uses IoT sensors and Data Analytics to reduce congestion."
+            },
+            {
+              "question_number": "3",
+              "question": "Think about a farming problem in Pakistan. How can IoT help solve it?",
+              "answer": "Water scarcity in Sindh. IoT moisture sensors can automate irrigation, saving water."
+            },
+            {
+              "question_number": "4",
+              "question": "Choose one career from IoT or AI. Write two reasons why this career interests you and list three skills required for it.",
+              "answer": "AI Engineer. Reasons: High demand, high salary. Skills: Python, Math, Machine Learning."
+            },
+            {
+              "question_number": "5",
+              "question": "Do you enjoy reading, writing, checking facts, or organizing information? Choose one career from this section and explain why it may be suitable for you.",
+              "answer": "Data Analyst. Suitable if you enjoy organizing info. You enjoy finding patterns in data and presenting them clearly."
+            },
+            {
+              "question_number": "6",
+              "question": "Write one positive and one negative impact of computing that you have observed in your daily life.",
+              "answer": "Positive: Easy video calls with family abroad. Negative: Wasting too much time scrolling through social media."
+            },
+            {
+              "question_number": "7",
+              "question": "Identify one assistive technology used in schools or hospitals. Write how it helps people and which career is related to it.",
+              "answer": "Screen readers in schools for visually impaired students. Career: Assistive Technology Specialist."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit": "Unit 6: Digital Literacy",
+      "pages": ["211", "212", "213"],
+      "sections": [
+        {
+          "type": "Encircle the correct answer (MCQs)",
+          "questions": [
+            {
+              "question_number": "i",
+              "question": "Which of the following best describes digital literacy?",
+              "options": ["(a) The ability to type quickly using a keyboard", "(b) The ability to use digital tools to find, evaluate, create, and communicate information responsibly", "(c) The ability to install software on a computer", "(d) The ability to use social media for entertainment"],
+              "answer": "(b) The ability to use digital tools to find, evaluate, create, and communicate information responsibly"
+            },
+            {
+              "question_number": "ii",
+              "question": "A student asks classmates, 'How does mobile phone use affect your concentration during study?' What type of data is mainly collected?",
+              "options": ["(a) Quantitative data because it can be counted easily", "(b) Secondary data because classmates already know the answer", "(c) Qualitative data because it collects opinions and experiences", "(d) Numerical data because mobile phone use is related to time"],
+              "answer": "(c) Qualitative data because it collects opinions and experiences"
+            },
+            {
+              "question_number": "iii",
+              "question": "Which search query is most suitable for finding a reliable PDF report about internet usage in Pakistan?",
+              "options": ["(a) internet usage Pakistan", "(b) best internet use in Pakistan social media", "(c) \"internet usage in Pakistan\" filetype:pdf", "(d) Pakistan internet all websites latest"],
+              "answer": "(c) \"internet usage in Pakistan\" filetype:pdf"
+            },
+            {
+              "question_number": "iv",
+              "question": "Which option is the best example of primary data?",
+              "options": ["(a) A government report downloaded from the internet", "(b) A research article written by another author", "(c) Survey responses collected directly from Class XI students", "(d) Statistics copied from an online database"],
+              "answer": "(c) Survey responses collected directly from Class XI students"
+            },
+            {
+              "question_number": "v",
+              "question": "Why are spreadsheets useful when presenting research data?",
+              "options": ["(a) They automatically make the research question correct", "(b) They help organize data, perform calculations, and create charts", "(c) They replace the need for collecting original data", "(d) They ensure all online information is reliable"],
+              "answer": "(b) They help organize data, perform calculations, and create charts"
+            },
+            {
+              "question_number": "vi",
+              "question": "A digital artefact created after research should mainly:",
+              "options": ["(a) repeat long paragraphs from websites", "(b) communicate results and conclusions clearly", "(c) include decoration only", "(d) avoid any data visuals"],
+              "answer": "(b) communicate results and conclusions clearly"
+            },
+            {
+              "question_number": "vii",
+              "question": "Data collected directly by the researcher is called:",
+              "options": ["(a) Secondary data", "(b) Processed data", "(c) Primary data", "(d) Digital data"],
+              "answer": "(c) Primary data"
+            },
+            {
+              "question_number": "viii",
+              "question": "Which search operator helps search within a specific website or domain?",
+              "options": ["(a) OR", "(b) AND", "(c) NOT", "(d) site:"],
+              "answer": "(d) site:"
+            },
+            {
+              "question_number": "ix",
+              "question": "Copying someone else's work without giving credit is called:",
+              "options": ["(a) Copyright", "(b) Referencing", "(c) Citation", "(d) Plagiarism"],
+              "answer": "(d) Plagiarism"
+            },
+            {
+              "question_number": "x",
+              "question": "Asking permission before collecting responses is part of research:",
+              "options": ["(a) Analysis", "(b) Sampling", "(c) Presentation", "(d) Ethics"],
+              "answer": "(d) Ethics"
+            }
+          ]
+        },
+        {
+          "type": "Fill in the Blanks",
+          "questions": [
+            {
+              "question_number": "i",
+              "question": "A well-defined ___________ helps a student choose suitable data-collection methods and stay focused during research.",
+              "answer": "research question (or methodology)"
+            },
+            {
+              "question_number": "ii",
+              "question": "Data collected directly by the researcher through surveys, interviews or observation is called ___________ data.",
+              "answer": "primary"
+            },
+            {
+              "question_number": "iii",
+              "question": "Data taken from reports, books, websites or databases prepared by others is called ___________ data.",
+              "answer": "secondary"
+            },
+            {
+              "question_number": "iv",
+              "question": "Copying words, images or ideas without giving credit is called ___________.",
+              "answer": "plagiarism"
+            },
+            {
+              "question_number": "v",
+              "question": "Asking permission before collecting responses is part of research ___________.",
+              "answer": "ethics"
+            }
+          ]
+        },
+        {
+          "type": "Provide short answers",
+          "questions": [
+            {
+              "question_number": "i",
+              "question": "Define digital literacy in your own words.",
+              "answer": "Digital literacy is the ability to effectively and critically navigate, evaluate, and create information using a range of digital technologies. It involves practical skills, critical thinking, and responsible online behavior."
+            },
+            {
+              "question_number": "ii",
+              "question": "Differentiate between qualitative and quantitative data.",
+              "answer": "Qualitative data deals with descriptions, opinions, and characteristics that cannot be easily measured (e.g., color, texture, experiences). Quantitative data deals with numbers and things that can be measured and counted (e.g., height, age, test scores)."
+            },
+            {
+              "question_number": "iii",
+              "question": "Define primary data and secondary data with one example of each.",
+              "answer": "Primary Data: Data collected directly by the researcher for the specific purpose at hand. Example: Survey responses collected from students. Secondary Data: Data that has already been collected by someone else and is being used for a new purpose. Example: Census data from a government website."
+            },
+            {
+              "question_number": "iv",
+              "question": "Write any four steps of designing a data-collection approach.",
+              "answer": "1. Define the research question. 2. Identify the target population and sample. 3. Choose the data collection method (survey, interview, etc.). 4. Design the data collection instruments (questionnaires, interview guides). 5. Address ethical considerations (consent, privacy)."
+            },
+            {
+              "question_number": "v",
+              "question": "Name any three digital tools used to present data.",
+              "answer": "Microsoft Excel (Spreadsheets), Microsoft PowerPoint (Presentations), Canva (Infographics), Tableau (Data Visualization)."
+            }
+          ]
+        },
+        {
+          "type": "Provide detailed answers",
+          "questions": [
+            {
+              "question_number": "i",
+              "question": "Explain the concept of digital literacy. Why is it necessary for students in modern education?",
+              "answer": "Digital literacy is the ability to find, evaluate, create, and communicate information using digital platforms. It is necessary for students because modern education relies heavily on online resources, digital assignments, and virtual collaboration. It helps students discern reliable information from misinformation, use tools effectively, and prepare for the digital workforce."
+            },
+            {
+              "question_number": "ii",
+              "question": "Describe the difference between qualitative and quantitative data with suitable examples.",
+              "answer": "Quantitative data is numerical and can be statistically analyzed. Example: The average score of a class on a math test is 75. Qualitative data is descriptive and relates to qualities or opinions. Example: Students described the math test as 'challenging but fair'."
+            },
+            {
+              "question_number": "iii",
+              "question": "Explain any four data-collection strategies: interviews, surveys, prototypes, observations, and simulations.",
+              "answer": "Interviews: One-on-one conversations to gather in-depth qualitative data. Surveys: Questionnaires distributed to many people to gather quantitative or qualitative data efficiently. Observations: Watching subjects in their natural environment to record behavior. Prototypes: Building a preliminary model to test functionality and gather user feedback (often used in design)."
+            },
+            {
+              "question_number": "iv",
+              "question": "Describe the steps involved in designing a data-collection approach for a research question.",
+              "answer": "1. Define the research question clearly. 2. Determine the type of data needed (qualitative/quantitative). 3. Identify the target population and sampling method. 4. Select the appropriate collection method (e.g., survey, experiment). 5. Develop the data collection tools (e.g., questions, sensors). 6. Obtain ethical approval and consent. 7. Pilot test the method. 8. Collect the data."
+            },
+            {
+              "question_number": "v",
+              "question": "Explain how spreadsheets, presentations, infographics, and reports can be used to communicate research findings.",
+              "answer": "Spreadsheets: Used to organize raw data, perform calculations, and create charts. Presentations: Used to verbally present key findings to an audience using slides. Infographics: Visual representations combining text and graphics to summarize complex data quickly for the public. Reports: Formal written documents detailing the methodology, findings, conclusions, and recommendations for academic or professional records."
+            }
+          ]
+        },
+        {
+          "type": "Activities",
+          "questions": [
+            {
+              "question_number": "1",
+              "question": "In groups of 3-4 students, choose a topic such as smartphone use in college, online learning during examinations, or internet habits of students.",
+              "answer": "Group activity. Choose a topic relevant to student life."
+            },
+            {
+              "question_number": "2",
+              "question": "Form a clear research question, identify your target sample, and design a survey or interview with at least 8 questions. Make sure the wording is fair, clear, and ethical.",
+              "answer": "Example Research Question: 'How does smartphone use affect study concentration among college students?' Target Sample: 50 college students. Questions: 8 clear questions on a Likert scale (Strongly Agree to Strongly Disagree). Ensure anonymity and voluntary participation."
+            },
+            {
+              "question_number": "3",
+              "question": "Collect responses from at least 20 students, enter the data into a spreadsheet, clean the data, and create at least one table and one chart or infographic.",
+              "answer": "Use Google Forms or MS Forms to collect data. Export to Excel/Sheets. Remove incomplete entries (cleaning). Create a pivot table summarizing responses. Generate a bar chart showing the frequency of different responses."
+            },
+            {
+              "question_number": "4",
+              "question": "Prepare a short digital artefact (3-5 slides, infographic, or brief report) that presents findings, conclusions, the reliability of any secondary sources used, and one recommendation for the intended audience.",
+              "answer": "Create a 4-slide PowerPoint: Slide 1: Title & Research Question. Slide 2: Methodology & Sample. Slide 3: Key Findings (with chart). Slide 4: Conclusion & Recommendation (e.g., 'Students should use app blockers during study hours')."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -26,6 +26,8 @@ import {
   Search,
   BookOpen,
   BookPlus,
+  Hammer,
+  PenLine,
 } from 'lucide-react';
 import { SubjectAdderModal } from './SubjectAdderModal';
 
@@ -33,6 +35,7 @@ interface DashboardProps {
   currentPaper: ExamPaper;
   onOpenPaper: (paper: ExamPaper) => void;
   onNewBlankPaper: () => void;
+  onOpenBuilder: () => void;
   onOpenTemplatesModal: () => void;
   onSubjectAdded?: (paper: ExamPaper, template: SubjectTemplate, openWorkspace: boolean) => void;
 }
@@ -41,6 +44,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   currentPaper,
   onOpenPaper,
   onNewBlankPaper,
+  onOpenBuilder,
   onOpenTemplatesModal,
   onSubjectAdded,
 }) => {
@@ -166,6 +170,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <span>+ Subject Adder</span>
           </button>
 
+          {/* Question Bank Builder */}
+          <button
+            onClick={onOpenBuilder}
+            className="px-3.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-200 text-xs font-medium rounded-lg transition flex items-center gap-1.5 cursor-pointer"
+            title="Build a paper from the chapter-wise question bank"
+          >
+            <Hammer className="w-3.5 h-3.5" />
+            <span>Builder</span>
+          </button>
+
           {/* Quick Return to Active Paper Workspace */}
           <button
             onClick={() => onOpenPaper(currentPaper)}
@@ -213,6 +227,54 @@ export const Dashboard: React.FC<DashboardProps> = ({
             >
               <span>Edit Paper in Workspace</span>
               <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+
+        {/* The app's two primary surfaces */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="border border-neutral-800 bg-neutral-950 p-6 rounded-2xl flex flex-col justify-between gap-4">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="w-7 h-7 rounded-lg bg-white text-black flex items-center justify-center">
+                  <Hammer className="w-4 h-4" />
+                </span>
+                <h3 className="text-base font-bold text-white tracking-tight">Builder</h3>
+              </div>
+              <p className="text-xs text-neutral-400 leading-relaxed">
+                Work from the question bank. Choose a chapter, skim its MCQs, short and detailed
+                questions with model answers, tick the ones you want, and they are added straight
+                into the paper — grouped into the right section and renumbered.
+              </p>
+            </div>
+            <button
+              onClick={onOpenBuilder}
+              className="self-start px-4 py-2 bg-white text-black font-semibold text-xs rounded-xl hover:bg-neutral-200 transition flex items-center gap-2 cursor-pointer"
+            >
+              <Hammer className="w-3.5 h-3.5" />
+              <span>Open Builder</span>
+            </button>
+          </div>
+
+          <div className="border border-neutral-800 bg-neutral-950 p-6 rounded-2xl flex flex-col justify-between gap-4">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <span className="w-7 h-7 rounded-lg bg-neutral-900 border border-neutral-800 text-white flex items-center justify-center">
+                  <PenLine className="w-4 h-4" />
+                </span>
+                <h3 className="text-base font-bold text-white tracking-tight">Editor</h3>
+              </div>
+              <p className="text-xs text-neutral-400 leading-relaxed">
+                Hand-edit the paper: header metadata, sections, marks, options and answer keys,
+                with the live A4 preview beside you and export to PDF, Word or Google Docs.
+              </p>
+            </div>
+            <button
+              onClick={() => onOpenPaper(currentPaper)}
+              className="self-start px-4 py-2 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white font-semibold text-xs rounded-xl transition flex items-center gap-2 cursor-pointer"
+            >
+              <PenLine className="w-3.5 h-3.5" />
+              <span>Open Editor</span>
             </button>
           </div>
         </div>

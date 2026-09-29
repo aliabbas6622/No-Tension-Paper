@@ -24,12 +24,15 @@ import { GoogleDocsModal } from './components/GoogleDocsModal';
 import { ExportModal } from './components/ExportModal';
 import { MassJsonModal } from './components/MassJsonModal';
 import { Dashboard } from './components/Dashboard';
+import { BuilderMode } from './components/BuilderMode';
+import { mergeQuestionsIntoPaper } from './services/paperComposer';
+import { syncBundledQuestionBanks } from './services/questionBank';
 import { exportPaperToWord } from './services/wordExport';
 import { downloadPaperAsPDF, printPaperDirect } from './services/pdfExport';
 import { Edit3, Eye, Check, AlertCircle, Loader2 } from 'lucide-react';
 
 export default function App() {
-  const [viewMode, setViewMode] = useState<'dashboard' | 'workspace'>('dashboard');
+  const [viewMode, setViewMode] = useState<'dashboard' | 'builder' | 'workspace'>('dashboard');
 
   const [paper, setPaper] = useState<ExamPaper>(() => {
     try {
@@ -41,7 +44,12 @@ export default function App() {
     return DEFAULT_EXAM_PAPER;
   });
 
-  const [activeSectionId, setActiveSectionId] = useState<string>('section-a');
+  // Start on the restored draft's own first section. Template papers use ids
+  // like `sec-math-a`, so the previous hardcoded 'section-a' matched nothing
+  // and silently dropped the editor into the header view.
+  const [activeSectionId, setActiveSectionId] = useState<string>(
+    () => paper.sections[0]?.id || 'header'
+  );
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState<boolean>(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState<boolean>(false);
   const [isGoogleDocsModalOpen, setIsGoogleDocsModalOpen] = useState<boolean>(false);
@@ -96,11 +104,25 @@ export default function App() {
       }
     };
 
+    // Put the bundled chapter-wise question bank on the database once, so the
+    // Builder has real data to browse. Idempotent — existing records are kept.
+    const seedQuestionBank = () => {
+      syncBundledQuestionBanks()
+        .then((result) => {
+          if (result.seeded.length > 0) {
+            console.info('Seeded question banks to Firestore:', result.seeded.join(', '));
+          }
+        })
+        .catch((err) => console.warn('Question bank seed notice:', err));
+    };
+
     syncWithFirestore();
+    seedQuestionBank();
 
     const unsubscribe = initAuth(
       async () => {
         syncWithFirestore();
+        seedQuestionBank();
       },
       () => {}
     );
@@ -526,6 +548,26 @@ export default function App() {
     }
   };
 
+  // Add questions picked in the Builder into the active paper. Bank questions
+  // are cloned by the caller, so paper edits never mutate the source bank.
+  const handleAddQuestionsFromBank = (questions: Question[], label: string) => {
+    if (questions.length === 0) return;
+
+    setPaper((prev) => {
+      const merged = mergeQuestionsIntoPaper(prev, questions);
+      try {
+        localStorage.setItem('exam_paper_active_draft', JSON.stringify(merged));
+      } catch (e) {
+        // ignore
+      }
+      return merged;
+    });
+
+    showNotification(
+      `Added ${questions.length} question${questions.length === 1 ? '' : 's'} from ${label} to the paper.`
+    );
+  };
+
   // Export to Word
   const handleExportWord = async () => {
     showNotification('Generating Word document (.docx)...', 'loading', 0);
@@ -571,6 +613,7 @@ export default function App() {
             setViewMode('workspace');
           }}
           onNewBlankPaper={handleNewBlankPaper}
+          onOpenBuilder={() => setViewMode('builder')}
           onOpenTemplatesModal={() => setIsTemplateModalOpen(true)}
           onSubjectAdded={(newPaper, template, openWorkspace) => {
             showNotification(
@@ -588,6 +631,18 @@ export default function App() {
           onSelectTemplate={handleSelectTemplate}
         />
       </div>
+    );
+  }
+
+  // Render Builder (question bank -> paper)
+  if (viewMode === 'builder') {
+    return (
+      <BuilderMode
+        currentPaper={paper}
+        onAddQuestionsToPaper={handleAddQuestionsFromBank}
+        onOpenEditor={() => setViewMode('workspace')}
+        onOpenDashboard={() => setViewMode('dashboard')}
+      />
     );
   }
 
@@ -611,6 +666,8 @@ export default function App() {
       {/* Top Bar with Icon Tools */}
       <HeaderNav
         paper={paper}
+        activeMode="editor"
+        onSwitchMode={(mode) => setViewMode(mode === 'builder' ? 'builder' : 'workspace')}
         activeSectionId={activeSectionId}
         onSelectSection={setActiveSectionId}
         onAddSection={handleAddSection}

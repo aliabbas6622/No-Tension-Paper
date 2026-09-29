@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ExamPaper } from '../types/exam';
+import { AppMode, ModeSwitcher } from './ModeSwitcher';
 import {
   Home,
   ChevronDown,
@@ -18,6 +19,8 @@ import {
 
 interface HeaderNavProps {
   paper: ExamPaper;
+  activeMode?: AppMode;
+  onSwitchMode?: (mode: AppMode) => void;
   activeSectionId: string;
   onSelectSection: (id: string) => void;
   onAddSection: () => void;
@@ -36,6 +39,8 @@ interface HeaderNavProps {
 
 export const HeaderNav: React.FC<HeaderNavProps> = ({
   paper,
+  activeMode = 'editor',
+  onSwitchMode,
   activeSectionId,
   onSelectSection,
   onAddSection,
@@ -103,6 +108,11 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
         </button>
 
         <div className="h-4 w-px bg-neutral-800" />
+
+        {/* Builder / Editor switcher */}
+        {onSwitchMode && (
+          <ModeSwitcher active={activeMode} onChange={onSwitchMode} className="hidden sm:inline-flex" />
+        )}
 
         {/* Paper Title (Compact) */}
         <div className="hidden lg:flex items-center gap-1.5 text-xs text-neutral-400 max-w-[180px] truncate">

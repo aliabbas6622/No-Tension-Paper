@@ -19,7 +19,12 @@ import {
   getDocFromServer,
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
-import { ExamPaper, SubjectTemplate, CurriculumSubjectRecord } from '../types/exam';
+import {
+  ExamPaper,
+  SubjectTemplate,
+  CurriculumSubjectRecord,
+  CurriculumUnitItem,
+} from '../types/exam';
 
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 export const auth = getAuth(app);
@@ -295,7 +300,69 @@ export async function loadCurriculumSubjectsFromFirestore(): Promise<CurriculumS
   }
 }
 
-// 9. Delete Curriculum Subject Record
+// 9. Seed the bundled chapter-wise question banks
+//
+// Idempotent by design: each bank has a deterministic id, so an existing record
+// is left alone unless `force` is passed. This is what puts the question bank
+// on the database without needing an admin service account.
+export interface SeedableQuestionBank {
+  id: string;
+  classGrade: string;
+  subjectName: string;
+  group: string;
+  category: string;
+  description?: string;
+  curriculumAnswers: CurriculumUnitItem[];
+}
+
+export async function seedCurriculumSubjectsToFirestore(
+  banks: SeedableQuestionBank[],
+  options: { force?: boolean } = {}
+): Promise<{ seeded: string[]; skipped: string[]; failed: string[] }> {
+  const seeded: string[] = [];
+  const skipped: string[] = [];
+  const failed: string[] = [];
+  const user = auth.currentUser;
+
+  for (const bank of banks) {
+    try {
+      if (!options.force) {
+        const existing = await getDoc(doc(db, 'curriculum_subjects', bank.id));
+        if (existing.exists()) {
+          skipped.push(bank.id);
+          continue;
+        }
+      }
+
+      const now = new Date().toISOString();
+      await setDoc(
+        doc(db, 'curriculum_subjects', bank.id),
+        {
+          id: bank.id,
+          userId: user?.uid || 'guest',
+          classGrade: bank.classGrade,
+          subjectName: bank.subjectName,
+          group: bank.group,
+          category: bank.category,
+          description: bank.description || '',
+          curriculumAnswers: bank.curriculumAnswers,
+          updatedAt: now,
+          ...(options.force ? {} : { createdAt: now }),
+        },
+        { merge: true }
+      );
+      seeded.push(bank.id);
+    } catch (err) {
+      // Seeding is a background convenience — never let it break app startup.
+      console.warn(`Could not seed question bank "${bank.id}":`, err);
+      failed.push(bank.id);
+    }
+  }
+
+  return { seeded, skipped, failed };
+}
+
+// 10. Delete Curriculum Subject Record
 export async function deleteCurriculumSubjectFromFirestore(subjectId: string): Promise<void> {
   const path = `curriculum_subjects/${subjectId}`;
   try {
