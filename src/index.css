@@ -1,5 +1,13 @@
 @import "tailwindcss";
 
+@theme {
+  /* The UI leans on a 850 step for subtle dividers and hover fills, but
+     Tailwind's neutral scale jumps 800 -> 900. Declaring it here makes
+     `border-neutral-850` / `hover:bg-neutral-850` actually resolve — without
+     it those classes emit no CSS and borders silently fall back to white. */
+  --color-neutral-850: oklch(0.237 0 none);
+}
+
 @layer base {
   body {
     @apply bg-black text-white antialiased font-sans selection:bg-white selection:text-black overflow-hidden;
@@ -76,6 +84,13 @@
   #printable-exam-paper * {
     visibility: visible !important;
     color: #000000 !important;
+  }
+
+  /* Force the preview back to 100% so a zoomed on-screen view still prints
+     (and exports to PDF) at its true size. */
+  .paper-zoom {
+    zoom: 1 !important;
+    transform: none !important;
   }
 
   .page-break {

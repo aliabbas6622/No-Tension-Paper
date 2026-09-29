@@ -75,6 +75,12 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
   const handleDragStart = (e: React.DragEvent, index: number) => {
     e.dataTransfer.setData('text/plain', String(index));
     e.dataTransfer.effectAllowed = 'move';
+    // Drag from the grip handle, but show the whole question card as the
+    // drag preview so the gesture still reads as "moving the question".
+    const card = (e.currentTarget as HTMLElement).closest('[data-question-card]');
+    if (card) {
+      e.dataTransfer.setDragImage(card as Element, 24, 20);
+    }
     setDraggedIndex(index);
   };
 
@@ -363,11 +369,9 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
           return (
             <div
               key={q.id}
-              draggable
-              onDragStart={(e) => handleDragStart(e, index)}
+              data-question-card
               onDragOver={(e) => handleDragOver(e, index)}
               onDrop={(e) => handleDrop(e, index)}
-              onDragEnd={handleDragEnd}
               className={`rounded-xl border transition-all duration-100 ${
                 isDragging
                   ? 'opacity-30 border-white bg-neutral-900'
@@ -380,7 +384,10 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
               <div className="p-2.5 flex items-center gap-2">
                 {/* Drag Handle */}
                 <div
-                  className="cursor-grab active:cursor-grabbing p-1 text-neutral-500 hover:text-white rounded transition"
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, index)}
+                  onDragEnd={handleDragEnd}
+                  className="cursor-grab active:cursor-grabbing p-1 text-neutral-500 hover:text-white rounded transition select-none"
                   title="Drag and drop to rearrange"
                 >
                   <GripVertical className="w-3.5 h-3.5" />

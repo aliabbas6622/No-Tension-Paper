@@ -68,6 +68,11 @@ export const PaperPreview: React.FC<PaperPreviewProps> = ({ paper, onPrint }) =>
             });
           }
         }
+        // Keep the copied text consistent with what is on screen: only include
+        // answer keys when the Answer Keys toggle is currently on.
+        if (showAnswerKeys && q.answerKey) {
+          text += `  Answer: ${q.answerKey}\n`;
+        }
         text += '\n';
       });
     });
@@ -76,9 +81,16 @@ export const PaperPreview: React.FC<PaperPreviewProps> = ({ paper, onPrint }) =>
       text += '*** END OF EXAMINATION PAPER ***\n';
     }
 
-    navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    navigator.clipboard
+      .writeText(text)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      })
+      .catch(() => {
+        // Clipboard access can be blocked (insecure origin, denied permission).
+        // Fail quietly rather than surfacing an unhandled rejection.
+      });
   };
 
   return (
@@ -145,8 +157,8 @@ export const PaperPreview: React.FC<PaperPreviewProps> = ({ paper, onPrint }) =>
       {/* Independent Paper Scroll Area: ONLY this area scrolls when user moves mouse here */}
       <div className="flex-1 overflow-y-auto p-4 sm:p-8 flex justify-center items-start bg-neutral-950">
         <div
-          style={{ transform: `scale(${zoomLevel / 100})`, transformOrigin: 'top center' }}
-          className="transition-transform duration-100 w-full max-w-[820px] pb-16"
+          style={{ zoom: zoomLevel / 100 }}
+          className="paper-zoom w-full max-w-[820px] pb-16"
         >
           {/* Printable White Exam Sheet (Black text on crisp white authentic paper) */}
           <div
