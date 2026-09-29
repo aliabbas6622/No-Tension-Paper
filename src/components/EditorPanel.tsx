@@ -14,8 +14,7 @@ import {
   ChevronDown,
   ChevronRight,
   ChevronUp,
-  SlidersHorizontal,
-  ChevronLeft,
+  Code2,
 } from 'lucide-react';
 
 interface EditorPanelProps {
@@ -31,6 +30,7 @@ interface EditorPanelProps {
   onDeleteQuestion: (sectionId: string, questionId: string) => void;
   onDuplicateQuestion: (sectionId: string, questionId: string) => void;
   onRenumberQuestions: (sectionId: string, style: 'roman' | 'decimal' | 'alpha') => void;
+  onOpenMassJson: () => void;
 }
 
 export const EditorPanel: React.FC<EditorPanelProps> = ({
@@ -46,11 +46,11 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
   onDeleteQuestion,
   onDuplicateQuestion,
   onRenumberQuestions,
+  onOpenMassJson,
 }) => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [expandedQuestionIds, setExpandedQuestionIds] = useState<Record<string, boolean>>({});
-  const [isAddMenuOpen, setIsAddMenuOpen] = useState(false);
 
   const activeSection = paper.sections.find((s) => s.id === activeSectionId);
 
@@ -229,28 +229,40 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
     );
   }
 
-  // Section Editor View (Low density, accordion per question)
+  // Section Editor View
   return (
     <div className="h-full overflow-y-auto p-4 sm:p-5 space-y-4 bg-black text-white">
-      {/* Section Settings Header (collapsible / compact) */}
+      {/* Section Settings Header */}
       <div className="bg-neutral-950 p-3.5 rounded-xl border border-neutral-800 space-y-3">
         <div className="flex items-center justify-between">
           <div className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider">
             Section Info
           </div>
-          {paper.sections.length > 1 && (
+          <div className="flex items-center gap-3">
+            {/* Mass JSON Trigger in header */}
             <button
-              onClick={() => {
-                if (window.confirm(`Delete ${activeSection.name}?`)) {
-                  onDeleteSection(activeSection.id);
-                }
-              }}
-              className="text-[11px] text-neutral-400 hover:text-white flex items-center gap-1 transition cursor-pointer"
+              onClick={onOpenMassJson}
+              className="text-[11px] text-neutral-300 hover:text-white flex items-center gap-1 transition cursor-pointer"
+              title="Bulk import or export questions as JSON"
             >
-              <Trash2 className="w-3 h-3" />
-              <span>Delete Section</span>
+              <Code2 className="w-3.5 h-3.5" />
+              <span>JSON Bulk Tool</span>
             </button>
-          )}
+
+            {paper.sections.length > 1 && (
+              <button
+                onClick={() => {
+                  if (window.confirm(`Delete ${activeSection.name}?`)) {
+                    onDeleteSection(activeSection.id);
+                  }
+                }}
+                className="text-[11px] text-neutral-400 hover:text-white flex items-center gap-1 transition cursor-pointer"
+              >
+                <Trash2 className="w-3 h-3" />
+                <span>Delete Section</span>
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -577,8 +589,8 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
         })}
       </div>
 
-      {/* Add Question Dropdown (Less Density) */}
-      <div className="relative pt-2">
+      {/* Add Question & JSON Mass Add Buttons */}
+      <div className="pt-2 space-y-2">
         <div className="flex gap-2">
           <button
             onClick={() => onAddQuestion(activeSection.id, 'mcq')}
@@ -602,6 +614,16 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
             <span>Add Detailed</span>
           </button>
         </div>
+
+        {/* Mass JSON Question Button */}
+        <button
+          onClick={onOpenMassJson}
+          className="w-full py-2 px-3 bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-white font-medium text-xs rounded-lg transition flex items-center justify-center gap-2 cursor-pointer"
+          title="Import or export multiple questions via JSON"
+        >
+          <Code2 className="w-3.5 h-3.5 text-neutral-400" />
+          <span>Mass Add / Export Questions via JSON</span>
+        </button>
       </div>
     </div>
   );

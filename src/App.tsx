@@ -8,7 +8,7 @@ import {
   PaperSettings,
 } from './types/exam';
 import { DEFAULT_EXAM_PAPER } from './data/defaultPaper';
-import { savePaperToLibrary, getAllSavedPapers } from './data/subjectTemplates';
+import { savePaperToLibrary } from './data/subjectTemplates';
 import {
   saveExamPaperToFirestore,
   loadExamPapersFromFirestore,
@@ -21,6 +21,7 @@ import { TemplateModal } from './components/TemplateModal';
 import { SettingsModal } from './components/SettingsModal';
 import { GoogleDocsModal } from './components/GoogleDocsModal';
 import { ExportModal } from './components/ExportModal';
+import { MassJsonModal } from './components/MassJsonModal';
 import { Dashboard } from './components/Dashboard';
 import { exportPaperToWord } from './services/wordExport';
 import { downloadPaperAsPDF, printPaperDirect } from './services/pdfExport';
@@ -44,6 +45,7 @@ export default function App() {
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState<boolean>(false);
   const [isGoogleDocsModalOpen, setIsGoogleDocsModalOpen] = useState<boolean>(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
+  const [isMassJsonModalOpen, setIsMassJsonModalOpen] = useState<boolean>(false);
   const [mobileViewTab, setMobileViewTab] = useState<'editor' | 'preview'>('editor');
 
   // Notification banners
@@ -64,7 +66,7 @@ export default function App() {
     }
   };
 
-  // Listen to Auth & load saved papers from Firestore if signed in
+  // Sync Auth with Firestore
   useEffect(() => {
     initAuth(
       async (user) => {
@@ -252,6 +254,40 @@ export default function App() {
       sections: updatedSections,
       updatedAt: new Date().toISOString(),
     });
+  };
+
+  // Mass Import Questions via JSON
+  const handleImportMassQuestions = (
+    importedQuestions: Question[],
+    mode: 'append' | 'replace'
+  ) => {
+    const currentSectionId =
+      activeSectionId === 'header'
+        ? paper.sections[0]?.id || 'section-a'
+        : activeSectionId;
+
+    const targetSection = paper.sections.find((s) => s.id === currentSectionId);
+    if (!targetSection) return;
+
+    const updatedSections = paper.sections.map((sec) => {
+      if (sec.id !== currentSectionId) return sec;
+      const combined =
+        mode === 'append' ? [...sec.questions, ...importedQuestions] : importedQuestions;
+      return {
+        ...sec,
+        questions: combined,
+      };
+    });
+
+    updatePaper({
+      ...paper,
+      sections: updatedSections,
+      updatedAt: new Date().toISOString(),
+    });
+
+    showNotification(
+      `Imported ${importedQuestions.length} questions into ${targetSection.name}!`
+    );
   };
 
   // Update question
@@ -483,7 +519,6 @@ export default function App() {
       showNotification('PDF file downloaded successfully!');
     } catch (e: any) {
       console.error(e);
-      // Fallback to browser print if canvas generation encounters an issue
       printPaperDirect();
       showNotification('Opened print preview for PDF saving.');
     }
@@ -493,6 +528,9 @@ export default function App() {
   const handlePrintPDF = () => {
     printPaperDirect();
   };
+
+  const activeSectionObj =
+    paper.sections.find((s) => s.id === activeSectionId) || paper.sections[0];
 
   // Render Dashboard
   if (viewMode === 'dashboard') {
@@ -601,6 +639,7 @@ export default function App() {
             onDeleteQuestion={handleDeleteQuestion}
             onDuplicateQuestion={handleDuplicateQuestion}
             onRenumberQuestions={handleRenumberQuestions}
+            onOpenMassJson={() => setIsMassJsonModalOpen(true)}
           />
         </div>
 
@@ -637,12 +676,20 @@ export default function App() {
         paper={paper}
       />
 
-      {/* Full Export & Download Modal */}
+      {/* Export Modal */}
       <ExportModal
         isOpen={isExportModalOpen}
         onClose={() => setIsExportModalOpen(false)}
         paper={paper}
         onOpenGoogleDocs={() => setIsGoogleDocsModalOpen(true)}
+      />
+
+      {/* Mass JSON Question Modal */}
+      <MassJsonModal
+        isOpen={isMassJsonModalOpen}
+        onClose={() => setIsMassJsonModalOpen(false)}
+        section={activeSectionObj}
+        onImportQuestions={handleImportMassQuestions}
       />
     </div>
   );

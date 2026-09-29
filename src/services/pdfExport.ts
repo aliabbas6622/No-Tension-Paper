@@ -1,9 +1,10 @@
 import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
+import html2canvas from 'html2canvas-pro';
 import { ExamPaper } from '../types/exam';
 
 /**
- * Generates and downloads a clean A4 PDF file directly in the browser
+ * Generates and downloads a clean A4 PDF file directly in the browser.
+ * Uses html2canvas-pro to support modern CSS color spaces including oklch().
  */
 export async function downloadPaperAsPDF(
   paper: ExamPaper,
@@ -14,7 +15,7 @@ export async function downloadPaperAsPDF(
     throw new Error('Exam paper preview element not found. Please ensure the preview is visible.');
   }
 
-  // Temporary clone or preparation to ensure clean white background and full width
+  // Render high-res canvas with full support for oklch, lab, and modern CSS
   const canvas = await html2canvas(element, {
     scale: 2, // 2x resolution for sharp, professional print-grade text
     useCORS: true,
