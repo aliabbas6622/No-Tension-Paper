@@ -179,10 +179,14 @@ export function selectQuestionsPreWeighted(params: {
   allBankQuestions: BankQuestion[];
   chapters: ChapterWeightConfig[];
   sections: SectionBlueprintConfig[];
+  excludeFillInBlanks?: boolean;
 }): BlueprintSelectionResult {
+  const { excludeFillInBlanks = true } = params;
   const activeChapters = params.chapters.filter((c) => c.selected);
   const activeChapterSet = new Set(activeChapters.map((c) => c.unitIndex));
-  const candidates = params.allBankQuestions.filter((q) => activeChapterSet.has(q.unitIndex));
+  const candidates = params.allBankQuestions.filter(
+    (q) => activeChapterSet.has(q.unitIndex) && !(excludeFillInBlanks && q.isFillInTheBlank)
+  );
 
   const selected: SelectedReviewQuestion[] = [];
   const shortfalls: SelectionShortfall[] = [];
@@ -255,7 +259,9 @@ export async function selectQuestionsWithAI(params: {
   chapters: ChapterWeightConfig[];
   sections: SectionBlueprintConfig[];
   focusPrompt?: string;
+  excludeFillInBlanks?: boolean;
 }): Promise<BlueprintSelectionResult> {
+  const { excludeFillInBlanks = true } = params;
   const activeChapters = params.chapters.filter((c) => c.selected);
   const activeChapterSet = new Set(activeChapters.map((c) => c.unitIndex));
   const requestedKinds = new Set(
@@ -263,7 +269,10 @@ export async function selectQuestionsWithAI(params: {
   );
 
   const candidates = params.allBankQuestions.filter(
-    (q) => activeChapterSet.has(q.unitIndex) && requestedKinds.has(q.kind)
+    (q) =>
+      activeChapterSet.has(q.unitIndex) &&
+      requestedKinds.has(q.kind) &&
+      !(excludeFillInBlanks && q.isFillInTheBlank)
   );
 
   const res = await fetch('/api/ai/select-questions', {
@@ -272,6 +281,7 @@ export async function selectQuestionsWithAI(params: {
     body: JSON.stringify({
       subjectName: params.bank.subjectName,
       classGrade: params.bank.classGrade,
+      excludeFillInBlanks,
       sections: params.sections
         .filter((s) => s.count > 0)
         .map((s) => ({ kind: s.kind, count: s.count })),
@@ -284,6 +294,7 @@ export async function selectQuestionsWithAI(params: {
         key: c.key,
         unitIndex: c.unitIndex,
         unitName: c.unitName,
+        sectionType: c.sectionType,
         kind: c.kind,
         text: c.question.text,
         optionsPreview: c.question.options?.map((o) => `${o.label} ${o.text}`),

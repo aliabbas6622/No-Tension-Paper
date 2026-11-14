@@ -88,6 +88,7 @@ export const PastPaperPatternModal: React.FC<PastPaperPatternModalProps> = ({
   const [manualChapterFilter, setManualChapterFilter] = useState<number>(-1);
   const [manualSearch, setManualSearch] = useState('');
   const [excludePastQuestions, setExcludePastQuestions] = useState(true);
+  const [excludeFillInBlanks, setExcludeFillInBlanks] = useState(true);
 
   useEffect(() => {
     if (!isOpen || !pastPaper) return;
@@ -162,11 +163,12 @@ export const PastPaperPatternModal: React.FC<PastPaperPatternModalProps> = ({
   );
 
   const eligibleBankQuestions = useMemo(() => {
-    if (!excludePastQuestions) return allBankQuestions;
-    return allBankQuestions.filter(
-      (bq) => !isSimilarToPastQuestion(bq.question.text, pastTexts)
-    );
-  }, [allBankQuestions, excludePastQuestions, pastTexts]);
+    return allBankQuestions.filter((bq) => {
+      if (excludeFillInBlanks && bq.isFillInTheBlank) return false;
+      if (excludePastQuestions && isSimilarToPastQuestion(bq.question.text, pastTexts)) return false;
+      return true;
+    });
+  }, [allBankQuestions, excludeFillInBlanks, excludePastQuestions, pastTexts]);
 
   const manualSelectedList = useMemo(
     () => allBankQuestions.filter((bq) => manualSelectedKeys.has(bq.key)),
@@ -234,6 +236,7 @@ export const PastPaperPatternModal: React.FC<PastPaperPatternModalProps> = ({
               ? selectedUnitIndices
               : activeBank.units.map((_, idx) => idx),
           focusPrompt,
+          excludeFillInBlanks,
         });
         setResult(res);
         setActiveSectionTab(0);
@@ -646,25 +649,38 @@ export const PastPaperPatternModal: React.FC<PastPaperPatternModalProps> = ({
                 {/* Chapter filter when using database */}
                 {aiSourceMode === 'database' && activeBank && (
                   <div className="space-y-1.5">
-                    <div className="flex items-center justify-between text-[11px] text-neutral-600 dark:text-neutral-400">
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-neutral-600 dark:text-neutral-400">
                       <span>
                         Chapters to include ({selectedUnitIndices.length}/{activeBank.units.length}):
                       </span>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setSelectedUnitIndices(
-                            selectedUnitIndices.length === activeBank.units.length
-                              ? []
-                              : activeBank.units.map((_, idx) => idx)
-                          )
-                        }
-                        className="font-semibold text-neutral-800 dark:text-neutral-200 hover:underline cursor-pointer"
-                      >
-                        {selectedUnitIndices.length === activeBank.units.length
-                          ? 'Unselect all'
-                          : 'Select all'}
-                      </button>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() => setExcludeFillInBlanks((v) => !v)}
+                          className={`px-2 py-0.5 rounded border text-[10px] font-medium cursor-pointer transition ${
+                            excludeFillInBlanks
+                              ? 'bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-black dark:border-white'
+                              : 'bg-white text-neutral-600 border-neutral-300 dark:bg-neutral-950 dark:text-neutral-400 dark:border-neutral-700'
+                          }`}
+                        >
+                          {excludeFillInBlanks ? 'Excluding Fill-in-Blanks' : 'Including Fill-in-Blanks'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setSelectedUnitIndices(
+                              selectedUnitIndices.length === activeBank.units.length
+                                ? []
+                                : activeBank.units.map((_, idx) => idx)
+                            )
+                          }
+                          className="font-semibold text-neutral-800 dark:text-neutral-200 hover:underline cursor-pointer"
+                        >
+                          {selectedUnitIndices.length === activeBank.units.length
+                            ? 'Unselect all'
+                            : 'Select all'}
+                        </button>
+                      </div>
                     </div>
                     <div className="flex flex-wrap gap-1.5">
                       {activeBank.units.map((u, idx) => {
@@ -962,6 +978,17 @@ export const PastPaperPatternModal: React.FC<PastPaperPatternModalProps> = ({
                         >
                           <RefreshCw className="w-3 h-3" />
                           <span>Auto-Fill Empty Slots</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setExcludeFillInBlanks((v) => !v)}
+                          className={`px-2.5 py-1.5 rounded-lg border text-[11px] font-medium cursor-pointer transition ${
+                            excludeFillInBlanks
+                              ? 'bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-black dark:border-white'
+                              : 'bg-white text-neutral-700 border-neutral-300 dark:bg-neutral-900 dark:text-neutral-300 dark:border-neutral-700'
+                          }`}
+                        >
+                          {excludeFillInBlanks ? 'No Blanks' : 'With Blanks'}
                         </button>
                         <button
                           type="button"

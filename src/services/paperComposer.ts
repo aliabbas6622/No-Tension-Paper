@@ -110,7 +110,16 @@ export interface BankQuestion {
   unitPages: string[];
   sectionType: string;
   kind: QuestionKind;
+  isFillInTheBlank: boolean;
   question: Question;
+}
+
+export function isFillInTheBlankItem(text: string, sectionType?: string): boolean {
+  const secLower = (sectionType || '').toLowerCase();
+  if (secLower.includes('blank')) return true;
+  if (/_{3,}/.test(text || '')) return true;
+  if (/\bfill\s+in\s+the\s+blank/i.test(text || '')) return true;
+  return false;
 }
 
 /** Flatten a bank's units into a flat, filterable question list. */
@@ -121,6 +130,7 @@ export function buildBankQuestions(units: CurriculumUnitItem[]): BankQuestion[] 
     unit.sections.forEach((section, sectionIndex) => {
       const kind = classifyCurriculumSection(section);
       section.questions.forEach((raw, qIndex) => {
+        const qObj = curriculumQuestionToQuestion(raw, kind, qIndex);
         out.push({
           key: `${unitIndex}|${sectionIndex}|${qIndex}`,
           unitIndex,
@@ -128,7 +138,8 @@ export function buildBankQuestions(units: CurriculumUnitItem[]): BankQuestion[] 
           unitPages: unit.pages || [],
           sectionType: section.type,
           kind,
-          question: curriculumQuestionToQuestion(raw, kind, qIndex),
+          isFillInTheBlank: isFillInTheBlankItem(qObj.text, section.type),
+          question: qObj,
         });
       });
     });

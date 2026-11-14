@@ -215,13 +215,15 @@ export function buildPatternSeedFromPastPaper(pastPaper: PastPaperRecord): PastP
 export function generatePaperFromPastPatternWeighted(params: {
   pastPaper: PastPaperRecord;
   bank: QuestionBank;
+  excludeFillInBlanks?: boolean;
 }): GeneratedFromPatternResult {
-  const { pastPaper, bank } = params;
+  const { pastPaper, bank, excludeFillInBlanks = true } = params;
   const allBankQuestions = buildBankQuestions(bank.units);
   const pastTexts = extractPastPaperQuestionTexts(pastPaper.paper);
 
   let excludedCount = 0;
   const eligibleQuestions = allBankQuestions.filter((bq) => {
+    if (excludeFillInBlanks && bq.isFillInTheBlank) return false;
     const isDup = isSimilarToPastQuestion(bq.question.text, pastTexts);
     if (isDup) excludedCount += 1;
     return !isDup;
@@ -447,6 +449,7 @@ export function swapSingleQuestionFromBank(params: {
 
   const pool = allBankQuestions.filter(
     (bq) =>
+      !bq.isFillInTheBlank &&
       bq.kind === targetPattern.kind &&
       !isSimilarToPastQuestion(bq.question.text, combinedAvoid)
   );
@@ -500,8 +503,15 @@ export async function selectFromDatabaseForPatternAI(params: {
   bank: QuestionBank;
   selectedUnitIndices?: number[];
   focusPrompt?: string;
+  excludeFillInBlanks?: boolean;
 }): Promise<GeneratedFromPatternResult> {
-  const { pastPaper, bank, selectedUnitIndices, focusPrompt } = params;
+  const {
+    pastPaper,
+    bank,
+    selectedUnitIndices,
+    focusPrompt,
+    excludeFillInBlanks = true,
+  } = params;
   const allBankQuestions = buildBankQuestions(bank.units);
   const pastTexts = extractPastPaperQuestionTexts(pastPaper.paper);
 
@@ -513,6 +523,7 @@ export async function selectFromDatabaseForPatternAI(params: {
   let excludedCount = 0;
   const eligible = allBankQuestions.filter((bq) => {
     if (!allowedUnits.has(bq.unitIndex)) return false;
+    if (excludeFillInBlanks && bq.isFillInTheBlank) return false;
     const isDup = isSimilarToPastQuestion(bq.question.text, pastTexts);
     if (isDup) {
       excludedCount += 1;
@@ -539,6 +550,7 @@ export async function selectFromDatabaseForPatternAI(params: {
     body: JSON.stringify({
       subjectName: bank.subjectName,
       classGrade: bank.classGrade,
+      excludeFillInBlanks,
       sections: pastPaper.sectionPatterns.map((sp) => ({
         kind: sp.kind,
         count: sp.questionCount,
@@ -552,6 +564,7 @@ export async function selectFromDatabaseForPatternAI(params: {
         key: c.key,
         unitIndex: c.unitIndex,
         unitName: c.unitName,
+        sectionType: c.sectionType,
         kind: c.kind,
         text: c.question.text,
         optionsPreview: c.question.options?.map((o) => `${o.label} ${o.text}`),
@@ -773,8 +786,12 @@ export async function refinePaperWithAI(params: {
     extractPastPaperQuestionTexts(paper).map((t) => normalizeText(t))
   );
 
-  // Put unused non-past-paper bank questions first so AI has fresh replacements ready
+  // Put unused non-past-paper bank questions first (excluding fill-in-the-blanks unless asked)
+  const includeBlanksInRefine = /\binclude\s+blanks?\b|\badd\s+fill[\s-]+in[\s-]+the[\s-]+blanks?\b/i.test(
+    instruction
+  );
   const prioritizedCandidates = allBankQuestions.filter((bq) => {
+    if (!includeBlanksInRefine && bq.isFillInTheBlank) return false;
     if (currentTexts.has(normalizeText(bq.question.text))) return false;
     if (avoidQuestions.length > 0 && isSimilarToPastQuestion(bq.question.text, avoidQuestions)) {
       return false;
@@ -811,6 +828,7 @@ export async function refinePaperWithAI(params: {
         key: c.key,
         unitIndex: c.unitIndex,
         unitName: c.unitName,
+        sectionType: c.sectionType,
         kind: c.kind,
         text: c.question.text,
         optionsPreview: c.question.options?.map((o) => `${o.label} ${o.text}`),
