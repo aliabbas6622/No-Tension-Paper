@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ExamPaper } from '../types/exam';
+import { ExamPaper, PastPaperPatternSeed } from '../types/exam';
 import { QuestionBank, loadQuestionBanks } from '../services/questionBank';
 import { BankQuestion, QuestionKind, buildBankQuestions } from '../services/paperComposer';
+import { isSimilarToPastQuestion } from '../services/pastPaperPattern';
 import {
   BlueprintSelectionResult,
   ChapterWeightConfig,
@@ -43,6 +44,8 @@ interface AutoBlueprintModeProps {
   currentPaper: ExamPaper;
   theme: AppTheme;
   onToggleTheme: () => void;
+  patternSeed?: PastPaperPatternSeed | null;
+  onClearPatternSeed?: () => void;
   onApplyPaperToEditor: (updatedPaper: ExamPaper, meta: { count: number; mode: 'replace' | 'append'; engine: SelectionEngine }) => void;
   onSwitchMode: (mode: AppMode) => void;
   onOpenDashboard: () => void;
@@ -75,6 +78,8 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
   currentPaper,
   theme,
   onToggleTheme,
+  patternSeed = null,
+  onClearPatternSeed,
   onApplyPaperToEditor,
   onSwitchMode,
   onOpenDashboard,
@@ -108,23 +113,51 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
       const loaded = await loadQuestionBanks();
       if (!mounted) return;
       setBanks(loaded);
-      setActiveBankId((prev) => prev || loaded[0]?.id || '');
+      const preferredBankId = patternSeed?.questionBankId && loaded.some((b) => b.id === patternSeed.questionBankId)
+        ? patternSeed.questionBankId
+        : '';
+      setActiveBankId((prev) => preferredBankId || prev || loaded[0]?.id || '');
       setIsLoadingBanks(false);
     })();
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [patternSeed]);
+
+  useEffect(() => {
+    if (!patternSeed) return;
+    setSectionConfigs((prev) =>
+      prev.map((sec) => {
+        const matched = patternSeed.sectionPatterns.find((sp) => sp.kind === sec.kind);
+        if (!matched) return { ...sec, count: 0 };
+        return {
+          ...sec,
+          sectionName: matched.name,
+          subtitle: matched.subtitle,
+          instruction: matched.instruction,
+          count: matched.questionCount,
+          marksPerQuestion: matched.marksPerQuestion,
+        };
+      })
+    );
+    setApplyMode('replace');
+  }, [patternSeed]);
 
   const activeBank = useMemo(
     () => banks.find((b) => b.id === activeBankId) || null,
     [banks, activeBankId]
   );
 
-  const allBankQuestions = useMemo(
-    () => (activeBank ? buildBankQuestions(activeBank.units) : []),
-    [activeBank]
-  );
+  const allBankQuestions = useMemo(() => {
+    if (!activeBank) return [];
+    const raw = buildBankQuestions(activeBank.units);
+    if (!patternSeed || patternSeed.excludedQuestionTexts.length === 0) {
+      return raw;
+    }
+    return raw.filter(
+      (bq) => !isSimilarToPastQuestion(bq.question.text, patternSeed.excludedQuestionTexts)
+    );
+  }, [activeBank, patternSeed]);
 
   // Initialize chapter selection + equal weights whenever bank changes
   useEffect(() => {
@@ -426,13 +459,48 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
 
   const handleTakeToEditor = () => {
     if (!activeBank || reviewedItems.length === 0) return;
-    const updatedPaper = buildPaperFromReview({
+    let updatedPaper = buildPaperFromReview({
       basePaper: currentPaper,
       bank: activeBank,
       reviewedItems,
       sectionConfigs,
       applyMode,
     });
+
+    if (patternSeed && applyMode === 'replace') {
+      const totalPatternMarks = patternSeed.sectionPatterns.reduce(
+        (sum, sp) => sum + sp.totalSectionMarks,
+        0
+      );
+      updatedPaper = {
+        ...updatedPaper,
+        title: `${patternSeed.subject} (${patternSeed.year} Pattern — Custom Chapters)`,
+        header: {
+          ...updatedPaper.header,
+          examinationTitle: `${patternSeed.subject.toUpperCase()} MODEL PAPER ${new Date().getFullYear()}`,
+          examinationMonth: `BASED ON ${patternSeed.year} PATTERN`,
+          groupName: patternSeed.sourcePaperHeader.groupName || updatedPaper.header.groupName,
+          duration: patternSeed.sourcePaperHeader.duration || updatedPaper.header.duration,
+          maxMarks: String(totalPatternMarks || updatedPaper.header.maxMarks),
+          generalInstructions: patternSeed.sourcePaperHeader.generalInstructions,
+        },
+        sections: updatedPaper.sections.map((sec) => {
+          const matched = patternSeed.sectionPatterns.find(
+            (sp) => sp.name.toUpperCase() === sec.name.toUpperCase()
+          );
+          if (!matched) return sec;
+          return {
+            ...sec,
+            marksBadge: matched.marksBadge,
+            questions:
+              matched.numberingStyle === 'section-c-from-3'
+                ? sec.questions.map((q, idx) => ({ ...q, number: `${idx + 3}.` }))
+                : sec.questions,
+          };
+        }),
+      };
+    }
+
     onApplyPaperToEditor(updatedPaper, {
       count: reviewedItems.length,
       mode: applyMode,
@@ -544,6 +612,25 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
       ) : step === 'configure' ? (
         /* STAGE 1: CONFIGURE CHAPTERS, COUNTS & SELECTION MODE */
         <div className="flex-1 flex flex-col min-h-0">
+          {patternSeed && (
+            <div className="shrink-0 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 px-4 py-2 flex flex-wrap items-center justify-between gap-2 text-xs">
+              <div className="flex items-center gap-2 text-neutral-800 dark:text-neutral-200">
+                <Shuffle className="w-3.5 h-3.5 shrink-0" />
+                <span>
+                  Using pattern from <strong>{patternSeed.pastPaperTitle}</strong> — questions from that past paper are automatically excluded.
+                </span>
+              </div>
+              {onClearPatternSeed && (
+                <button
+                  type="button"
+                  onClick={onClearPatternSeed}
+                  className="text-[11px] font-semibold text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white cursor-pointer"
+                >
+                  Clear Pattern Lock
+                </button>
+              )}
+            </div>
+          )}
           <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
             {/* Left Sidebar: Subject & Chapter Selection + Weightage */}
             <aside className="w-full lg:w-88 shrink-0 border-b lg:border-b-0 lg:border-r border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black flex flex-col max-h-[44vh] lg:max-h-none min-h-0">

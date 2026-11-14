@@ -1,7 +1,7 @@
 import React from 'react';
-import { Hammer, PenLine, SlidersHorizontal } from 'lucide-react';
+import { FileStack, Hammer, PenLine, SlidersHorizontal } from 'lucide-react';
 
-export type AppMode = 'auto' | 'builder' | 'editor';
+export type AppMode = 'past-papers' | 'auto' | 'builder' | 'editor';
 
 interface ModeSwitcherProps {
   active: AppMode;
@@ -9,7 +9,7 @@ interface ModeSwitcherProps {
   className?: string;
 }
 
-/** The app's creation modes: weighted/AI blueprint generator, manual question bank, or editor. */
+/** The app's creation modes: past papers, weighted/AI blueprint generator, manual question bank, or editor. */
 export const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ active, onChange, className = '' }) => {
   const base =
     'flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold transition cursor-pointer whitespace-nowrap shrink-0';
@@ -20,6 +20,20 @@ export const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ active, onChange, cl
       role="tablist"
       aria-label="Switch creation mode"
     >
+      <button
+        role="tab"
+        aria-selected={active === 'past-papers'}
+        onClick={() => onChange('past-papers')}
+        className={`${base} ${
+          active === 'past-papers'
+            ? 'bg-neutral-900 text-white dark:bg-white dark:text-black'
+            : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-200/70 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-900'
+        }`}
+        title="Past Papers — inspect board past papers and reuse their pattern with different questions"
+      >
+        <FileStack className="w-3 h-3 shrink-0" />
+        <span>Past Papers</span>
+      </button>
       <button
         role="tab"
         aria-selected={active === 'auto'}
@@ -65,3 +79,4 @@ export const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ active, onChange, cl
     </div>
   );
 };
+

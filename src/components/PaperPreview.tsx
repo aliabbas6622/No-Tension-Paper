@@ -3,20 +3,26 @@ import { ExamPaper } from '../types/exam';
 import {
   ZoomIn,
   ZoomOut,
-  Maximize2,
-  FileCheck,
-  Printer,
   Copy,
   Check,
   CheckCircle2,
+  Sparkles,
+  Database,
 } from 'lucide-react';
 
 interface PaperPreviewProps {
   paper: ExamPaper;
   onPrint: () => void;
+  onOpenAIRefiner?: () => void;
+  onBackToQuestionBank?: () => void;
 }
 
-export const PaperPreview: React.FC<PaperPreviewProps> = ({ paper, onPrint }) => {
+export const PaperPreview: React.FC<PaperPreviewProps> = ({
+  paper,
+  onPrint: _onPrint,
+  onOpenAIRefiner,
+  onBackToQuestionBank,
+}) => {
   const [zoomLevel, setZoomLevel] = useState<number>(100);
   const [copied, setCopied] = useState(false);
   const [showAnswerKeys, setShowAnswerKeys] = useState(false);
@@ -96,20 +102,45 @@ export const PaperPreview: React.FC<PaperPreviewProps> = ({ paper, onPrint }) =>
   return (
     <div className="h-full flex flex-col bg-neutral-100 text-neutral-900 dark:bg-neutral-950 dark:text-white min-w-0">
       {/* Ultra-Minimal Monochrome Preview Toolbar */}
-      <div className="no-print h-10 px-4 bg-white dark:bg-black border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between gap-2 text-xs shrink-0 select-none">
-        <div className="flex items-center gap-2">
-          <span className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
+      <div className="no-print h-10 px-3 sm:px-4 bg-white dark:bg-black border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between gap-2 text-xs shrink-0 select-none overflow-x-auto">
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider flex items-center gap-1.5 whitespace-nowrap">
             <span className="w-1.5 h-1.5 rounded-full bg-neutral-900 dark:bg-white inline-block"></span>
-            Real-Time Paper Preview
+            <span className="hidden lg:inline">Real-Time Paper Preview</span>
+            <span className="lg:hidden">Preview</span>
           </span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5 shrink-0">
+          {onOpenAIRefiner && (
+            <button
+              type="button"
+              onClick={onOpenAIRefiner}
+              className="px-2.5 py-1 rounded-md bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200 transition flex items-center gap-1 text-[11px] font-semibold cursor-pointer whitespace-nowrap shrink-0"
+              title="Ask AI to edit, swap, or refine questions on this paper"
+            >
+              <Sparkles className="w-3 h-3" />
+              <span>Edit with AI</span>
+            </button>
+          )}
+
+          {onBackToQuestionBank && (
+            <button
+              type="button"
+              onClick={onBackToQuestionBank}
+              className="px-2.5 py-1 rounded-md border border-neutral-300 bg-neutral-50 hover:bg-neutral-100 text-neutral-900 dark:border-neutral-700 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-white transition flex items-center gap-1 text-[11px] font-medium cursor-pointer whitespace-nowrap shrink-0"
+              title="Go back to Question Bank to reselect or replace questions"
+            >
+              <Database className="w-3 h-3" />
+              <span>Question Bank</span>
+            </button>
+          )}
+
           {/* Answer Key Toggle Button (if paper has answer keys) */}
           {totalAnswersInPaper > 0 && (
             <button
               onClick={() => setShowAnswerKeys(!showAnswerKeys)}
-              className={`p-1 px-2 rounded transition flex items-center gap-1 text-[11px] cursor-pointer ${
+              className={`p-1 px-2 rounded transition flex items-center gap-1 text-[11px] cursor-pointer whitespace-nowrap shrink-0 ${
                 showAnswerKeys
                   ? 'bg-neutral-900 text-white dark:bg-white dark:text-black font-semibold'
                   : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 border border-neutral-300 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-900 dark:border-neutral-800'
@@ -124,7 +155,7 @@ export const PaperPreview: React.FC<PaperPreviewProps> = ({ paper, onPrint }) =>
           {/* Copy Plaintext button */}
           <button
             onClick={handleCopyText}
-            className="p-1 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-900 rounded transition flex items-center gap-1 text-[11px] cursor-pointer"
+            className="p-1 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-900 rounded transition flex items-center gap-1 text-[11px] cursor-pointer whitespace-nowrap shrink-0"
             title="Copy paper as text"
           >
             {copied ? <Check className="w-3.5 h-3.5 text-neutral-900 dark:text-white" /> : <Copy className="w-3.5 h-3.5" />}
@@ -132,7 +163,7 @@ export const PaperPreview: React.FC<PaperPreviewProps> = ({ paper, onPrint }) =>
           </button>
 
           {/* Zoom Controls */}
-          <div className="flex items-center bg-neutral-100 dark:bg-neutral-900 rounded p-0.5 border border-neutral-200 dark:border-neutral-800">
+          <div className="flex items-center bg-neutral-100 dark:bg-neutral-900 rounded p-0.5 border border-neutral-200 dark:border-neutral-800 shrink-0">
             <button
               onClick={() => setZoomLevel((z) => Math.max(65, z - 10))}
               className="p-1 text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white rounded transition cursor-pointer"

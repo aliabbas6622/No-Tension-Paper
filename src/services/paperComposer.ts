@@ -4,6 +4,7 @@ import {
   ExamPaper,
   ExamSection,
   MCQOption,
+  PastPaperPatternSeed,
   Question,
   QuestionType,
 } from '../types/exam';
@@ -256,6 +257,147 @@ export function mergeQuestionsIntoPaper(paper: ExamPaper, incoming: Question[]):
   return {
     ...paper,
     sections,
+    updatedAt: new Date().toISOString(),
+  };
+}
+
+function formatPatternNum(
+  idx: number,
+  style?: 'roman' | 'decimal' | 'section-c-from-3'
+): string {
+  if (style === 'section-c-from-3') return `${idx + 3}.`;
+  if (style === 'decimal') return `${idx + 1}.`;
+  const roman = [
+    'i.', 'ii.', 'iii.', 'iv.', 'v.', 'vi.', 'vii.', 'viii.', 'ix.', 'x.',
+    'xi.', 'xii.', 'xiii.', 'xiv.', 'xv.', 'xvi.', 'xvii.', 'xviii.', 'xix.', 'xx.',
+  ];
+  return roman[idx] || `${idx + 1}.`;
+}
+
+/**
+ * Replaces the active paper's questions with the user's newly checked set from
+ * Question Bank / BuilderMode while preserving active Past Paper pattern metadata
+ * (or existing section headers/numbering when no pattern seed is active).
+ */
+export function replaceQuestionsInPaper(
+  paper: ExamPaper,
+  incoming: Question[],
+  patternSeed?: PastPaperPatternSeed | null
+): ExamPaper {
+  if (incoming.length === 0) return paper;
+
+  const groups: Record<QuestionKind, Question[]> = { mcq: [], short: [], detailed: [] };
+  incoming.forEach((q, index) => {
+    const cloned = JSON.parse(JSON.stringify(q)) as Question;
+    groups[normalizeKind(cloned.type)].push({
+      ...cloned,
+      id: freshQuestionId(index),
+      ...(cloned.options
+        ? {
+            options: cloned.options.map((opt, optIdx) => ({
+              ...opt,
+              id: `opt-rep-${Date.now().toString(36)}-${index}-${optIdx}`,
+            })),
+          }
+        : {}),
+    });
+  });
+
+  if (patternSeed && patternSeed.sectionPatterns.length > 0) {
+    const remaining: Record<QuestionKind, Question[]> = {
+      mcq: [...groups.mcq],
+      short: [...groups.short],
+      detailed: [...groups.detailed],
+    };
+
+    const sections: ExamSection[] = patternSeed.sectionPatterns.map((sp, sIdx) => {
+      const existing = paper.sections[sIdx];
+      // Count how many sections share this kind after this one so the last matching
+      // section receives all remaining user-checked questions of that kind.
+      const laterSameKind = patternSeed.sectionPatterns
+        .slice(sIdx + 1)
+        .some((other) => other.kind === sp.kind);
+      const pool = remaining[sp.kind];
+      const taken = laterSameKind ? pool.splice(0, sp.questionCount) : pool.splice(0, pool.length);
+
+      const formatted = taken.map((q, qIdx) => ({
+        ...q,
+        number: formatPatternNum(qIdx, sp.numberingStyle),
+        marks: sp.marksPerQuestion,
+      }));
+
+      const totalSecMarks = formatted.reduce((sum, q) => sum + (q.marks || sp.marksPerQuestion), 0);
+      const keepPatternBadge = formatted.length === sp.questionCount && sp.marksBadge;
+
+      return {
+        id: existing?.id || `sec-pp-man-${sIdx}-${Date.now()}`,
+        name: existing?.name || sp.name,
+        subtitle: existing?.subtitle || sp.subtitle,
+        marksBadge: keepPatternBadge ? sp.marksBadge : `${totalSecMarks} Marks`,
+        instruction: existing?.instruction || sp.instruction,
+        questions: formatted,
+      };
+    });
+
+    const matchesAllPatternCounts = patternSeed.sectionPatterns.every(
+      (sp, sIdx) => (sections[sIdx]?.questions.length || 0) === sp.questionCount
+    );
+    const totalComputed = sections.reduce(
+      (sum, sec) => sum + sec.questions.reduce((qs, q) => qs + (q.marks || 0), 0),
+      0
+    );
+
+    return {
+      ...paper,
+      sections,
+      header: {
+        ...paper.header,
+        maxMarks: matchesAllPatternCounts ? paper.header.maxMarks : String(totalComputed),
+      },
+      updatedAt: new Date().toISOString(),
+    };
+  }
+
+  // Non-pattern rebuild: preserve existing section styling for each kind that has questions
+  const nextSections: ExamSection[] = [];
+  (['mcq', 'short', 'detailed'] as QuestionKind[]).forEach((kind) => {
+    const questions = groups[kind];
+    if (questions.length === 0) return;
+
+    const existing = paper.sections.find((s) => sectionKind(s) === kind);
+    const usedLetters = new Set(
+      nextSections
+        .map((s) => s.name.match(/"([A-Z])"/)?.[1])
+        .filter((l): l is string => Boolean(l))
+    );
+    const letter =
+      SECTION_LETTERS.find((l) => !usedLetters.has(l)) || String(nextSections.length + 1);
+
+    renumber(questions);
+    const totalSecMarks = questions.reduce((acc, q) => acc + (q.marks || 0), 0);
+
+    nextSections.push({
+      id: existing?.id || `sec-${kind}-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      name: existing?.name || `SECTION "${letter}"`,
+      subtitle: existing?.subtitle || SECTION_META[kind].subtitle,
+      marksBadge: `${totalSecMarks} Marks`,
+      instruction: existing?.instruction || SECTION_META[kind].instruction,
+      questions,
+    });
+  });
+
+  const totalComputed = nextSections.reduce(
+    (sum, sec) => sum + sec.questions.reduce((qs, q) => qs + (q.marks || 0), 0),
+    0
+  );
+
+  return {
+    ...paper,
+    sections: nextSections.length > 0 ? nextSections : paper.sections,
+    header: {
+      ...paper.header,
+      maxMarks: String(totalComputed || paper.header.maxMarks),
+    },
     updatedAt: new Date().toISOString(),
   };
 }

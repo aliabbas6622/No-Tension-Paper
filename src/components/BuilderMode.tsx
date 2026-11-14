@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ExamPaper, Question } from '../types/exam';
+import { ExamPaper, PastPaperPatternSeed, Question } from '../types/exam';
 import { QuestionBank, loadQuestionBanks, syncBundledQuestionBanks } from '../services/questionBank';
 import { BankQuestion, QuestionKind, buildBankQuestions } from '../services/paperComposer';
+import { isSimilarToPastQuestion } from '../services/pastPaperPattern';
 import { AppMode, ModeSwitcher } from './ModeSwitcher';
 import { AppTheme, ThemeToggleButton } from './ThemeToggleButton';
 import {
@@ -18,6 +19,8 @@ import {
   Plus,
   RefreshCw,
   Search,
+  Shuffle,
+  Sparkles,
   Square,
   CheckSquare,
   ListChecks,
@@ -28,8 +31,13 @@ interface BuilderModeProps {
   currentPaper: ExamPaper;
   theme: AppTheme;
   onToggleTheme: () => void;
+  patternSeed?: PastPaperPatternSeed | null;
+  onClearPatternSeed?: () => void;
+  preferSyncFromPaper?: boolean;
   onAddQuestionsToPaper: (questions: Question[], label: string) => void;
+  onReplacePaperWithQuestions?: (questions: Question[], label: string) => void;
   onOpenEditor: () => void;
+  onOpenAIRefiner?: () => void;
   onOpenDashboard: () => void;
   onSwitchMode?: (mode: AppMode) => void;
   onOpenShareModal?: () => void;
@@ -53,8 +61,13 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
   currentPaper,
   theme,
   onToggleTheme,
+  patternSeed = null,
+  onClearPatternSeed,
+  preferSyncFromPaper = false,
   onAddQuestionsToPaper,
+  onReplacePaperWithQuestions,
   onOpenEditor,
+  onOpenAIRefiner,
   onOpenDashboard,
   onSwitchMode,
   onOpenShareModal,
@@ -64,10 +77,13 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
   const [activeBankId, setActiveBankId] = useState<string>('');
   const [activeChapter, setActiveChapter] = useState<number>(ALL_CHAPTERS);
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
+  const [hasAutoSynced, setHasAutoSynced] = useState(false);
   const [search, setSearch] = useState('');
   const [kindFilter, setKindFilter] = useState<'all' | QuestionKind>('all');
   const [showAnswers, setShowAnswers] = useState(true);
+  const [excludeSeedPastQs, setExcludeSeedPastQs] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
+  const [confirmOverwriteDb, setConfirmOverwriteDb] = useState(false);
   const [status, setStatus] = useState<{ text: string; tone: 'ok' | 'error' } | null>(null);
 
   // Load the bank: Firestore first, bundled copy as the guaranteed fallback.
@@ -77,13 +93,24 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
       const loaded = await loadQuestionBanks();
       if (!mounted) return;
       setBanks(loaded);
-      setActiveBankId((prev) => prev || loaded[0]?.id || '');
+      const subjectTitle = (currentPaper.header.subjectTitle || currentPaper.title || '').toLowerCase();
+      const preferredBySeed = patternSeed?.questionBankId
+        ? loaded.find((b) => b.id === patternSeed.questionBankId)
+        : undefined;
+      const preferredByPaper = loaded.find(
+        (b) =>
+          subjectTitle.includes(b.subjectName.toLowerCase()) ||
+          b.subjectName.toLowerCase().includes(subjectTitle)
+      );
+      setActiveBankId(
+        (prev) => prev || preferredBySeed?.id || preferredByPaper?.id || loaded[0]?.id || ''
+      );
       setIsLoading(false);
     })();
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [patternSeed, currentPaper.header.subjectTitle, currentPaper.title]);
 
   const activeBank = useMemo(
     () => banks.find((b) => b.id === activeBankId) || null,
@@ -94,6 +121,34 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
     () => (activeBank ? buildBankQuestions(activeBank.units) : []),
     [activeBank]
   );
+
+  const paperQuestionNormalizedTexts = useMemo(() => {
+    const set = new Set<string>();
+    currentPaper.sections.forEach((sec) => {
+      sec.questions.forEach((q) => {
+        if (q.text) set.add(q.text.trim().toLowerCase().replace(/\s+/g, ' '));
+      });
+    });
+    return set;
+  }, [currentPaper.sections]);
+
+  const inPaperKeys = useMemo(() => {
+    const matched = new Set<string>();
+    allQuestions.forEach((bq) => {
+      const norm = bq.question.text.trim().toLowerCase().replace(/\s+/g, ' ');
+      if (paperQuestionNormalizedTexts.has(norm)) {
+        matched.add(bq.key);
+      }
+    });
+    return matched;
+  }, [allQuestions, paperQuestionNormalizedTexts]);
+
+  useEffect(() => {
+    if (preferSyncFromPaper && !hasAutoSynced && allQuestions.length > 0 && inPaperKeys.size > 0) {
+      setSelectedKeys(new Set(inPaperKeys));
+      setHasAutoSynced(true);
+    }
+  }, [preferSyncFromPaper, hasAutoSynced, allQuestions.length, inPaperKeys]);
 
   // One entry per curriculum unit ("chapter"), with its question counts.
   const chapters = useMemo(() => {
@@ -118,6 +173,14 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
     const needle = search.trim().toLowerCase();
 
     return allQuestions.filter((bq) => {
+      if (
+        patternSeed &&
+        excludeSeedPastQs &&
+        patternSeed.excludedQuestionTexts.length > 0 &&
+        isSimilarToPastQuestion(bq.question.text, patternSeed.excludedQuestionTexts)
+      ) {
+        return false;
+      }
       if (activeChapter !== ALL_CHAPTERS && bq.unitIndex !== activeChapter) return false;
       if (kindFilter !== 'all' && bq.kind !== kindFilter) return false;
       if (!needle) return true;
@@ -187,10 +250,35 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
     setSelectedKeys(new Set());
   };
 
-  const handleSync = async (force: boolean) => {
-    if (force && !window.confirm('Overwrite the database question bank with the bundled version?')) {
+  const handleReplaceAndReturn = () => {
+    if (selectedKeys.size === 0 || !onReplacePaperWithQuestions) return;
+    const chosen = allQuestions.filter((q) => selectedKeys.has(q.key));
+    const picked: Question[] = chosen.map((bq) => bq.question);
+    onReplacePaperWithQuestions(picked, activeBank?.subjectName || 'question bank');
+  };
+
+  const handleLoadFromPaper = () => {
+    if (inPaperKeys.size === 0) {
+      setStatus({
+        text: 'No matching questions from the current paper were found in this bank.',
+        tone: 'error',
+      });
       return;
     }
+    setSelectedKeys(new Set(inPaperKeys));
+    setStatus({
+      text: `Pre-selected ${inPaperKeys.size} questions currently in your paper so you can adjust or reselect.`,
+      tone: 'ok',
+    });
+  };
+
+  const handleSync = async (force: boolean) => {
+    if (force && !confirmOverwriteDb) {
+      setConfirmOverwriteDb(true);
+      setTimeout(() => setConfirmOverwriteDb(false), 4500);
+      return;
+    }
+    setConfirmOverwriteDb(false);
     setIsSyncing(true);
     setStatus(null);
     try {
@@ -243,6 +331,17 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          {onOpenAIRefiner && (
+            <button
+              type="button"
+              onClick={onOpenAIRefiner}
+              className="px-2.5 py-1.5 bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-neutral-900 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:border-neutral-800 dark:text-white text-[11px] font-medium rounded-lg transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
+              title="Let AI refine or swap questions on the paper"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Edit with AI</span>
+            </button>
+          )}
           <ThemeToggleButton theme={theme} onToggle={onToggleTheme} showLabel />
           <button
             onClick={() => handleSync(true)}
@@ -255,10 +354,49 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
             ) : (
               <RefreshCw className="w-3.5 h-3.5" />
             )}
-            <span>Re-sync to DB</span>
+            <span>{confirmOverwriteDb ? 'Click Again to Confirm' : 'Re-sync to DB'}</span>
           </button>
         </div>
       </header>
+
+      {patternSeed && (
+        <div className="shrink-0 px-4 py-2 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-100/80 dark:bg-neutral-950 flex flex-wrap items-center justify-between gap-2 text-[11px]">
+          <div className="flex flex-wrap items-center gap-3 text-neutral-700 dark:text-neutral-300">
+            <span className="inline-flex items-center gap-1.5 font-semibold text-neutral-900 dark:text-white">
+              <Shuffle className="w-3.5 h-3.5" />
+              {patternSeed.year} Pattern Targets:
+            </span>
+            {patternSeed.sectionPatterns.map((sp) => {
+              const selectedCount = allQuestions.filter(
+                (q) => selectedKeys.has(q.key) && q.kind === sp.kind
+              ).length;
+              return (
+                <span key={sp.name} className="font-mono tabular-nums">
+                  {sp.name}: {selectedCount}/{sp.questionCount}
+                </span>
+              );
+            })}
+          </div>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setExcludeSeedPastQs((v) => !v)}
+              className="font-medium text-neutral-700 dark:text-neutral-300 hover:underline cursor-pointer"
+            >
+              {excludeSeedPastQs ? `Hiding ${patternSeed.year} Qs` : `Showing All Qs`}
+            </button>
+            {onClearPatternSeed && (
+              <button
+                type="button"
+                onClick={onClearPatternSeed}
+                className="font-medium text-neutral-500 hover:text-neutral-900 dark:hover:text-white cursor-pointer"
+              >
+                Clear Pattern
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {status && (
         <div
@@ -498,6 +636,11 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
                             {bq.question.text}
                           </div>
                           <div className="flex items-center gap-1.5 shrink-0">
+                            {inPaperKeys.has(bq.key) && (
+                              <span className="text-[10px] font-medium text-indigo-600 dark:text-indigo-400">
+                                In Paper
+                              </span>
+                            )}
                             <span
                               className={`text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded ${KIND_CHIP_STYLES[bq.kind]}`}
                             >
@@ -546,33 +689,55 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
 
       {/* Sticky action bar */}
       {!isLoading && banks.length > 0 && (
-        <footer className="shrink-0 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black px-4 py-2.5 flex items-center justify-between gap-3">
+        <footer className="shrink-0 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black px-4 py-2.5 flex flex-wrap items-center justify-between gap-3">
           <div className="min-w-0 text-[11px] text-neutral-500 dark:text-neutral-400 flex items-center gap-3">
             <span className="flex items-center gap-1.5 text-neutral-900 dark:text-white font-semibold">
               <ListChecks className="w-3.5 h-3.5" />
               {selectedKeys.size} selected
             </span>
-            <span className="hidden sm:inline truncate">
-              Target paper: {currentPaper.header.subjectTitle || currentPaper.title} ·{' '}
+            {inPaperKeys.size > 0 && (
+              <button
+                type="button"
+                onClick={handleLoadFromPaper}
+                className="text-[11px] font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 hover:underline cursor-pointer whitespace-nowrap"
+                title="Pre-check questions currently on your paper so you can swap or uncheck them"
+              >
+                Sync {inPaperKeys.size} from current paper
+              </button>
+            )}
+            <span className="hidden lg:inline truncate">
+              Paper: {currentPaper.header.subjectTitle || currentPaper.title} ·{' '}
               {currentPaper.sections.length} sections · {paperQuestionCount} questions
             </span>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
             <button
               onClick={() => setSelectedKeys(new Set())}
               disabled={selectedKeys.size === 0}
-              className="px-3 py-1.5 text-[11px] text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white rounded-lg transition disabled:opacity-40 cursor-pointer"
+              className="px-2.5 py-1.5 text-[11px] text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white rounded-lg transition disabled:opacity-40 cursor-pointer"
             >
               Clear
             </button>
+            {onReplacePaperWithQuestions && (
+              <button
+                type="button"
+                onClick={handleReplaceAndReturn}
+                disabled={selectedKeys.size === 0}
+                className="px-3.5 py-1.5 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black font-semibold text-[11px] rounded-lg dark:hover:bg-neutral-200 transition flex items-center gap-1.5 disabled:opacity-40 cursor-pointer whitespace-nowrap"
+                title="Replace the paper's questions with your checked selection and return to Paper Preview"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>Update Paper ({selectedKeys.size}) &amp; Preview</span>
+              </button>
+            )}
             <button
               onClick={handleAddToPaper}
               disabled={selectedKeys.size === 0}
-              className="px-3.5 py-1.5 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black font-semibold text-[11px] rounded-lg dark:hover:bg-neutral-200 transition flex items-center gap-1.5 disabled:opacity-40 cursor-pointer whitespace-nowrap"
+              className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 border border-neutral-300 text-neutral-900 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:border-neutral-700 dark:text-white font-semibold text-[11px] rounded-lg transition flex items-center gap-1.5 disabled:opacity-40 cursor-pointer whitespace-nowrap"
             >
               <Plus className="w-3.5 h-3.5" />
-              <span>Add {selectedKeys.size > 0 ? selectedKeys.size : ''} to Paper</span>
+              <span>Append {selectedKeys.size > 0 ? selectedKeys.size : ''}</span>
             </button>
             {onOpenShareModal && (
               <button
@@ -581,7 +746,7 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
                 title="Email paper, schedule Gmail send, or upload to Drive & share link"
               >
                 <Share2 className="w-3.5 h-3.5" />
-                <span>Deliver / Share</span>
+                <span className="hidden sm:inline">Share</span>
               </button>
             )}
             <button
@@ -589,7 +754,7 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
               className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-neutral-900 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:border-neutral-800 dark:text-white text-[11px] font-medium rounded-lg transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
             >
               <BookOpen className="w-3.5 h-3.5" />
-              <span>Open Editor</span>
+              <span>Back to Preview</span>
               <ChevronRight className="w-3 h-3" />
             </button>
           </div>

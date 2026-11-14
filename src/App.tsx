@@ -6,6 +6,8 @@ import {
   Question,
   QuestionType,
   PaperSettings,
+  PastPaperRecord,
+  PastPaperPatternSeed,
 } from './types/exam';
 import { DEFAULT_EXAM_PAPER } from './data/defaultPaper';
 import {
@@ -33,9 +35,13 @@ import { PaperShareModal } from './components/PaperShareModal';
 import { Dashboard } from './components/Dashboard';
 import { BuilderMode } from './components/BuilderMode';
 import { AutoBlueprintMode } from './components/AutoBlueprintMode';
+import { PastPapersView } from './components/PastPapersView';
+import { PastPaperViewerModal } from './components/PastPaperViewerModal';
+import { PastPaperPatternModal } from './components/PastPaperPatternModal';
+import { AIPaperRefinerModal } from './components/AIPaperRefinerModal';
 import { AppMode } from './components/ModeSwitcher';
 import { AppTheme } from './components/ThemeToggleButton';
-import { mergeQuestionsIntoPaper } from './services/paperComposer';
+import { mergeQuestionsIntoPaper, replaceQuestionsInPaper } from './services/paperComposer';
 import { syncBundledQuestionBanks } from './services/questionBank';
 import { exportPaperToWord } from './services/wordExport';
 import { downloadPaperAsPDF, printPaperDirect } from './services/pdfExport';
@@ -54,7 +60,7 @@ interface BannerNotification {
 }
 
 export default function App() {
-  const [viewMode, setViewMode] = useState<'dashboard' | 'builder' | 'auto' | 'workspace'>('dashboard');
+  const [viewMode, setViewMode] = useState<'dashboard' | 'past-papers' | 'builder' | 'auto' | 'workspace'>('dashboard');
   const [theme, setTheme] = useState<AppTheme>(() => {
     try {
       const saved = localStorage.getItem('exam_maker_theme');
@@ -102,6 +108,11 @@ export default function App() {
   const [isMassJsonModalOpen, setIsMassJsonModalOpen] = useState<boolean>(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
   const [shareTargetPaper, setShareTargetPaper] = useState<ExamPaper | null>(null);
+  const [viewerPastPaper, setViewerPastPaper] = useState<PastPaperRecord | null>(null);
+  const [patternModalPastPaper, setPatternModalPastPaper] = useState<PastPaperRecord | null>(null);
+  const [activePatternSeed, setActivePatternSeed] = useState<PastPaperPatternSeed | null>(null);
+  const [isAIRefinerOpen, setIsAIRefinerOpen] = useState<boolean>(false);
+  const [builderCameFromPreview, setBuilderCameFromPreview] = useState<boolean>(false);
 
   const [driveModalConfig, setDriveModalConfig] = useState<{
     targetPaper?: ExamPaper;
@@ -675,6 +686,7 @@ export default function App() {
   // Select Subject Template
   const handleSelectTemplate = (templatePaper: ExamPaper) => {
     const cloned = clonePaperForEditing(templatePaper);
+    setActivePatternSeed(null);
     updatePaper(cloned);
     setActiveSectionId(cloned.sections[0]?.id || 'header');
     setViewMode('workspace');
@@ -691,6 +703,7 @@ export default function App() {
 
   // New Blank Paper
   const handleNewBlankPaper = () => {
+    setActivePatternSeed(null);
     const now = Date.now();
     const newPaper: ExamPaper = {
       id: 'paper-' + now,
@@ -813,6 +826,27 @@ export default function App() {
     );
   };
 
+  // Replace paper questions when reselecting from Question Bank / BuilderMode
+  const handleReplaceQuestionsInPaper = (questions: Question[], label: string) => {
+    if (questions.length === 0) return;
+
+    const updated = replaceQuestionsInPaper(paper, questions, activePatternSeed);
+    updatePaper(updated);
+    setActiveSectionId(updated.sections[0]?.id || 'header');
+    setBuilderCameFromPreview(false);
+    setViewMode('workspace');
+
+    showNotification(
+      `Updated paper with ${questions.length} question${questions.length === 1 ? '' : 's'} from ${label}.`,
+      'success',
+      5000,
+      {
+        label: 'Deliver / Share',
+        onClick: () => openShareHub(updated),
+      }
+    );
+  };
+
   // Export to Word
   const handleExportWord = async () => {
     showNotification('Generating Word document (.docx)...', 'loading', 0);
@@ -847,9 +881,24 @@ export default function App() {
     paper.sections.find((s) => s.id === activeSectionId) || paper.sections[0];
 
   const handleSwitchMode = (mode: AppMode) => {
-    if (mode === 'auto') setViewMode('auto');
-    else if (mode === 'builder') setViewMode('builder');
-    else setViewMode('workspace');
+    if (mode === 'past-papers') setViewMode('past-papers');
+    else if (mode === 'auto') setViewMode('auto');
+    else if (mode === 'builder') {
+      setBuilderCameFromPreview(viewMode === 'workspace');
+      setViewMode('builder');
+    } else {
+      setBuilderCameFromPreview(false);
+      setViewMode('workspace');
+    }
+  };
+
+  const handleOpenExactPastPaper = (pastPaper: PastPaperRecord) => {
+    const cloned = clonePaperForEditing(pastPaper.paper);
+    setActivePatternSeed(null);
+    updatePaper(cloned);
+    setActiveSectionId(cloned.sections[0]?.id || 'header');
+    setViewMode('workspace');
+    showNotification(`Opened ${pastPaper.title} in the Editor.`);
   };
 
   const activeDrivePaper = driveModalConfig.targetPaper || paper;
@@ -895,7 +944,7 @@ export default function App() {
 
       {/* Primary View Surface */}
       {viewMode === 'dashboard' ? (
-        <div className="h-screen w-screen overflow-y-auto bg-neutral-50 text-neutral-900 dark:bg-black dark:text-white">
+        <div className="h-screen w-screen overflow-y-auto bg-[#F8F9FA] text-[#171717] dark:bg-black dark:text-white">
           <Dashboard
             currentPaper={paper}
             theme={theme}
@@ -908,6 +957,9 @@ export default function App() {
             onNewBlankPaper={handleNewBlankPaper}
             onOpenBuilder={() => setViewMode('builder')}
             onOpenAutoBlueprint={() => setViewMode('auto')}
+            onOpenPastPapers={() => setViewMode('past-papers')}
+            onViewPastPaper={(pp) => setViewerPastPaper(pp)}
+            onUsePastPaperPattern={(pp) => setPatternModalPastPaper(pp)}
             onOpenTemplatesModal={() => setIsTemplateModalOpen(true)}
             onOpenGoogleDrive={() => openDriveForPaper(paper)}
             onOpenShareForPaper={(target) => openShareHub(target)}
@@ -939,16 +991,30 @@ export default function App() {
             }}
           />
         </div>
-      ) : viewMode === 'auto' ? (
-        <AutoBlueprintMode
+      ) : viewMode === 'past-papers' ? (
+        <PastPapersView
           currentPaper={paper}
           theme={theme}
           onToggleTheme={toggleTheme}
           onSwitchMode={handleSwitchMode}
           onOpenDashboard={() => setViewMode('dashboard')}
+          onViewPastPaper={(pp) => setViewerPastPaper(pp)}
+          onOpenExactPastPaper={handleOpenExactPastPaper}
+          onUsePatternDifferentQuestions={(pp) => setPatternModalPastPaper(pp)}
+        />
+      ) : viewMode === 'auto' ? (
+        <AutoBlueprintMode
+          currentPaper={paper}
+          theme={theme}
+          onToggleTheme={toggleTheme}
+          patternSeed={activePatternSeed}
+          onClearPatternSeed={() => setActivePatternSeed(null)}
+          onSwitchMode={handleSwitchMode}
+          onOpenDashboard={() => setViewMode('dashboard')}
           onApplyPaperToEditor={(updatedPaper, meta) => {
             updatePaper(updatedPaper);
             setActiveSectionId(updatedPaper.sections[0]?.id || 'header');
+            setBuilderCameFromPreview(false);
             setViewMode('workspace');
             showNotification(
               `${meta.mode === 'replace' ? 'Loaded' : 'Appended'} ${meta.count} ${
@@ -968,8 +1034,16 @@ export default function App() {
           currentPaper={paper}
           theme={theme}
           onToggleTheme={toggleTheme}
+          patternSeed={activePatternSeed}
+          onClearPatternSeed={() => setActivePatternSeed(null)}
+          preferSyncFromPaper={builderCameFromPreview}
           onAddQuestionsToPaper={handleAddQuestionsFromBank}
-          onOpenEditor={() => setViewMode('workspace')}
+          onReplacePaperWithQuestions={handleReplaceQuestionsInPaper}
+          onOpenEditor={() => {
+            setBuilderCameFromPreview(false);
+            setViewMode('workspace');
+          }}
+          onOpenAIRefiner={() => setIsAIRefinerOpen(true)}
           onOpenDashboard={() => setViewMode('dashboard')}
           onSwitchMode={handleSwitchMode}
           onOpenShareModal={() => openShareHub(paper)}
@@ -1060,7 +1134,15 @@ export default function App() {
                 mobileViewTab === 'editor' ? 'hidden md:flex' : 'flex'
               }`}
             >
-              <PaperPreview paper={paper} onPrint={handlePrintPDF} />
+              <PaperPreview
+                paper={paper}
+                onPrint={handlePrintPDF}
+                onOpenAIRefiner={() => setIsAIRefinerOpen(true)}
+                onBackToQuestionBank={() => {
+                  setBuilderCameFromPreview(true);
+                  setViewMode('builder');
+                }}
+              />
             </div>
           </main>
 
@@ -1170,6 +1252,73 @@ export default function App() {
               }
             : undefined
         }
+      />
+
+      <PastPaperViewerModal
+        isOpen={Boolean(viewerPastPaper)}
+        onClose={() => setViewerPastPaper(null)}
+        pastPaper={viewerPastPaper}
+        onOpenExactInEditor={handleOpenExactPastPaper}
+        onUsePatternWithDifferentQuestions={(pp) => setPatternModalPastPaper(pp)}
+      />
+
+      <PastPaperPatternModal
+        isOpen={Boolean(patternModalPastPaper)}
+        onClose={() => setPatternModalPastPaper(null)}
+        pastPaper={patternModalPastPaper}
+        onApplyGeneratedPaper={(generatedPaper, meta) => {
+          updatePaper(generatedPaper);
+          setActivePatternSeed(meta.seed);
+          setActiveSectionId(generatedPaper.sections[0]?.id || 'header');
+          setBuilderCameFromPreview(false);
+          setViewMode('workspace');
+          const modeLabel =
+            meta.engine === 'ai-db'
+              ? 'AI selected from your DB'
+              : meta.engine === 'ai'
+              ? 'AI crafted'
+              : meta.engine === 'manual'
+              ? 'Manually selected'
+              : 'Question Bank';
+          showNotification(
+            `Generated paper using ${meta.sourceTitle} pattern (${modeLabel})!`,
+            'success',
+            5500,
+            {
+              label: 'Deliver / Share',
+              onClick: () => openShareHub(generatedPaper),
+            }
+          );
+        }}
+        onCustomizeInAutoBlueprint={(seed) => {
+          setActivePatternSeed(seed);
+          setViewMode('auto');
+        }}
+        onOpenManualBuilderWithSeed={(seed) => {
+          setActivePatternSeed(seed);
+          setBuilderCameFromPreview(false);
+          setViewMode('builder');
+        }}
+      />
+
+      <AIPaperRefinerModal
+        isOpen={isAIRefinerOpen}
+        onClose={() => setIsAIRefinerOpen(false)}
+        paper={paper}
+        patternSeed={activePatternSeed}
+        onApplyRefinedPaper={(updatedPaper, summary) => {
+          updatePaper(updatedPaper);
+          setActiveSectionId(updatedPaper.sections[0]?.id || 'header');
+          showNotification(summary, 'success', 5500, {
+            label: 'Deliver / Share',
+            onClick: () => openShareHub(updatedPaper),
+          });
+        }}
+        onSwitchToQuestionBank={() => {
+          setIsAIRefinerOpen(false);
+          setBuilderCameFromPreview(true);
+          setViewMode('builder');
+        }}
       />
     </>
   );

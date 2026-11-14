@@ -141,3 +141,47 @@ export interface ScheduledEmailJob {
   gmailMessageId?: string;
   errorMessage?: string;
 }
+
+export interface PastPaperSectionPattern {
+  name: string;
+  subtitle: string;
+  kind: 'mcq' | 'short' | 'detailed';
+  questionCount: number;
+  attemptCount: number;
+  marksPerQuestion: number;
+  totalSectionMarks: number;
+  marksBadge: string;
+  instruction: string;
+  numberingStyle?: 'roman' | 'decimal' | 'section-c-from-3';
+}
+
+export interface PastPaperRecord {
+  id: string;
+  title: string;
+  year: string;
+  subject: string;
+  classGrade: string;
+  boardOrGroup: string;
+  category: 'Math' | 'Science' | 'History' | 'Computer Science' | 'English' | 'Other';
+  description?: string;
+  questionBankId?: string;
+  sourceImages?: string[];
+  sectionPatterns: PastPaperSectionPattern[];
+  paper: ExamPaper;
+  createdAt: string;
+  isBuiltIn?: boolean;
+}
+
+export interface PastPaperPatternSeed {
+  pastPaperId: string;
+  pastPaperTitle: string;
+  year: string;
+  subject: string;
+  classGrade: string;
+  boardOrGroup: string;
+  questionBankId?: string;
+  sectionPatterns: PastPaperSectionPattern[];
+  excludedQuestionTexts: string[];
+  sourcePaperHeader: ExamHeader;
+}
+
