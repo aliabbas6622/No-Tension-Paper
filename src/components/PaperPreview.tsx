@@ -165,10 +165,19 @@ export const PaperPreview: React.FC<PaperPreviewProps> = ({ paper, onPrint }) =>
             id="printable-exam-paper"
             className={`w-full min-h-[1050px] p-8 sm:p-12 rounded-sm shadow-2xl bg-white text-black border border-neutral-300 ${fontClass}`}
           >
-            {/* Optional Institution */}
-            {header.institutionName && (
-              <div className="text-center font-bold text-base sm:text-lg tracking-wide uppercase mb-1">
-                {header.institutionName}
+            {/* Optional Institution & Paper Code */}
+            {(header.institutionName || header.paperCode) && (
+              <div className="relative text-center mb-1">
+                {header.institutionName && (
+                  <div className="font-bold text-base sm:text-lg tracking-wide uppercase">
+                    {header.institutionName}
+                  </div>
+                )}
+                {header.paperCode && (
+                  <div className="text-[11px] font-mono tracking-wider uppercase opacity-75">
+                    Paper Code: {header.paperCode}
+                  </div>
+                )}
               </div>
             )}
 
@@ -189,7 +198,11 @@ export const PaperPreview: React.FC<PaperPreviewProps> = ({ paper, onPrint }) =>
             </div>
 
             {/* Metadata Row: Date, Duration, Max Marks */}
-            <div className="flex items-center justify-between text-xs sm:text-sm pt-2 pb-1 border-b border-black font-medium">
+            <div
+              className={`flex items-center justify-between text-xs sm:text-sm pt-2 pb-1 font-medium ${
+                header.showDividerLine !== false ? 'border-b border-black' : ''
+              }`}
+            >
               <div>Date: {header.date || '___'}</div>
               <div>Duration: {header.duration || '2 Hour'}</div>
               <div>Max. Marks: {header.maxMarks || '50'}</div>
@@ -228,9 +241,11 @@ export const PaperPreview: React.FC<PaperPreviewProps> = ({ paper, onPrint }) =>
                     </div>
 
                     {/* Right-aligned boxed marks badge (e.g. '10 Marks') */}
-                    <div className="absolute right-0 top-1/2 -translate-y-1/2 border border-black px-3 py-1 text-xs sm:text-sm font-bold shadow-xs whitespace-nowrap">
-                      {section.marksBadge}
-                    </div>
+                    {settings.showMarksBadges !== false && section.marksBadge && (
+                      <div className="absolute right-0 top-1/2 -translate-y-1/2 border border-black px-3 py-1 text-xs sm:text-sm font-bold shadow-xs whitespace-nowrap">
+                        {section.marksBadge}
+                      </div>
+                    )}
                   </div>
 
                   {/* Section Sub-Instruction (if enabled) */}
@@ -258,10 +273,11 @@ export const PaperPreview: React.FC<PaperPreviewProps> = ({ paper, onPrint }) =>
                           )}
                         </div>
 
-                        {/* MCQ Options Display: 2 Columns */}
+                        {/* MCQ Options Display: 2 or 4 Columns */}
                         {q.type === 'mcq' && q.options && q.options.length > 0 && (
                           <div className="mt-1.5 pl-4 sm:pl-6">
-                            {q.options.length === 4 && q.optionColumns !== 4 ? (
+                            {q.options.length === 4 &&
+                            (q.optionColumns ?? settings.mcqColumns) !== 4 ? (
                               <div className="grid grid-cols-2 gap-x-6 gap-y-1">
                                 <div className="flex items-baseline gap-1.5">
                                   <span className="font-medium">{q.options[0].label}</span>
@@ -283,7 +299,9 @@ export const PaperPreview: React.FC<PaperPreviewProps> = ({ paper, onPrint }) =>
                             ) : (
                               <div
                                 className={`grid ${
-                                  q.optionColumns === 4 ? 'grid-cols-4' : 'grid-cols-2'
+                                  (q.optionColumns ?? settings.mcqColumns) === 4
+                                    ? 'grid-cols-4'
+                                    : 'grid-cols-2'
                                 } gap-x-4 gap-y-1`}
                               >
                                 {q.options.map((opt) => (

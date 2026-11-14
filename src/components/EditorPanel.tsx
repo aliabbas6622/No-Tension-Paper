@@ -218,18 +218,55 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
           </div>
         </div>
 
-        {/* Optional Institution */}
-        <div className="bg-neutral-950 p-4 rounded-xl border border-neutral-800 space-y-2.5">
+        {/* Optional Institution, Paper Code & General Instructions */}
+        <div className="bg-neutral-950 p-4 rounded-xl border border-neutral-800 space-y-3">
           <div className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider">
-            Optional Board / Institution
+            Optional Details &amp; Instructions
           </div>
-          <input
-            type="text"
-            value={header.institutionName || ''}
-            onChange={(e) => onUpdateHeader({ institutionName: e.target.value })}
-            placeholder="e.g. Board of Intermediate and Secondary Education"
-            className="w-full bg-black border border-neutral-800 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-hidden"
-          />
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div className="sm:col-span-2">
+              <label className="block text-[10px] text-neutral-400 mb-1">
+                Board / Institution Name
+              </label>
+              <input
+                type="text"
+                value={header.institutionName || ''}
+                onChange={(e) => onUpdateHeader({ institutionName: e.target.value })}
+                placeholder="e.g. Board of Intermediate and Secondary Education"
+                className="w-full bg-black border border-neutral-800 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-hidden"
+              />
+            </div>
+            <div>
+              <label className="block text-[10px] text-neutral-400 mb-1">Paper Code</label>
+              <input
+                type="text"
+                value={header.paperCode || ''}
+                onChange={(e) => onUpdateHeader({ paperCode: e.target.value })}
+                placeholder="e.g. CS-201"
+                className="w-full bg-black border border-neutral-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-hidden"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-[10px] text-neutral-400 mb-1">
+              General Instructions (one per line)
+            </label>
+            <textarea
+              rows={3}
+              value={(header.generalInstructions || []).join('\n')}
+              onChange={(e) =>
+                onUpdateHeader({
+                  generalInstructions: e.target.value
+                    .split('\n')
+                    .map((line) => line.trim())
+                    .filter(Boolean),
+                })
+              }
+              placeholder="Attempt all sections carefully."
+              className="w-full bg-black border border-neutral-800 rounded-lg p-2 text-xs text-neutral-200 focus:outline-hidden focus:border-white"
+            />
+          </div>
         </div>
       </div>
     );
@@ -509,12 +546,25 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                         type="number"
                         min="1"
                         max="100"
-                        value={q.marks || 1}
-                        onChange={(e) =>
-                          onUpdateQuestion(activeSection.id, q.id, {
-                            marks: Number(e.target.value) || 1,
-                          })
-                        }
+                        value={q.marks ?? 1}
+                        onChange={(e) => {
+                          const raw = e.target.value;
+                          if (raw === '') {
+                            onUpdateQuestion(activeSection.id, q.id, { marks: 0 });
+                            return;
+                          }
+                          const parsed = parseInt(raw, 10);
+                          if (!Number.isNaN(parsed)) {
+                            onUpdateQuestion(activeSection.id, q.id, {
+                              marks: Math.max(0, Math.min(100, parsed)),
+                            });
+                          }
+                        }}
+                        onBlur={() => {
+                          if (!q.marks || q.marks < 1) {
+                            onUpdateQuestion(activeSection.id, q.id, { marks: 1 });
+                          }
+                        }}
                         className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-hidden"
                       />
                     </div>

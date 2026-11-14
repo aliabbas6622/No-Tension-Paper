@@ -2,8 +2,50 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
     function isSignedIn() {
       return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function isValidScheduledEmail(data) {
+      return data.keys().hasAll([
+        'id', 'userId', 'to', 'subject', 'messageBody', 'includePaperText',
+        'attachmentFormat', 'scheduledFor', 'status', 'paperId', 'paperTitle',
+        'paperSnapshot', 'createdAt', 'updatedAt'
+      ])
+      && data.keys().hasOnly([
+        'id', 'userId', 'senderEmail', 'to', 'cc', 'subject', 'messageBody',
+        'includePaperText', 'attachmentFormat', 'driveShareLink', 'scheduledFor',
+        'status', 'paperId', 'paperTitle', 'paperSnapshot', 'createdAt',
+        'updatedAt', 'sentAt', 'gmailMessageId', 'errorMessage'
+      ])
+      && data.id is string && data.id.size() > 0 && data.id.size() <= 128
+      && data.userId == request.auth.uid
+      && data.to is string && data.to.size() > 0 && data.to.size() <= 1000
+      && (!('cc' in data) || (data.cc is string && data.cc.size() <= 1000))
+      && (!('senderEmail' in data) || (data.senderEmail is string && data.senderEmail.size() <= 320))
+      && data.subject is string && data.subject.size() <= 500
+      && data.messageBody is string && data.messageBody.size() <= 20000
+      && data.includePaperText is bool
+      && data.attachmentFormat in ['pdf', 'docx', 'json', 'none']
+      && (!('driveShareLink' in data) || (data.driveShareLink is string && data.driveShareLink.size() <= 2000))
+      && data.scheduledFor is string && data.scheduledFor.size() > 0 && data.scheduledFor.size() <= 64
+      && data.status in ['pending', 'sending', 'sent', 'failed', 'cancelled']
+      && data.paperId is string && data.paperId.size() <= 128
+      && data.paperTitle is string && data.paperTitle.size() <= 500
+      && data.paperSnapshot is map
+      && data.createdAt is string && data.createdAt.size() <= 64
+      && data.updatedAt is string && data.updatedAt.size() <= 64
+      && (!('sentAt' in data) || (data.sentAt is string && data.sentAt.size() <= 64))
+      && (!('gmailMessageId' in data) || (data.gmailMessageId is string && data.gmailMessageId.size() <= 256))
+      && (!('errorMessage' in data) || (data.errorMessage is string && data.errorMessage.size() <= 1000));
     }
 
     // Exam Papers collection
@@ -25,6 +67,26 @@ service cloud.firestore {
       allow read: if true;
       allow create, update: if true;
       allow delete: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.userId in ['guest', 'public']);
+    }
+
+    // Scheduled Gmail Deliveries collection (strict owner isolation)
+    match /scheduled_emails/{jobId} {
+      allow get: if isSignedIn() && isValidId(jobId) && resource.data.userId == request.auth.uid;
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn()
+        && isValidId(jobId)
+        && isValidScheduledEmail(request.resource.data)
+        && request.resource.data.id == jobId
+        && request.resource.data.status == 'pending';
+      allow update: if isSignedIn()
+        && isValidId(jobId)
+        && isValidScheduledEmail(request.resource.data)
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.id == resource.data.id
+        && request.resource.data.createdAt == resource.data.createdAt
+        && resource.data.status in ['pending', 'sending', 'failed'];
+      allow delete: if isSignedIn() && isValidId(jobId) && resource.data.userId == request.auth.uid;
     }
   }
 }

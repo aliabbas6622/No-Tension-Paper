@@ -12,9 +12,14 @@ const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 
 const provider = new GoogleAuthProvider();
-// Google Docs & Drive scopes configured during OAuth setup
-provider.addScope('https://www.googleapis.com/auth/documents');
-provider.addScope('https://www.googleapis.com/auth/drive.file');
+// Google Docs, Drive & Gmail scopes configured during OAuth setup
+export const SCOPES = [
+  'https://www.googleapis.com/auth/documents',
+  'https://www.googleapis.com/auth/drive.file',
+  'https://www.googleapis.com/auth/gmail.send',
+] as const;
+
+SCOPES.forEach((scope) => provider.addScope(scope));
 
 // In-memory token caching (MANDATORY: Never stored in localStorage/sessionStorage)
 let cachedAccessToken: string | null = null;

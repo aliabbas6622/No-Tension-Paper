@@ -115,3 +115,29 @@ export interface SubjectTemplate {
   paper: ExamPaper;
   curriculumData?: CurriculumAnswersPayload;
 }
+
+export type EmailAttachmentFormat = 'pdf' | 'docx' | 'json' | 'none';
+export type ScheduledEmailStatus = 'pending' | 'sending' | 'sent' | 'failed' | 'cancelled';
+
+export interface ScheduledEmailJob {
+  id: string;
+  userId: string;
+  senderEmail?: string;
+  to: string;
+  cc?: string;
+  subject: string;
+  messageBody: string;
+  includePaperText: boolean;
+  attachmentFormat: EmailAttachmentFormat;
+  driveShareLink?: string;
+  scheduledFor: string;
+  status: ScheduledEmailStatus;
+  paperId: string;
+  paperTitle: string;
+  paperSnapshot: ExamPaper;
+  createdAt: string;
+  updatedAt: string;
+  sentAt?: string;
+  gmailMessageId?: string;
+  errorMessage?: string;
+}

@@ -119,16 +119,28 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
     reader.onload = (event) => {
       try {
         const parsed = JSON.parse(event.target?.result as string);
-        if (Array.isArray(parsed.customTemplates)) {
+        if (Array.isArray(parsed?.customTemplates)) {
+          let importedCount = 0;
           parsed.customTemplates.forEach((t: SubjectTemplate) => {
-            saveCustomTemplate(t.name, t.category || 'Other', t.paper);
+            if (t && t.name && t.paper && Array.isArray(t.paper.sections)) {
+              saveCustomTemplate(t.name, t.category || 'Other', t.paper);
+              importedCount++;
+            }
           });
           setCustomTemplates(getCustomTemplates());
-          setSuccessMsg(`Imported ${parsed.customTemplates.length} templates!`);
-          setTimeout(() => setSuccessMsg(null), 3000);
+          setSuccessMsg(
+            importedCount > 0
+              ? `Imported ${importedCount} template${importedCount === 1 ? '' : 's'}!`
+              : 'No valid templates found in file.'
+          );
+          setTimeout(() => setSuccessMsg(null), 3500);
+        } else {
+          setSuccessMsg('Invalid templates JSON format (missing customTemplates array).');
+          setTimeout(() => setSuccessMsg(null), 3500);
         }
       } catch (err) {
-        alert('Failed to parse templates JSON');
+        setSuccessMsg('Failed to parse templates JSON file.');
+        setTimeout(() => setSuccessMsg(null), 3500);
       }
     };
     reader.readAsText(file);

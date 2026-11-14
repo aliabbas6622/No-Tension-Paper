@@ -15,6 +15,8 @@ import {
   Check,
   Save,
   Cloud,
+  HardDrive,
+  Mail,
 } from 'lucide-react';
 
 interface HeaderNavProps {
@@ -29,12 +31,16 @@ interface HeaderNavProps {
   onOpenSettings: () => void;
   onOpenExportModal: () => void;
   onOpenGoogleDocs: () => void;
+  onOpenGoogleDrive: () => void;
+  onOpenGmail: () => void;
   onExportWord: () => void;
   onDownloadPDF: () => void;
   onPrintPDF: () => void;
   onResetDefault: () => void;
   onSaveToLibrary: () => void;
   isSavingDatabase?: boolean;
+  pendingScheduledCount?: number;
+  onOpenShareModal?: () => void;
 }
 
 export const HeaderNav: React.FC<HeaderNavProps> = ({
@@ -49,12 +55,16 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   onOpenSettings,
   onOpenExportModal,
   onOpenGoogleDocs,
+  onOpenGoogleDrive,
+  onOpenGmail,
   onExportWord,
   onDownloadPDF,
   onPrintPDF,
   onResetDefault,
   onSaveToLibrary,
   isSavingDatabase,
+  pendingScheduledCount = 0,
+  onOpenShareModal,
 }) => {
   const [isSectionDropdownOpen, setIsSectionDropdownOpen] = useState(false);
   const [isExportDropdownOpen, setIsExportDropdownOpen] = useState(false);
@@ -248,6 +258,35 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           </span>
         </button>
 
+        {/* Google Drive Icon Button */}
+        <button
+          onClick={onOpenGoogleDrive}
+          className="p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-900 transition relative group cursor-pointer"
+          title="Google Drive (Save & Open Papers)"
+        >
+          <HardDrive className="w-4 h-4" />
+          <span className="absolute left-1/2 -translate-x-1/2 top-full mt-1.5 px-2 py-0.5 bg-neutral-900 border border-neutral-700 text-[10px] text-white rounded opacity-0 group-hover:opacity-100 pointer-events-none transition whitespace-nowrap z-50">
+            Google Drive
+          </span>
+        </button>
+
+        {/* Send / Schedule via Gmail Icon Button */}
+        <button
+          onClick={onOpenGmail}
+          className="p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-900 transition relative group cursor-pointer"
+          title="Send or Schedule Paper via Gmail"
+        >
+          <Mail className="w-4 h-4" />
+          {pendingScheduledCount > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 min-w-[14px] h-[14px] px-0.5 rounded-full bg-white text-black font-bold text-[9px] flex items-center justify-center">
+              {pendingScheduledCount}
+            </span>
+          )}
+          <span className="absolute left-1/2 -translate-x-1/2 top-full mt-1.5 px-2 py-0.5 bg-neutral-900 border border-neutral-700 text-[10px] text-white rounded opacity-0 group-hover:opacity-100 pointer-events-none transition whitespace-nowrap z-50">
+            Gmail{pendingScheduledCount > 0 ? ` (${pendingScheduledCount} Scheduled)` : ''}
+          </span>
+        </button>
+
         <div className="h-4 w-px bg-neutral-800 mx-1" />
 
         {/* SINGLE EXPORT ICON BUTTON */}
@@ -334,9 +373,55 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
                 <FileText className="w-4 h-4 text-neutral-300" />
                 <div>
                   <div className="font-medium">Export to Google Docs</div>
-                  <div className="text-[10px] text-neutral-500">Save in Google Drive</div>
+                  <div className="text-[10px] text-neutral-500">Editable Doc in Drive</div>
                 </div>
               </button>
+
+              {/* Google Drive Option */}
+              <button
+                onClick={() => {
+                  setIsExportDropdownOpen(false);
+                  onOpenGoogleDrive();
+                }}
+                className="w-full text-left px-3 py-2 hover:bg-neutral-900 text-white flex items-center gap-2.5 cursor-pointer"
+              >
+                <HardDrive className="w-4 h-4 text-neutral-300" />
+                <div>
+                  <div className="font-medium">Save / Open in Google Drive</div>
+                  <div className="text-[10px] text-neutral-500">PDF, Word, or JSON backup</div>
+                </div>
+              </button>
+
+              {/* Send / Schedule via Gmail Option */}
+              <button
+                onClick={() => {
+                  setIsExportDropdownOpen(false);
+                  onOpenGmail();
+                }}
+                className="w-full text-left px-3 py-2 hover:bg-neutral-900 text-white flex items-center gap-2.5 cursor-pointer"
+              >
+                <Mail className="w-4 h-4 text-neutral-300" />
+                <div>
+                  <div className="font-medium">Email / Schedule via Gmail</div>
+                  <div className="text-[10px] text-neutral-500">Send now or schedule delivery</div>
+                </div>
+              </button>
+
+              {onOpenShareModal && (
+                <button
+                  onClick={() => {
+                    setIsExportDropdownOpen(false);
+                    onOpenShareModal();
+                  }}
+                  className="w-full text-left px-3 py-2 hover:bg-neutral-900 text-white flex items-center gap-2.5 cursor-pointer border-t border-neutral-800/80"
+                >
+                  <Share2 className="w-4 h-4 text-neutral-300" />
+                  <div>
+                    <div className="font-medium">Deliver &amp; Share Hub</div>
+                    <div className="text-[10px] text-neutral-500">Email, Schedule, or Drive Share Link</div>
+                  </div>
+                </button>
+              )}
             </div>
           )}
         </div>

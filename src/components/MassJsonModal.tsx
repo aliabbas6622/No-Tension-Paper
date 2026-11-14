@@ -126,7 +126,7 @@ export const MassJsonModal: React.FC<MassJsonModalProps> = ({
     try {
       const sanitized = input
         .replace(/<--[^\n\r]*/g, '')
-        .replace(/\/\/[^\n\r]*/g, '')
+        .replace(/^\s*\/\/[^\n\r]*$/gm, '')
         .trim();
 
       const parsed = JSON.parse(sanitized);
@@ -137,14 +137,21 @@ export const MassJsonModal: React.FC<MassJsonModalProps> = ({
           if (Array.isArray(unit.sections)) {
             unit.sections.forEach((sec: any) => {
               if (Array.isArray(sec.questions)) {
+                const secTypeLower = String(sec.type || '').toLowerCase();
                 sec.questions.forEach((q: any) => {
                   const isMcq =
-                    (sec.type && (sec.type.toLowerCase().includes('mcq') || sec.type.toLowerCase().includes('encircle'))) ||
+                    secTypeLower.includes('mcq') ||
+                    secTypeLower.includes('encircle') ||
+                    secTypeLower.includes('choice') ||
                     (q.options && q.options.length > 0);
+                  const isDetailed =
+                    secTypeLower.includes('detailed') ||
+                    secTypeLower.includes('long') ||
+                    secTypeLower.includes('essay');
                   items.push({
-                    number: q.question_number,
+                    number: q.question_number ? `${q.question_number}.` : undefined,
                     text: q.question || q.text,
-                    type: isMcq ? 'mcq' : 'short',
+                    type: isMcq ? 'mcq' : isDetailed ? 'detailed' : 'short',
                     options: q.options,
                     answerKey: q.answer || q.answerKey,
                   });
@@ -194,7 +201,8 @@ export const MassJsonModal: React.FC<MassJsonModalProps> = ({
         if (!item || typeof item !== 'object') {
           throw new Error(`Item at index ${i} is not a valid question object.`);
         }
-        if (!item.text || typeof item.text !== 'string') {
+        const resolvedText = item.text || item.question;
+        if (!resolvedText || typeof resolvedText !== 'string') {
           throw new Error(`Question at index ${i} is missing required string "text".`);
         }
 
@@ -211,11 +219,20 @@ export const MassJsonModal: React.FC<MassJsonModalProps> = ({
         if (qType === 'mcq') {
           if (Array.isArray(item.options) && item.options.length > 0) {
             opts = item.options.map((opt: any, optIdx: number) => {
-              const defaultLabels = ['(a)', '(b)', '(c)', '(d)', '(e)'];
+              const defaultLabels = ['(a)', '(b)', '(c)', '(d)', '(e)', '(f)'];
+              const optId = 'opt-' + Date.now() + '-' + i + '-' + optIdx;
+              if (typeof opt === 'string') {
+                const match = opt.trim().match(/^\s*(\([a-zA-Z0-9]+\)|[a-zA-Z0-9]+[.)])\s*(.*)$/);
+                if (match) {
+                  const lbl = match[1].startsWith('(') ? match[1] : `(${match[1].replace(/[.)]/, '')})`;
+                  return { id: optId, label: lbl, text: match[2].trim() };
+                }
+                return { id: optId, label: defaultLabels[optIdx] || `(${optIdx + 1})`, text: opt.trim() };
+              }
               return {
-                id: 'opt-' + Date.now() + '-' + i + '-' + optIdx,
-                label: opt.label || defaultLabels[optIdx] || `(${optIdx + 1})`,
-                text: typeof opt === 'string' ? opt : String(opt.text || ''),
+                id: optId,
+                label: opt?.label || defaultLabels[optIdx] || `(${optIdx + 1})`,
+                text: String(opt?.text || ''),
               };
             });
           } else {
@@ -229,14 +246,16 @@ export const MassJsonModal: React.FC<MassJsonModalProps> = ({
           }
         }
 
+        const resolvedAnswerKey = item.answerKey || item.answer;
         validated.push({
           id: 'q-mass-' + Date.now() + '-' + i,
           number: item.number || romanNumerals[i] || `${i + 1}.`,
           type: qType,
-          text: item.text.trim(),
+          text: resolvedText.trim(),
           marks: Number(item.marks) || (qType === 'mcq' ? 1 : qType === 'short' ? 4 : 8),
           optionColumns: item.optionColumns === 4 ? 4 : 2,
           options: opts,
+          ...(resolvedAnswerKey ? { answerKey: String(resolvedAnswerKey) } : {}),
         });
       }
 

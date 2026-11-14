@@ -7,11 +7,12 @@ import {
   FileDown,
   Printer,
   FileText,
-  Copy,
   Check,
   Loader2,
   AlertCircle,
   Share2,
+  HardDrive,
+  Mail,
 } from 'lucide-react';
 
 interface ExportModalProps {
@@ -19,6 +20,8 @@ interface ExportModalProps {
   onClose: () => void;
   paper: ExamPaper;
   onOpenGoogleDocs: () => void;
+  onOpenGoogleDrive: () => void;
+  onOpenGmail: () => void;
 }
 
 export const ExportModal: React.FC<ExportModalProps> = ({
@@ -26,6 +29,8 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   onClose,
   paper,
   onOpenGoogleDocs,
+  onOpenGoogleDrive,
+  onOpenGmail,
 }) => {
   const [isExportingPDF, setIsExportingPDF] = useState(false);
   const [isExportingWord, setIsExportingWord] = useState(false);
@@ -190,10 +195,10 @@ export const ExportModal: React.FC<ExportModalProps> = ({
             <div>
               <div className="font-semibold text-xs text-white flex items-center gap-1.5">
                 <FileText className="w-4 h-4 text-white" />
-                <span>Google Docs & Google Drive</span>
+                <span>Google Docs</span>
               </div>
               <p className="text-[11px] text-neutral-400 mt-0.5">
-                Create and save this exam paper directly into your Google Drive account.
+                Create an editable Google Document directly in your Google Drive account.
               </p>
             </div>
 
@@ -207,6 +212,53 @@ export const ExportModal: React.FC<ExportModalProps> = ({
               <FileText className="w-3.5 h-3.5 text-white" />
               <span>Export to Google Docs</span>
             </button>
+          </div>
+
+          {/* 4. Google Drive Storage & Gmail */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="p-4 rounded-xl border border-neutral-800 bg-neutral-950 space-y-3 flex flex-col justify-between">
+              <div>
+                <div className="font-semibold text-xs text-white flex items-center gap-1.5">
+                  <HardDrive className="w-4 h-4 text-white" />
+                  <span>Google Drive</span>
+                </div>
+                <p className="text-[11px] text-neutral-400 mt-0.5">
+                  Save PDF, Word, or JSON papers and open saved files from Drive.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  onClose();
+                  onOpenGoogleDrive();
+                }}
+                className="w-full py-2 px-3 bg-neutral-900 border border-neutral-700 text-white font-semibold text-xs rounded-lg hover:bg-neutral-800 transition flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <HardDrive className="w-3.5 h-3.5 text-white" />
+                <span>Open Google Drive</span>
+              </button>
+            </div>
+
+            <div className="p-4 rounded-xl border border-neutral-800 bg-neutral-950 space-y-3 flex flex-col justify-between">
+              <div>
+                <div className="font-semibold text-xs text-white flex items-center gap-1.5">
+                  <Mail className="w-4 h-4 text-white" />
+                  <span>Send via Gmail</span>
+                </div>
+                <p className="text-[11px] text-neutral-400 mt-0.5">
+                  Email this exam paper directly with PDF, Word, or JSON attachment.
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  onClose();
+                  onOpenGmail();
+                }}
+                className="w-full py-2 px-3 bg-neutral-900 border border-neutral-700 text-white font-semibold text-xs rounded-lg hover:bg-neutral-800 transition flex items-center justify-center gap-1.5 cursor-pointer"
+              >
+                <Mail className="w-3.5 h-3.5 text-white" />
+                <span>Compose Email</span>
+              </button>
+            </div>
           </div>
         </div>
 

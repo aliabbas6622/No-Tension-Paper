@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   ExamPaper,
   ExamHeader,
@@ -8,7 +8,11 @@ import {
   PaperSettings,
 } from './types/exam';
 import { DEFAULT_EXAM_PAPER } from './data/defaultPaper';
-import { savePaperToLibrary, getCustomTemplates } from './data/subjectTemplates';
+import {
+  savePaperToLibrary,
+  mergeCustomTemplatesToStorage,
+  clonePaperForEditing,
+} from './data/subjectTemplates';
 import {
   saveExamPaperToFirestore,
   loadExamPapersFromFirestore,
@@ -21,18 +25,35 @@ import { PaperPreview } from './components/PaperPreview';
 import { TemplateModal } from './components/TemplateModal';
 import { SettingsModal } from './components/SettingsModal';
 import { GoogleDocsModal } from './components/GoogleDocsModal';
+import { GoogleDriveModal, DriveSaveFormat } from './components/GoogleDriveModal';
+import { GmailModal } from './components/GmailModal';
 import { ExportModal } from './components/ExportModal';
 import { MassJsonModal } from './components/MassJsonModal';
+import { PaperShareModal } from './components/PaperShareModal';
 import { Dashboard } from './components/Dashboard';
 import { BuilderMode } from './components/BuilderMode';
+import { AutoBlueprintMode } from './components/AutoBlueprintMode';
+import { AppMode } from './components/ModeSwitcher';
 import { mergeQuestionsIntoPaper } from './services/paperComposer';
 import { syncBundledQuestionBanks } from './services/questionBank';
 import { exportPaperToWord } from './services/wordExport';
 import { downloadPaperAsPDF, printPaperDirect } from './services/pdfExport';
-import { Edit3, Eye, Check, AlertCircle, Loader2 } from 'lucide-react';
+import {
+  getScheduledEmails,
+  syncScheduledEmailsFromFirestore,
+  deliverScheduledEmailJob,
+} from './services/scheduledEmailService';
+import { Edit3, Eye, Check, AlertCircle, Loader2, Share2, X } from 'lucide-react';
+
+interface BannerNotification {
+  text: string;
+  type: 'success' | 'loading' | 'error';
+  actionLabel?: string;
+  onAction?: () => void;
+}
 
 export default function App() {
-  const [viewMode, setViewMode] = useState<'dashboard' | 'builder' | 'workspace'>('dashboard');
+  const [viewMode, setViewMode] = useState<'dashboard' | 'builder' | 'auto' | 'workspace'>('dashboard');
 
   const [paper, setPaper] = useState<ExamPaper>(() => {
     try {
@@ -44,38 +65,123 @@ export default function App() {
     return DEFAULT_EXAM_PAPER;
   });
 
-  // Start on the restored draft's own first section. Template papers use ids
-  // like `sec-math-a`, so the previous hardcoded 'section-a' matched nothing
-  // and silently dropped the editor into the header view.
   const [activeSectionId, setActiveSectionId] = useState<string>(
     () => paper.sections[0]?.id || 'header'
   );
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState<boolean>(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState<boolean>(false);
   const [isGoogleDocsModalOpen, setIsGoogleDocsModalOpen] = useState<boolean>(false);
+  const [isGoogleDriveModalOpen, setIsGoogleDriveModalOpen] = useState<boolean>(false);
+  const [isGmailModalOpen, setIsGmailModalOpen] = useState<boolean>(false);
   const [isExportModalOpen, setIsExportModalOpen] = useState<boolean>(false);
   const [isMassJsonModalOpen, setIsMassJsonModalOpen] = useState<boolean>(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState<boolean>(false);
+  const [shareTargetPaper, setShareTargetPaper] = useState<ExamPaper | null>(null);
+
+  const [driveModalConfig, setDriveModalConfig] = useState<{
+    targetPaper?: ExamPaper;
+    initialFormat?: DriveSaveFormat;
+    autoOpenShareAfterSave?: boolean;
+  }>({});
+
+  const [gmailModalConfig, setGmailModalConfig] = useState<{
+    targetPaper?: ExamPaper;
+    initialTo?: string;
+    initialDriveShareLink?: string;
+    initialTab?: 'compose' | 'scheduled';
+    initialDeliveryMode?: 'now' | 'schedule';
+  }>({});
+
+  const [pendingScheduledCount, setPendingScheduledCount] = useState<number>(
+    () => getScheduledEmails().filter((j) => j.status === 'pending').length
+  );
   const [mobileViewTab, setMobileViewTab] = useState<'editor' | 'preview'>('editor');
 
   // Notification banners
-  const [bannerMessage, setBannerMessage] = useState<{
-    text: string;
-    type: 'success' | 'loading' | 'error';
-  } | null>(null);
+  const [bannerMessage, setBannerMessage] = useState<BannerNotification | null>(null);
   const [isSavingDb, setIsSavingDb] = useState(false);
 
-  const showNotification = (
-    text: string,
-    type: 'success' | 'loading' | 'error' = 'success',
-    timeout = 3500
-  ) => {
-    setBannerMessage({ text, type });
-    if (timeout > 0) {
-      setTimeout(() => setBannerMessage(null), timeout);
-    }
-  };
+  const notificationTimerRef = useRef<number | null>(null);
+  const isProcessingScheduledRef = useRef(false);
+  const authWarningShownRef = useRef(false);
 
-  // Sync papers and templates with Firestore
+  const refreshPendingScheduledCount = useCallback(() => {
+    setPendingScheduledCount(getScheduledEmails().filter((j) => j.status === 'pending').length);
+  }, []);
+
+  const showNotification = useCallback(
+    (
+      text: string,
+      type: 'success' | 'loading' | 'error' = 'success',
+      timeout = 4000,
+      action?: { label: string; onClick: () => void }
+    ) => {
+      if (notificationTimerRef.current !== null) {
+        window.clearTimeout(notificationTimerRef.current);
+        notificationTimerRef.current = null;
+      }
+      setBannerMessage({
+        text,
+        type,
+        actionLabel: action?.label,
+        onAction: action?.onClick,
+      });
+      if (timeout > 0) {
+        notificationTimerRef.current = window.setTimeout(() => {
+          setBannerMessage(null);
+          notificationTimerRef.current = null;
+        }, timeout);
+      }
+    },
+    []
+  );
+
+  const openShareHub = useCallback((target: ExamPaper) => {
+    setShareTargetPaper(target);
+    setIsShareModalOpen(true);
+  }, []);
+
+  const openGmailForPaper = useCallback(
+    (
+      target: ExamPaper,
+      options?: {
+        initialTo?: string;
+        initialDriveShareLink?: string;
+        initialTab?: 'compose' | 'scheduled';
+        initialDeliveryMode?: 'now' | 'schedule';
+      }
+    ) => {
+      setGmailModalConfig({
+        targetPaper: target,
+        initialTo: options?.initialTo,
+        initialDriveShareLink: options?.initialDriveShareLink,
+        initialTab: options?.initialTab || 'compose',
+        initialDeliveryMode: options?.initialDeliveryMode || 'now',
+      });
+      setIsGmailModalOpen(true);
+    },
+    []
+  );
+
+  const openDriveForPaper = useCallback(
+    (
+      target: ExamPaper,
+      options?: {
+        initialFormat?: DriveSaveFormat;
+        autoOpenShareAfterSave?: boolean;
+      }
+    ) => {
+      setDriveModalConfig({
+        targetPaper: target,
+        initialFormat: options?.initialFormat,
+        autoOpenShareAfterSave: options?.autoOpenShareAfterSave,
+      });
+      setIsGoogleDriveModalOpen(true);
+    },
+    []
+  );
+
+  // Sync papers, templates, and scheduled emails with Firestore
   useEffect(() => {
     const syncWithFirestore = async () => {
       try {
@@ -89,23 +195,16 @@ export default function App() {
         }
 
         if (remoteTemplates && remoteTemplates.length > 0) {
-          const currentCustom = getCustomTemplates();
-          const existingIds = new Set(currentCustom.map((t) => t.id));
-          const newToAdd = remoteTemplates.filter((t) => !existingIds.has(t.id));
-          if (newToAdd.length > 0) {
-            localStorage.setItem(
-              'custom_exam_subject_templates',
-              JSON.stringify([...currentCustom, ...newToAdd])
-            );
-          }
+          mergeCustomTemplatesToStorage(remoteTemplates);
         }
+
+        await syncScheduledEmailsFromFirestore();
+        refreshPendingScheduledCount();
       } catch (e) {
         console.warn('Initial Firestore sync notice:', e);
       }
     };
 
-    // Put the bundled chapter-wise question bank on the database once, so the
-    // Builder has real data to browse. Idempotent — existing records are kept.
     const seedQuestionBank = () => {
       syncBundledQuestionBanks()
         .then((result) => {
@@ -121,7 +220,8 @@ export default function App() {
 
     const unsubscribe = initAuth(
       async () => {
-        syncWithFirestore();
+        authWarningShownRef.current = false;
+        await syncWithFirestore();
         seedQuestionBank();
       },
       () => {}
@@ -130,7 +230,65 @@ export default function App() {
     return () => {
       if (typeof unsubscribe === 'function') unsubscribe();
     };
-  }, []);
+  }, [refreshPendingScheduledCount]);
+
+  // Background Scheduled Gmail dispatcher loop (polls every 5 seconds while app is open)
+  useEffect(() => {
+    const checkDueEmails = async () => {
+      if (isProcessingScheduledRef.current) return;
+      const now = Date.now();
+      const dueJob = getScheduledEmails().find(
+        (j) => j.status === 'pending' && new Date(j.scheduledFor).getTime() <= now
+      );
+      if (!dueJob) return;
+
+      isProcessingScheduledRef.current = true;
+      try {
+        const result = await deliverScheduledEmailJob(dueJob);
+        refreshPendingScheduledCount();
+
+        if (result.needsAuth) {
+          if (!authWarningShownRef.current) {
+            authWarningShownRef.current = true;
+            showNotification(
+              `Scheduled email to ${dueJob.to} is due. Sign in to Gmail to send.`,
+              'error',
+              8000,
+              {
+                label: 'Open Queue',
+                onClick: () =>
+                  openGmailForPaper(dueJob.paperSnapshot, {
+                    initialTab: 'scheduled',
+                  }),
+              }
+            );
+          }
+        } else if (result.job.status === 'sent') {
+          showNotification(`Sent scheduled email to ${result.job.to}!`, 'success', 5000);
+        } else if (result.job.status === 'failed') {
+          showNotification(
+            `Scheduled email to ${result.job.to} failed: ${
+              result.job.errorMessage || 'Unknown error'
+            }`,
+            'error',
+            6000,
+            {
+              label: 'View Queue',
+              onClick: () =>
+                openGmailForPaper(dueJob.paperSnapshot, {
+                  initialTab: 'scheduled',
+                }),
+            }
+          );
+        }
+      } finally {
+        isProcessingScheduledRef.current = false;
+      }
+    };
+
+    const timer = window.setInterval(checkDueEmails, 5000);
+    return () => window.clearInterval(timer);
+  }, [openGmailForPaper, refreshPendingScheduledCount, showNotification]);
 
   const updatePaper = (newPaper: ExamPaper) => {
     setPaper(newPaper);
@@ -174,7 +332,7 @@ export default function App() {
   // Delete Section
   const handleDeleteSection = (sectionId: string) => {
     if (paper.sections.length <= 1) {
-      alert('Examination paper must have at least one section.');
+      showNotification('Examination paper must have at least one section.', 'error');
       return;
     }
     const updatedSections = paper.sections.filter((s) => s.id !== sectionId);
@@ -188,21 +346,31 @@ export default function App() {
     }
   };
 
-  // Add Section
+  // Add Section (picks first unused letter so deleting middle sections never duplicates letters)
   const handleAddSection = () => {
-    const sectionLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G'];
-    const currentCount = paper.sections.length;
-    const nextLetter = sectionLetters[currentCount] || `${currentCount + 1}`;
+    const sectionLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
+    const usedLetters = new Set(
+      paper.sections
+        .map((s) => {
+          const match = s.name.match(/["']([A-Z])["']|\b([A-Z])$/i);
+          return (match?.[1] || match?.[2] || '').toUpperCase();
+        })
+        .filter(Boolean)
+    );
+    const nextLetter =
+      sectionLetters.find((letter) => !usedLetters.has(letter)) ||
+      `${paper.sections.length + 1}`;
 
+    const now = Date.now();
     const newSection: ExamSection = {
-      id: 'section-' + Date.now(),
+      id: 'section-' + now,
       name: `SECTION "${nextLetter}"`,
       subtitle: '(ADDITIONAL QUESTIONS)',
       marksBadge: '10 Marks',
       instruction: 'Note: Attempt all questions from this section.',
       questions: [
         {
-          id: 'q-' + Date.now(),
+          id: 'q-' + now,
           number: 'i.',
           type: 'short',
           text: 'Answer the following question with relevant details:',
@@ -266,8 +434,9 @@ export default function App() {
       romanNumerals[targetSection.questions.length] ||
       `${targetSection.questions.length + 1}.`;
 
+    const ts = Date.now();
     const newQuestion: Question = {
-      id: 'q-' + Date.now(),
+      id: 'q-' + ts,
       number: nextNumber,
       type,
       text:
@@ -281,10 +450,10 @@ export default function App() {
       ...(type === 'mcq'
         ? {
             options: [
-              { id: 'opt-a-' + Date.now(), label: '(a)', text: 'Option A' },
-              { id: 'opt-b-' + Date.now(), label: '(b)', text: 'Option B' },
-              { id: 'opt-c-' + Date.now(), label: '(c)', text: 'Option C' },
-              { id: 'opt-d-' + Date.now(), label: '(d)', text: 'Option D' },
+              { id: `opt-a-${ts}`, label: '(a)', text: 'Option A' },
+              { id: `opt-b-${ts}`, label: '(b)', text: 'Option B' },
+              { id: `opt-c-${ts}`, label: '(c)', text: 'Option C' },
+              { id: `opt-d-${ts}`, label: '(d)', text: 'Option D' },
             ],
           }
         : {}),
@@ -377,21 +546,36 @@ export default function App() {
     });
   };
 
-  // Duplicate question
+  // Duplicate question (assigns clean numbering & fresh unique MCQ option IDs)
   const handleDuplicateQuestion = (sectionId: string, questionId: string) => {
     const targetSection = paper.sections.find((s) => s.id === sectionId);
     if (!targetSection) return;
 
-    const source = targetSection.questions.find((q) => q.id === questionId);
-    if (!source) return;
+    const qIndex = targetSection.questions.findIndex((q) => q.id === questionId);
+    if (qIndex < 0) return;
+    const source = targetSection.questions[qIndex];
+
+    const ts = Date.now();
+    const cloned = JSON.parse(JSON.stringify(source)) as Question;
+    const isLast = qIndex === targetSection.questions.length - 1;
+    const cleanNum = isLast
+      ? `${qIndex + 2}.`
+      : `${source.number.replace(/\.$/, '')}a.`;
 
     const duplicate: Question = {
-      ...JSON.parse(JSON.stringify(source)),
-      id: 'q-dup-' + Date.now(),
-      number: source.number + ' (copy)',
+      ...cloned,
+      id: `q-dup-${ts}`,
+      number: cleanNum,
+      ...(cloned.options
+        ? {
+            options: cloned.options.map((opt, idx) => ({
+              ...opt,
+              id: `opt-dup-${ts}-${idx}`,
+            })),
+          }
+        : {}),
     };
 
-    const qIndex = targetSection.questions.findIndex((q) => q.id === questionId);
     const newQuestions = [...targetSection.questions];
     newQuestions.splice(qIndex + 1, 0, duplicate);
 
@@ -455,27 +639,36 @@ export default function App() {
   // Reset to default
   const handleResetDefault = () => {
     if (window.confirm('Reset exam paper to the default intermediate template?')) {
-      updatePaper(DEFAULT_EXAM_PAPER);
-      setActiveSectionId('section-a');
+      const freshDefault = clonePaperForEditing(DEFAULT_EXAM_PAPER);
+      freshDefault.id = DEFAULT_EXAM_PAPER.id;
+      updatePaper(freshDefault);
+      setActiveSectionId(freshDefault.sections[0]?.id || 'header');
       showNotification('Reset to original default template!');
     }
   };
 
   // Select Subject Template
   const handleSelectTemplate = (templatePaper: ExamPaper) => {
-    const cloned = JSON.parse(JSON.stringify(templatePaper));
-    cloned.id = 'paper-' + Date.now();
-    cloned.updatedAt = new Date().toISOString();
+    const cloned = clonePaperForEditing(templatePaper);
     updatePaper(cloned);
     setActiveSectionId(cloned.sections[0]?.id || 'header');
     setViewMode('workspace');
-    showNotification(`Loaded template: ${cloned.header.subjectTitle || cloned.title}`);
+    showNotification(
+      `Loaded template: ${cloned.header.subjectTitle || cloned.title}`,
+      'success',
+      4500,
+      {
+        label: 'Deliver / Share',
+        onClick: () => openShareHub(cloned),
+      }
+    );
   };
 
   // New Blank Paper
   const handleNewBlankPaper = () => {
+    const now = Date.now();
     const newPaper: ExamPaper = {
-      id: 'paper-' + Date.now(),
+      id: 'paper-' + now,
       title: 'New Examination Paper',
       header: {
         examinationTitle: 'ANNUAL EXAMINATION 2026',
@@ -502,24 +695,24 @@ export default function App() {
       },
       sections: [
         {
-          id: 'sec-a-' + Date.now(),
+          id: 'sec-a-' + now,
           name: 'SECTION "A"',
           subtitle: '(OBJECTIVE / MCQs)',
           marksBadge: '20 Marks',
           instruction: 'Choose the correct option:',
           questions: [
             {
-              id: 'q-mcq-init',
+              id: 'q-mcq-init-' + now,
               number: 'i.',
               type: 'mcq',
               text: 'Sample question statement:',
               marks: 1,
               optionColumns: 2,
               options: [
-                { id: 'opt-1', label: '(a)', text: 'Option A' },
-                { id: 'opt-2', label: '(b)', text: 'Option B' },
-                { id: 'opt-3', label: '(c)', text: 'Option C' },
-                { id: 'opt-4', label: '(d)', text: 'Option D' },
+                { id: `opt-1-${now}`, label: '(a)', text: 'Option A' },
+                { id: `opt-2-${now}`, label: '(b)', text: 'Option B' },
+                { id: `opt-3-${now}`, label: '(c)', text: 'Option C' },
+                { id: `opt-4-${now}`, label: '(d)', text: 'Option D' },
               ],
             },
           ],
@@ -531,30 +724,51 @@ export default function App() {
     updatePaper(newPaper);
     setActiveSectionId(newPaper.sections[0].id);
     setViewMode('workspace');
+    showNotification('Created new exam paper!', 'success', 4500, {
+      label: 'Deliver / Share',
+      onClick: () => openShareHub(newPaper),
+    });
   };
 
-  // Save to Firebase Database & Local Library
+  // Save to Firebase Database & Local Library, then offer post-save delivery options
   const handleSaveToLibrary = async () => {
     setIsSavingDb(true);
     savePaperToLibrary(paper);
     try {
       await saveExamPaperToFirestore(paper);
-      showNotification('Paper saved to Firebase Database & Library!');
+      showNotification(
+        'Paper saved to Firebase Database & Library!',
+        'success',
+        6000,
+        {
+          label: 'Email / Drive Share',
+          onClick: () => openShareHub(paper),
+        }
+      );
     } catch (e: any) {
       console.warn('Firestore notice:', e);
-      showNotification('Saved to local library (Sign in for cloud sync)');
+      showNotification(
+        'Saved to local library (Sign in for cloud sync)',
+        'success',
+        6000,
+        {
+          label: 'Email / Drive Share',
+          onClick: () => openShareHub(paper),
+        }
+      );
     } finally {
       setIsSavingDb(false);
     }
   };
 
-  // Add questions picked in the Builder into the active paper. Bank questions
-  // are cloned by the caller, so paper edits never mutate the source bank.
+  // Add questions picked in the Builder into the active paper.
   const handleAddQuestionsFromBank = (questions: Question[], label: string) => {
     if (questions.length === 0) return;
 
+    let updatedPaperSnapshot: ExamPaper | null = null;
     setPaper((prev) => {
       const merged = mergeQuestionsIntoPaper(prev, questions);
+      updatedPaperSnapshot = merged;
       try {
         localStorage.setItem('exam_paper_active_draft', JSON.stringify(merged));
       } catch (e) {
@@ -564,7 +778,13 @@ export default function App() {
     });
 
     showNotification(
-      `Added ${questions.length} question${questions.length === 1 ? '' : 's'} from ${label} to the paper.`
+      `Added ${questions.length} question${questions.length === 1 ? '' : 's'} from ${label} to the paper.`,
+      'success',
+      5000,
+      {
+        label: 'Deliver / Share',
+        onClick: () => openShareHub(updatedPaperSnapshot || paper),
+      }
     );
   };
 
@@ -582,7 +802,7 @@ export default function App() {
 
   // Download PDF file
   const handleDownloadPDF = async () => {
-    showNotification('Rendering crisp A4 PDF document...', 'loading', 0);
+    showNotification('Rendering crisp PDF document...', 'loading', 0);
     try {
       await downloadPaperAsPDF(paper);
       showNotification('PDF file downloaded successfully!');
@@ -601,159 +821,249 @@ export default function App() {
   const activeSectionObj =
     paper.sections.find((s) => s.id === activeSectionId) || paper.sections[0];
 
-  // Render Dashboard
-  if (viewMode === 'dashboard') {
-    return (
-      <div className="h-screen w-screen overflow-y-auto bg-black text-white">
-        <Dashboard
-          currentPaper={paper}
-          onOpenPaper={(selected) => {
-            updatePaper(selected);
-            setActiveSectionId(selected.sections[0]?.id || 'header');
-            setViewMode('workspace');
-          }}
-          onNewBlankPaper={handleNewBlankPaper}
-          onOpenBuilder={() => setViewMode('builder')}
-          onOpenTemplatesModal={() => setIsTemplateModalOpen(true)}
-          onSubjectAdded={(newPaper, template, openWorkspace) => {
-            showNotification(
-              `Subject "${template.name}" added successfully with ${newPaper.sections.reduce(
-                (a, s) => a + s.questions.length,
-                0
-              )} questions from curriculum!`
-            );
-          }}
-        />
-        <TemplateModal
-          isOpen={isTemplateModalOpen}
-          onClose={() => setIsTemplateModalOpen(false)}
-          currentPaper={paper}
-          onSelectTemplate={handleSelectTemplate}
-        />
-      </div>
-    );
-  }
+  const handleSwitchMode = (mode: AppMode) => {
+    if (mode === 'auto') setViewMode('auto');
+    else if (mode === 'builder') setViewMode('builder');
+    else setViewMode('workspace');
+  };
 
-  // Render Builder (question bank -> paper)
-  if (viewMode === 'builder') {
-    return (
-      <BuilderMode
-        currentPaper={paper}
-        onAddQuestionsToPaper={handleAddQuestionsFromBank}
-        onOpenEditor={() => setViewMode('workspace')}
-        onOpenDashboard={() => setViewMode('dashboard')}
-      />
-    );
-  }
+  const activeDrivePaper = driveModalConfig.targetPaper || paper;
+  const activeGmailPaper = gmailModalConfig.targetPaper || paper;
 
-  // Render Workspace
   return (
-    <div className="h-screen w-screen overflow-hidden flex flex-col bg-black text-white select-none">
-      {/* Toast Notification Banner */}
+    <>
+      {/* Global Toast Notification Banner (Visible across Dashboard, Builder, and Workspace) */}
       {bannerMessage && (
-        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-xl text-xs font-medium shadow-2xl flex items-center gap-2 border bg-neutral-900 border-neutral-700 text-white animate-in fade-in slide-in-from-top-2 duration-150">
+        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-[60] max-w-md px-4 py-2 rounded-xl text-xs font-medium shadow-2xl flex items-center gap-2.5 border bg-neutral-900 border-neutral-700 text-white animate-in fade-in slide-in-from-top-2 duration-150 no-print">
           {bannerMessage.type === 'loading' ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-white shrink-0" />
           ) : bannerMessage.type === 'error' ? (
-            <AlertCircle className="w-3.5 h-3.5 text-white" />
+            <AlertCircle className="w-3.5 h-3.5 text-white shrink-0" />
           ) : (
-            <Check className="w-3.5 h-3.5 text-white" />
+            <Check className="w-3.5 h-3.5 text-white shrink-0" />
           )}
-          <span>{bannerMessage.text}</span>
+          <span className="truncate">{bannerMessage.text}</span>
+          {bannerMessage.actionLabel && bannerMessage.onAction && (
+            <button
+              type="button"
+              onClick={() => {
+                const action = bannerMessage.onAction;
+                setBannerMessage(null);
+                action?.();
+              }}
+              className="px-2.5 py-1 bg-white text-black font-semibold rounded-md text-[11px] hover:bg-neutral-200 flex items-center gap-1 shrink-0 cursor-pointer"
+            >
+              <Share2 className="w-3 h-3" />
+              <span>{bannerMessage.actionLabel}</span>
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => setBannerMessage(null)}
+            className="text-neutral-400 hover:text-white p-0.5 shrink-0 cursor-pointer"
+            aria-label="Dismiss notification"
+          >
+            <X className="w-3 h-3" />
+          </button>
         </div>
       )}
 
-      {/* Top Bar with Icon Tools */}
-      <HeaderNav
-        paper={paper}
-        activeMode="editor"
-        onSwitchMode={(mode) => setViewMode(mode === 'builder' ? 'builder' : 'workspace')}
-        activeSectionId={activeSectionId}
-        onSelectSection={setActiveSectionId}
-        onAddSection={handleAddSection}
-        onOpenDashboard={() => setViewMode('dashboard')}
-        onOpenTemplates={() => setIsTemplateModalOpen(true)}
-        onOpenSettings={() => setIsSettingsModalOpen(true)}
-        onOpenExportModal={() => setIsExportModalOpen(true)}
-        onOpenGoogleDocs={() => setIsGoogleDocsModalOpen(true)}
-        onExportWord={handleExportWord}
-        onDownloadPDF={handleDownloadPDF}
-        onPrintPDF={handlePrintPDF}
-        onResetDefault={handleResetDefault}
-        onSaveToLibrary={handleSaveToLibrary}
-        isSavingDatabase={isSavingDb}
-      />
-
-      {/* Mobile Switcher */}
-      <div className="md:hidden flex border-b border-neutral-800 bg-black px-3 py-1.5 gap-2 no-print shrink-0">
-        <button
-          onClick={() => setMobileViewTab('editor')}
-          className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 ${
-            mobileViewTab === 'editor'
-              ? 'bg-white text-black'
-              : 'bg-neutral-900 text-neutral-400'
-          }`}
-        >
-          <Edit3 className="w-3.5 h-3.5" />
-          <span>Editor</span>
-        </button>
-        <button
-          onClick={() => setMobileViewTab('preview')}
-          className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 ${
-            mobileViewTab === 'preview'
-              ? 'bg-white text-black'
-              : 'bg-neutral-900 text-neutral-400'
-          }`}
-        >
-          <Eye className="w-3.5 h-3.5" />
-          <span>Paper Preview</span>
-        </button>
-      </div>
-
-      {/* Main Split-Screen Workspace */}
-      <main className="flex-1 flex overflow-hidden min-h-0">
-        {/* Left Column: Editor (Independent Scroll Container) */}
-        <div
-          className={`w-full md:w-5/12 lg:w-4/12 h-full overflow-hidden flex flex-col border-r border-neutral-800 bg-black no-print ${
-            mobileViewTab === 'preview' ? 'hidden md:flex' : 'flex'
-          }`}
-        >
-          <EditorPanel
-            paper={paper}
-            activeSectionId={activeSectionId}
-            onSelectSection={setActiveSectionId}
-            onUpdateHeader={handleUpdateHeader}
-            onUpdateSection={handleUpdateSection}
-            onDeleteSection={handleDeleteSection}
-            onReorderQuestions={handleReorderQuestions}
-            onAddQuestion={handleAddQuestion}
-            onUpdateQuestion={handleUpdateQuestion}
-            onDeleteQuestion={handleDeleteQuestion}
-            onDuplicateQuestion={handleDuplicateQuestion}
-            onRenumberQuestions={handleRenumberQuestions}
-            onOpenMassJson={() => setIsMassJsonModalOpen(true)}
+      {/* Primary View Surface */}
+      {viewMode === 'dashboard' ? (
+        <div className="h-screen w-screen overflow-y-auto bg-black text-white">
+          <Dashboard
+            currentPaper={paper}
+            onOpenPaper={(selected) => {
+              updatePaper(selected);
+              setActiveSectionId(selected.sections[0]?.id || 'header');
+              setViewMode('workspace');
+            }}
+            onNewBlankPaper={handleNewBlankPaper}
+            onOpenBuilder={() => setViewMode('builder')}
+            onOpenAutoBlueprint={() => setViewMode('auto')}
+            onOpenTemplatesModal={() => setIsTemplateModalOpen(true)}
+            onOpenGoogleDrive={() => openDriveForPaper(paper)}
+            onOpenShareForPaper={(target) => openShareHub(target)}
+            onOpenGmailScheduled={() =>
+              openGmailForPaper(paper, {
+                initialTab: 'scheduled',
+              })
+            }
+            pendingScheduledCount={pendingScheduledCount}
+            onSubjectAdded={(newPaper, template, openWorkspace) => {
+              const qCount = newPaper.sections.reduce(
+                (a, s) => a + s.questions.length,
+                0
+              );
+              if (!openWorkspace) {
+                openShareHub(newPaper);
+              }
+              showNotification(
+                `Subject "${template.name}" added with ${qCount} questions!`,
+                'success',
+                5500,
+                openWorkspace
+                  ? {
+                      label: 'Deliver / Share',
+                      onClick: () => openShareHub(newPaper),
+                    }
+                  : undefined
+              );
+            }}
           />
         </div>
+      ) : viewMode === 'auto' ? (
+        <AutoBlueprintMode
+          currentPaper={paper}
+          onSwitchMode={handleSwitchMode}
+          onOpenDashboard={() => setViewMode('dashboard')}
+          onApplyPaperToEditor={(updatedPaper, meta) => {
+            updatePaper(updatedPaper);
+            setActiveSectionId(updatedPaper.sections[0]?.id || 'header');
+            setViewMode('workspace');
+            showNotification(
+              `${meta.mode === 'replace' ? 'Loaded' : 'Appended'} ${meta.count} ${
+                meta.engine === 'ai' ? 'AI-selected' : 'weighted'
+              } questions into the Editor.`,
+              'success',
+              5000,
+              {
+                label: 'Deliver / Share',
+                onClick: () => openShareHub(updatedPaper),
+              }
+            );
+          }}
+        />
+      ) : viewMode === 'builder' ? (
+        <BuilderMode
+          currentPaper={paper}
+          onAddQuestionsToPaper={handleAddQuestionsFromBank}
+          onOpenEditor={() => setViewMode('workspace')}
+          onOpenDashboard={() => setViewMode('dashboard')}
+          onSwitchMode={handleSwitchMode}
+          onOpenShareModal={() => openShareHub(paper)}
+        />
+      ) : (
+        <div className="h-screen w-screen overflow-hidden flex flex-col bg-black text-white select-none">
+          {/* Top Bar with Icon Tools */}
+          <HeaderNav
+            paper={paper}
+            activeMode="editor"
+            onSwitchMode={handleSwitchMode}
+            activeSectionId={activeSectionId}
+            onSelectSection={setActiveSectionId}
+            onAddSection={handleAddSection}
+            onOpenDashboard={() => setViewMode('dashboard')}
+            onOpenTemplates={() => setIsTemplateModalOpen(true)}
+            onOpenSettings={() => setIsSettingsModalOpen(true)}
+            onOpenExportModal={() => setIsExportModalOpen(true)}
+            onOpenGoogleDocs={() => setIsGoogleDocsModalOpen(true)}
+            onOpenGoogleDrive={() => openDriveForPaper(paper)}
+            onOpenGmail={() => openGmailForPaper(paper)}
+            onExportWord={handleExportWord}
+            onDownloadPDF={handleDownloadPDF}
+            onPrintPDF={handlePrintPDF}
+            onResetDefault={handleResetDefault}
+            onSaveToLibrary={handleSaveToLibrary}
+            isSavingDatabase={isSavingDb}
+            pendingScheduledCount={pendingScheduledCount}
+            onOpenShareModal={() => openShareHub(paper)}
+          />
 
-        {/* Right Column: Live Paper Preview (Independent Scroll Container) */}
-        <div
-          className={`flex-1 h-full overflow-hidden flex flex-col ${
-            mobileViewTab === 'editor' ? 'hidden md:flex' : 'flex'
-          }`}
-        >
-          <PaperPreview paper={paper} onPrint={handlePrintPDF} />
+          {/* Mobile Switcher */}
+          <div className="md:hidden flex border-b border-neutral-800 bg-black px-3 py-1.5 gap-2 no-print shrink-0">
+            <button
+              onClick={() => setMobileViewTab('editor')}
+              className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 ${
+                mobileViewTab === 'editor'
+                  ? 'bg-white text-black'
+                  : 'bg-neutral-900 text-neutral-400'
+              }`}
+            >
+              <Edit3 className="w-3.5 h-3.5" />
+              <span>Editor</span>
+            </button>
+            <button
+              onClick={() => setMobileViewTab('preview')}
+              className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 ${
+                mobileViewTab === 'preview'
+                  ? 'bg-white text-black'
+                  : 'bg-neutral-900 text-neutral-400'
+              }`}
+            >
+              <Eye className="w-3.5 h-3.5" />
+              <span>Paper Preview</span>
+            </button>
+          </div>
+
+          {/* Main Split-Screen Workspace */}
+          <main className="flex-1 flex overflow-hidden min-h-0">
+            {/* Left Column: Editor (Independent Scroll Container) */}
+            <div
+              className={`w-full md:w-5/12 lg:w-4/12 h-full overflow-hidden flex flex-col border-r border-neutral-800 bg-black no-print ${
+                mobileViewTab === 'preview' ? 'hidden md:flex' : 'flex'
+              }`}
+            >
+              <EditorPanel
+                paper={paper}
+                activeSectionId={activeSectionId}
+                onSelectSection={setActiveSectionId}
+                onUpdateHeader={handleUpdateHeader}
+                onUpdateSection={handleUpdateSection}
+                onDeleteSection={handleDeleteSection}
+                onReorderQuestions={handleReorderQuestions}
+                onAddQuestion={handleAddQuestion}
+                onUpdateQuestion={handleUpdateQuestion}
+                onDeleteQuestion={handleDeleteQuestion}
+                onDuplicateQuestion={handleDuplicateQuestion}
+                onRenumberQuestions={handleRenumberQuestions}
+                onOpenMassJson={() => setIsMassJsonModalOpen(true)}
+              />
+            </div>
+
+            {/* Right Column: Live Paper Preview (Independent Scroll Container) */}
+            <div
+              className={`flex-1 h-full overflow-hidden flex flex-col ${
+                mobileViewTab === 'editor' ? 'hidden md:flex' : 'flex'
+              }`}
+            >
+              <PaperPreview paper={paper} onPrint={handlePrintPDF} />
+            </div>
+          </main>
+
+          {/* Workspace-Only Modals */}
+          <SettingsModal
+            isOpen={isSettingsModalOpen}
+            onClose={() => setIsSettingsModalOpen(false)}
+            settings={paper.settings}
+            onUpdateSettings={handleUpdateSettings}
+          />
+
+          <GoogleDocsModal
+            isOpen={isGoogleDocsModalOpen}
+            onClose={() => setIsGoogleDocsModalOpen(false)}
+            paper={paper}
+          />
+
+          <ExportModal
+            isOpen={isExportModalOpen}
+            onClose={() => setIsExportModalOpen(false)}
+            paper={paper}
+            onOpenGoogleDocs={() => setIsGoogleDocsModalOpen(true)}
+            onOpenGoogleDrive={() => openDriveForPaper(paper)}
+            onOpenGmail={() => openGmailForPaper(paper)}
+          />
+
+          <MassJsonModal
+            isOpen={isMassJsonModalOpen}
+            onClose={() => setIsMassJsonModalOpen(false)}
+            section={activeSectionObj}
+            onImportQuestions={handleImportMassQuestions}
+          />
         </div>
-      </main>
+      )}
 
-      {/* Settings Modal */}
-      <SettingsModal
-        isOpen={isSettingsModalOpen}
-        onClose={() => setIsSettingsModalOpen(false)}
-        settings={paper.settings}
-        onUpdateSettings={handleUpdateSettings}
-      />
-
-      {/* Subject Templates Modal */}
+      {/* Shared Modals Available Across Dashboard, Builder, and Workspace */}
       <TemplateModal
         isOpen={isTemplateModalOpen}
         onClose={() => setIsTemplateModalOpen(false)}
@@ -761,28 +1071,73 @@ export default function App() {
         onSelectTemplate={handleSelectTemplate}
       />
 
-      {/* Google Docs Modal */}
-      <GoogleDocsModal
-        isOpen={isGoogleDocsModalOpen}
-        onClose={() => setIsGoogleDocsModalOpen(false)}
-        paper={paper}
+      <GoogleDriveModal
+        isOpen={isGoogleDriveModalOpen}
+        onClose={() => setIsGoogleDriveModalOpen(false)}
+        paper={activeDrivePaper}
+        allowSaveCurrentPaper={true}
+        initialFormat={driveModalConfig.initialFormat}
+        autoOpenShareAfterSave={driveModalConfig.autoOpenShareAfterSave}
+        onLoadPaperFromDrive={(loadedPaper, filename) => {
+          updatePaper(loadedPaper);
+          setActiveSectionId(loadedPaper.sections[0]?.id || 'header');
+          setViewMode('workspace');
+          showNotification(`Opened "${filename}" from Google Drive!`);
+        }}
+        onEmailShareLink={({ shareLink, recipientEmail }) => {
+          setIsGoogleDriveModalOpen(false);
+          openGmailForPaper(activeDrivePaper, {
+            initialTo: recipientEmail || '',
+            initialDriveShareLink: shareLink,
+            initialTab: 'compose',
+            initialDeliveryMode: 'now',
+          });
+        }}
       />
 
-      {/* Export Modal */}
-      <ExportModal
-        isOpen={isExportModalOpen}
-        onClose={() => setIsExportModalOpen(false)}
-        paper={paper}
-        onOpenGoogleDocs={() => setIsGoogleDocsModalOpen(true)}
+      <GmailModal
+        isOpen={isGmailModalOpen}
+        onClose={() => setIsGmailModalOpen(false)}
+        paper={activeGmailPaper}
+        initialTo={gmailModalConfig.initialTo}
+        initialDriveShareLink={gmailModalConfig.initialDriveShareLink}
+        initialTab={gmailModalConfig.initialTab}
+        initialDeliveryMode={gmailModalConfig.initialDeliveryMode}
+        onScheduledListChanged={refreshPendingScheduledCount}
       />
 
-      {/* Mass JSON Question Modal */}
-      <MassJsonModal
-        isOpen={isMassJsonModalOpen}
-        onClose={() => setIsMassJsonModalOpen(false)}
-        section={activeSectionObj}
-        onImportQuestions={handleImportMassQuestions}
+      <PaperShareModal
+        isOpen={isShareModalOpen}
+        onClose={() => setIsShareModalOpen(false)}
+        paper={shareTargetPaper || paper}
+        onEmailNow={(target) =>
+          openGmailForPaper(target, {
+            initialTab: 'compose',
+            initialDeliveryMode: 'now',
+          })
+        }
+        onScheduleEmail={(target) =>
+          openGmailForPaper(target, {
+            initialTab: 'compose',
+            initialDeliveryMode: 'schedule',
+          })
+        }
+        onUploadAndShareDrive={(target) =>
+          openDriveForPaper(target, {
+            initialFormat: 'pdf',
+            autoOpenShareAfterSave: true,
+          })
+        }
+        onOpenInEditor={
+          viewMode !== 'workspace'
+            ? (target) => {
+                updatePaper(target);
+                setActiveSectionId(target.sections[0]?.id || 'header');
+                setViewMode('workspace');
+              }
+            : undefined
+        }
       />
-    </div>
+    </>
   );
 }

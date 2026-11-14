@@ -1,4 +1,4 @@
-import React, { useState, useId } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   ExamPaper,
   SubjectTemplate,
@@ -202,10 +202,10 @@ export const SubjectAdderModal: React.FC<SubjectAdderModalProps> = ({
     }
 
     try {
-      // Clean up common pasted annotations like <-- Root Array or // comments
+      // Clean up common pasted annotations like <-- Root Array or standalone // comment lines
       let sanitized = rawInput
-        .replace(/<--[^\n\r]*/g, '') // remove <-- annotations
-        .replace(/\/\/[^\n\r]*/g, '') // remove line comments
+        .replace(/<--[^\n\r]*/g, '')
+        .replace(/^\s*\/\/[^\n\r]*$/gm, '')
         .trim();
 
       const parsed = JSON.parse(sanitized);
@@ -271,6 +271,12 @@ export const SubjectAdderModal: React.FC<SubjectAdderModalProps> = ({
     setJsonText(val);
     parseAndValidateCurriculumJson(val);
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      parseAndValidateCurriculumJson(jsonText);
+    }
+  }, [isOpen]);
 
   // Convert Curriculum JSON to ExamPaper
   const buildExamPaper = (payload: CurriculumAnswersPayload): ExamPaper => {
@@ -358,6 +364,7 @@ export const SubjectAdderModal: React.FC<SubjectAdderModalProps> = ({
             const questionId = `q-curr-${Date.now()}-${uIdx}-${qIdx}`;
 
             if (isMcq || (opts && opts.length > 0)) {
+              const fallbackBase = `opt-${Date.now()}-${uIdx}-${qIdx}`;
               mcqQuestions.push({
                 id: questionId,
                 number: q.question_number ? `${q.question_number}.` : `i.`,
@@ -365,10 +372,10 @@ export const SubjectAdderModal: React.FC<SubjectAdderModalProps> = ({
                 text: rawText,
                 marks: 1,
                 options: opts || [
-                  { id: '1', label: '(a)', text: 'Option A' },
-                  { id: '2', label: '(b)', text: 'Option B' },
-                  { id: '3', label: '(c)', text: 'Option C' },
-                  { id: '4', label: '(d)', text: 'Option D' },
+                  { id: `${fallbackBase}-a`, label: '(a)', text: 'Option A' },
+                  { id: `${fallbackBase}-b`, label: '(b)', text: 'Option B' },
+                  { id: `${fallbackBase}-c`, label: '(c)', text: 'Option C' },
+                  { id: `${fallbackBase}-d`, label: '(d)', text: 'Option D' },
                 ],
                 optionColumns: 2,
                 answerKey: q.answer,
@@ -396,13 +403,11 @@ export const SubjectAdderModal: React.FC<SubjectAdderModalProps> = ({
         });
       });
 
-      // Renumber questions smoothly
+      // Renumber merged sections sequentially so multi-unit merges never produce duplicates
       const renumberList = (list: Question[]) => {
-        const roman = ['i.', 'ii.', 'iii.', 'iv.', 'v.', 'vi.', 'vii.', 'viii.', 'ix.', 'x.', 'xi.', 'xii.', 'xiii.', 'xiv.', 'xv.'];
+        const roman = ['i.', 'ii.', 'iii.', 'iv.', 'v.', 'vi.', 'vii.', 'viii.', 'ix.', 'x.', 'xi.', 'xii.', 'xiii.', 'xiv.', 'xv.', 'xvi.', 'xvii.', 'xviii.', 'xix.', 'xx.'];
         list.forEach((q, idx) => {
-          if (!q.number || q.number === 'i.') {
-            q.number = roman[idx] || `${idx + 1}.`;
-          }
+          q.number = roman[idx] || `${idx + 1}.`;
         });
       };
 
@@ -447,6 +452,7 @@ export const SubjectAdderModal: React.FC<SubjectAdderModalProps> = ({
       // By Unit Organization
       payload.curriculum_answers.forEach((unit, uIdx) => {
         const unitQuestions: Question[] = [];
+        const roman = ['i.', 'ii.', 'iii.', 'iv.', 'v.', 'vi.', 'vii.', 'viii.', 'ix.', 'x.', 'xi.', 'xii.', 'xiii.', 'xiv.', 'xv.'];
 
         unit.sections.forEach((sec) => {
           const typeLower = sec.type.toLowerCase();
@@ -455,15 +461,26 @@ export const SubjectAdderModal: React.FC<SubjectAdderModalProps> = ({
             typeLower.includes('encircle') ||
             typeLower.includes('choice') ||
             sec.questions.some((q) => q.options && q.options.length > 0);
+          const isDetailed =
+            typeLower.includes('detailed') ||
+            typeLower.includes('long') ||
+            typeLower.includes('essay');
 
           sec.questions.forEach((q, qIdx) => {
             const opts = parseOptions(q.options);
+            const resolvedType =
+              isMcq || (opts && opts.length > 0)
+                ? 'mcq'
+                : isDetailed
+                ? 'detailed'
+                : 'short';
+            const seqIdx = unitQuestions.length;
             unitQuestions.push({
-              id: `q-unit-${Date.now()}-${uIdx}-${qIdx}`,
-              number: q.question_number ? `${q.question_number}.` : `${qIdx + 1}.`,
-              type: isMcq || (opts && opts.length > 0) ? 'mcq' : 'short',
+              id: `q-unit-${Date.now()}-${uIdx}-${qIdx}-${seqIdx}`,
+              number: roman[seqIdx] || `${seqIdx + 1}.`,
+              type: resolvedType,
               text: q.question || (q as any).text || '',
-              marks: isMcq ? 1 : 4,
+              marks: resolvedType === 'mcq' ? 1 : resolvedType === 'detailed' ? 8 : 4,
               options: opts,
               optionColumns: 2,
               answerKey: q.answer,

@@ -13,7 +13,9 @@ import {
 } from 'docx';
 import { ExamPaper } from '../types/exam';
 
-export async function exportPaperToWord(paper: ExamPaper): Promise<string> {
+export async function buildPaperWordBlob(
+  paper: ExamPaper
+): Promise<{ blob: Blob; filename: string }> {
   const docChildren: (Paragraph | Table)[] = [];
   const settings = paper.settings || {
     showGeneralInstructions: true,
@@ -491,11 +493,31 @@ export async function exportPaperToWord(paper: ExamPaper): Promise<string> {
     );
   }
 
+  const wordFont =
+    settings.fontFamily === 'sans'
+      ? 'Arial'
+      : settings.fontFamily === 'classic'
+      ? 'Georgia'
+      : 'Times New Roman';
+  const isLetter = settings.paperSize === 'letter';
+
   const doc = new Document({
+    styles: {
+      default: {
+        document: {
+          run: {
+            font: wordFont,
+          },
+        },
+      },
+    },
     sections: [
       {
         properties: {
           page: {
+            size: isLetter
+              ? { width: 12240, height: 15840 }
+              : { width: 11906, height: 16838 },
             margin: {
               top: 720,
               right: 720,
@@ -510,11 +532,17 @@ export async function exportPaperToWord(paper: ExamPaper): Promise<string> {
   });
 
   const blob = await Packer.toBlob(doc);
-  const cleanName = (paper.header.subjectTitle || 'Exam_Paper')
+  const cleanName = (paper.header.subjectTitle || paper.title || 'Exam_Paper')
     .replace(/^SUBJECT:\s*/i, '')
     .replace(/[^a-zA-Z0-9_-]/g, '_')
     .replace(/_+/g, '_');
   const filename = `${cleanName}_Exam_Paper.docx`;
+
+  return { blob, filename };
+}
+
+export async function exportPaperToWord(paper: ExamPaper): Promise<string> {
+  const { blob, filename } = await buildPaperWordBlob(paper);
 
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');

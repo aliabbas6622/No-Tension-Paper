@@ -151,6 +151,55 @@
         }
       },
       "required": ["id", "classGrade", "subjectName", "curriculumAnswers"]
+    },
+    "ScheduledEmailJob": {
+      "title": "ScheduledEmailJob",
+      "description": "Represents a Gmail scheduled delivery job for an examination paper.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 128 },
+        "userId": { "type": "string", "maxLength": 128 },
+        "senderEmail": { "type": "string", "maxLength": 320 },
+        "to": { "type": "string", "maxLength": 1000 },
+        "cc": { "type": "string", "maxLength": 1000 },
+        "subject": { "type": "string", "maxLength": 500 },
+        "messageBody": { "type": "string", "maxLength": 20000 },
+        "includePaperText": { "type": "boolean" },
+        "attachmentFormat": {
+          "type": "string",
+          "enum": ["pdf", "docx", "json", "none"]
+        },
+        "driveShareLink": { "type": "string", "maxLength": 2000 },
+        "scheduledFor": { "type": "string", "maxLength": 64 },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "sending", "sent", "failed", "cancelled"]
+        },
+        "paperId": { "type": "string", "maxLength": 128 },
+        "paperTitle": { "type": "string", "maxLength": 500 },
+        "paperSnapshot": { "type": "object" },
+        "createdAt": { "type": "string", "maxLength": 64 },
+        "updatedAt": { "type": "string", "maxLength": 64 },
+        "sentAt": { "type": "string", "maxLength": 64 },
+        "gmailMessageId": { "type": "string", "maxLength": 256 },
+        "errorMessage": { "type": "string", "maxLength": 1000 }
+      },
+      "required": [
+        "id",
+        "userId",
+        "to",
+        "subject",
+        "messageBody",
+        "includePaperText",
+        "attachmentFormat",
+        "scheduledFor",
+        "status",
+        "paperId",
+        "paperTitle",
+        "paperSnapshot",
+        "createdAt",
+        "updatedAt"
+      ]
     }
   },
   "firestore": {
@@ -171,6 +220,12 @@
         "$ref": "#/entities/CurriculumSubject"
       },
       "description": "Collection of curriculum subjects imported with units, questions and answer keys."
+    },
+    "/scheduled_emails/{jobId}": {
+      "schema": {
+        "$ref": "#/entities/ScheduledEmailJob"
+      },
+      "description": "Collection of scheduled Gmail deliveries authored by signed-in users."
     }
   }
 }

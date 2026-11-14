@@ -24,7 +24,7 @@ export async function exportPaperToGoogleDocs(
   };
 
   const docTitle =
-    paper.header.subjectTitle.replace(/^SUBJECT:\s*/i, '').trim() ||
+    (paper.header.subjectTitle || '').replace(/^SUBJECT:\s*/i, '').trim() ||
     paper.title ||
     'Examination Paper';
 
@@ -120,7 +120,7 @@ export async function exportPaperToGoogleDocs(
   }
 
   // 3. Insert content into the document
-  await fetch(`https://docs.googleapis.com/v1/documents/${documentId}:batchUpdate`, {
+  const batchRes = await fetch(`https://docs.googleapis.com/v1/documents/${documentId}:batchUpdate`, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -139,6 +139,14 @@ export async function exportPaperToGoogleDocs(
       ],
     }),
   });
+
+  if (!batchRes.ok) {
+    const errData = await batchRes.json().catch(() => null);
+    throw new Error(
+      errData?.error?.message ||
+        `Created Google Doc, but failed to populate content (${batchRes.status}).`
+    );
+  }
 
   const url = `https://docs.google.com/document/d/${documentId}/edit`;
   return {

@@ -6,6 +6,8 @@ import {
   getAllSavedPapers,
   deletePaperFromLibrary,
   savePaperToLibrary,
+  mergeCustomTemplatesToStorage,
+  clonePaperForEditing,
 } from '../data/subjectTemplates';
 import {
   loadExamPapersFromFirestore,
@@ -15,19 +17,17 @@ import {
 import {
   Plus,
   FileText,
-  Bookmark,
-  Clock,
   Trash2,
-  ExternalLink,
   ChevronRight,
-  Sparkles,
-  Sliders,
-  FolderOpen,
   Search,
-  BookOpen,
   BookPlus,
   Hammer,
   PenLine,
+  HardDrive,
+  Mail,
+  Share2,
+  Clock,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { SubjectAdderModal } from './SubjectAdderModal';
 
@@ -36,7 +36,12 @@ interface DashboardProps {
   onOpenPaper: (paper: ExamPaper) => void;
   onNewBlankPaper: () => void;
   onOpenBuilder: () => void;
+  onOpenAutoBlueprint?: () => void;
   onOpenTemplatesModal: () => void;
+  onOpenGoogleDrive: () => void;
+  onOpenShareForPaper?: (paper: ExamPaper) => void;
+  onOpenGmailScheduled?: () => void;
+  pendingScheduledCount?: number;
   onSubjectAdded?: (paper: ExamPaper, template: SubjectTemplate, openWorkspace: boolean) => void;
 }
 
@@ -45,7 +50,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onOpenPaper,
   onNewBlankPaper,
   onOpenBuilder,
+  onOpenAutoBlueprint,
   onOpenTemplatesModal,
+  onOpenGoogleDrive,
+  onOpenShareForPaper,
+  onOpenGmailScheduled,
+  pendingScheduledCount = 0,
   onSubjectAdded,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
@@ -67,12 +77,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         if (!isMounted) return;
 
         if (remoteTemplates && remoteTemplates.length > 0) {
-          const current = getCustomTemplates();
-          const map = new Map<string, SubjectTemplate>();
-          current.forEach((t) => map.set(t.id, t));
-          remoteTemplates.forEach((t) => map.set(t.id, t));
-          const merged = Array.from(map.values());
-          localStorage.setItem('custom_exam_subject_templates', JSON.stringify(merged));
+          const merged = mergeCustomTemplatesToStorage(remoteTemplates);
           setCustomTemplates(merged);
         }
 
@@ -159,7 +164,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Subject Adder Button */}
           <button
             onClick={() => setIsSubjectAdderOpen(true)}
@@ -170,25 +175,51 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <span>+ Subject Adder</span>
           </button>
 
+          {/* Auto Paper Blueprint */}
+          {onOpenAutoBlueprint && (
+            <button
+              onClick={onOpenAutoBlueprint}
+              className="px-3.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-white text-xs font-semibold rounded-lg transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
+              title="Select chapters and section counts using AI or pre-weighted balance"
+            >
+              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <span>Auto Paper</span>
+            </button>
+          )}
+
           {/* Question Bank Builder */}
           <button
             onClick={onOpenBuilder}
-            className="px-3.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-200 text-xs font-medium rounded-lg transition flex items-center gap-1.5 cursor-pointer"
-            title="Build a paper from the chapter-wise question bank"
+            className="px-3.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-200 text-xs font-medium rounded-lg transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
+            title="Build a paper manually from the chapter-wise question bank"
           >
             <Hammer className="w-3.5 h-3.5" />
             <span>Builder</span>
           </button>
 
-          {/* Quick Return to Active Paper Workspace */}
+          {/* Google Drive */}
           <button
-            onClick={() => onOpenPaper(currentPaper)}
+            onClick={onOpenGoogleDrive}
             className="px-3.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-200 text-xs font-medium rounded-lg transition flex items-center gap-1.5 cursor-pointer"
-            title="Resume editing current paper"
+            title="Open or save exam papers in Google Drive"
           >
-            <FolderOpen className="w-3.5 h-3.5" />
-            <span>Open Workspace</span>
+            <HardDrive className="w-3.5 h-3.5" />
+            <span>Google Drive</span>
           </button>
+
+          {/* Scheduled Gmail Queue */}
+          {onOpenGmailScheduled && (
+            <button
+              onClick={onOpenGmailScheduled}
+              className="px-3.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-200 text-xs font-medium rounded-lg transition flex items-center gap-1.5 cursor-pointer"
+              title="View or schedule Gmail deliveries"
+            >
+              <Clock className="w-3.5 h-3.5" />
+              <span>
+                Scheduled{pendingScheduledCount > 0 ? ` (${pendingScheduledCount})` : ''}
+              </span>
+            </button>
+          )}
 
           {/* New Blank Paper Button */}
           <button
@@ -220,7 +251,17 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {onOpenShareForPaper && (
+              <button
+                onClick={() => onOpenShareForPaper(currentPaper)}
+                className="px-4 py-2.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-white font-semibold text-xs rounded-xl transition flex items-center gap-2 cursor-pointer"
+                title="Email paper, schedule Gmail send, or upload to Drive & share link"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                <span>Email / Share Link</span>
+              </button>
+            )}
             <button
               onClick={() => onOpenPaper(currentPaper)}
               className="px-5 py-2.5 bg-white text-black font-semibold text-xs rounded-xl hover:bg-neutral-200 transition flex items-center gap-2 cursor-pointer"
@@ -231,25 +272,46 @@ export const Dashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
 
-        {/* The app's two primary surfaces */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* The app's primary creation surfaces */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {onOpenAutoBlueprint && (
+            <div className="border border-neutral-800 bg-neutral-950 p-6 rounded-2xl flex flex-col justify-between gap-4">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="w-7 h-7 rounded-lg bg-white text-black flex items-center justify-center">
+                    <SlidersHorizontal className="w-4 h-4" />
+                  </span>
+                  <h3 className="text-base font-bold text-white tracking-tight">Auto Paper</h3>
+                </div>
+                <p className="text-xs text-neutral-400 leading-relaxed">
+                  Select chapters, set question counts per section, choose Pre-Weighted chapter balance or AI selection, review and swap picks, then send directly to the Editor.
+                </p>
+              </div>
+              <button
+                onClick={onOpenAutoBlueprint}
+                className="self-start px-4 py-2 bg-white text-black font-semibold text-xs rounded-xl hover:bg-neutral-200 transition flex items-center gap-2 cursor-pointer whitespace-nowrap"
+              >
+                <SlidersHorizontal className="w-3.5 h-3.5" />
+                <span>Configure Blueprint</span>
+              </button>
+            </div>
+          )}
+
           <div className="border border-neutral-800 bg-neutral-950 p-6 rounded-2xl flex flex-col justify-between gap-4">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <span className="w-7 h-7 rounded-lg bg-white text-black flex items-center justify-center">
+                <span className="w-7 h-7 rounded-lg bg-neutral-900 border border-neutral-800 text-white flex items-center justify-center">
                   <Hammer className="w-4 h-4" />
                 </span>
                 <h3 className="text-base font-bold text-white tracking-tight">Builder</h3>
               </div>
               <p className="text-xs text-neutral-400 leading-relaxed">
-                Work from the question bank. Choose a chapter, skim its MCQs, short and detailed
-                questions with model answers, tick the ones you want, and they are added straight
-                into the paper — grouped into the right section and renumbered.
+                Browse the chapter-wise question bank manually, inspect model answers, tick the exact questions you want, and append them into your active paper.
               </p>
             </div>
             <button
               onClick={onOpenBuilder}
-              className="self-start px-4 py-2 bg-white text-black font-semibold text-xs rounded-xl hover:bg-neutral-200 transition flex items-center gap-2 cursor-pointer"
+              className="self-start px-4 py-2 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white font-semibold text-xs rounded-xl transition flex items-center gap-2 cursor-pointer whitespace-nowrap"
             >
               <Hammer className="w-3.5 h-3.5" />
               <span>Open Builder</span>
@@ -266,12 +328,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
               </div>
               <p className="text-xs text-neutral-400 leading-relaxed">
                 Hand-edit the paper: header metadata, sections, marks, options and answer keys,
-                with the live A4 preview beside you and export to PDF, Word or Google Docs.
+                with the live A4 preview beside you and export to PDF, Word, Google Docs, or Gmail.
               </p>
             </div>
             <button
               onClick={() => onOpenPaper(currentPaper)}
-              className="self-start px-4 py-2 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white font-semibold text-xs rounded-xl transition flex items-center gap-2 cursor-pointer"
+              className="self-start px-4 py-2 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white font-semibold text-xs rounded-xl transition flex items-center gap-2 cursor-pointer whitespace-nowrap"
             >
               <PenLine className="w-3.5 h-3.5" />
               <span>Open Editor</span>
@@ -367,7 +429,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             {filteredTemplates.map((template) => (
               <div
                 key={template.id}
-                onClick={() => onOpenPaper(template.paper)}
+                onClick={() => onOpenPaper(clonePaperForEditing(template.paper))}
                 className="group border border-neutral-800 bg-neutral-950 hover:bg-neutral-900 p-5 rounded-xl transition cursor-pointer flex flex-col justify-between"
               >
                 <div className="space-y-2">
@@ -444,17 +506,33 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-3 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0">
+                    {onOpenShareForPaper && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onOpenShareForPaper(saved);
+                        }}
+                        className="px-2.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-xs font-medium text-white rounded-lg transition flex items-center gap-1.5 cursor-pointer"
+                        title="Email, schedule Gmail send, or upload to Drive & share link"
+                      >
+                        <Mail className="w-3 h-3" />
+                        <span>Deliver / Share</span>
+                      </button>
+                    )}
                     <button
                       onClick={(e) => handleDeleteSavedPaper(e, saved.id)}
-                      className="p-1.5 text-neutral-500 hover:text-white rounded hover:bg-neutral-800 transition"
+                      className="p-1.5 text-neutral-500 hover:text-white rounded hover:bg-neutral-800 transition cursor-pointer"
                       title="Delete paper"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                     <button
-                      onClick={() => onOpenPaper(saved)}
-                      className="px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-xs font-medium text-white rounded-lg transition"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onOpenPaper(saved);
+                      }}
+                      className="px-3 py-1.5 bg-white text-black font-semibold hover:bg-neutral-200 text-xs rounded-lg transition cursor-pointer"
                     >
                       Open
                     </button>

@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ExamPaper, Question } from '../types/exam';
 import { QuestionBank, loadQuestionBanks, syncBundledQuestionBanks } from '../services/questionBank';
 import { BankQuestion, QuestionKind, buildBankQuestions } from '../services/paperComposer';
-import { ModeSwitcher } from './ModeSwitcher';
+import { AppMode, ModeSwitcher } from './ModeSwitcher';
 import {
   AlertCircle,
   BookOpen,
@@ -20,6 +20,7 @@ import {
   Square,
   CheckSquare,
   ListChecks,
+  Share2,
 } from 'lucide-react';
 
 interface BuilderModeProps {
@@ -27,6 +28,8 @@ interface BuilderModeProps {
   onAddQuestionsToPaper: (questions: Question[], label: string) => void;
   onOpenEditor: () => void;
   onOpenDashboard: () => void;
+  onSwitchMode?: (mode: AppMode) => void;
+  onOpenShareModal?: () => void;
 }
 
 const ALL_CHAPTERS = -1;
@@ -48,6 +51,8 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
   onAddQuestionsToPaper,
   onOpenEditor,
   onOpenDashboard,
+  onSwitchMode,
+  onOpenShareModal,
 }) => {
   const [banks, setBanks] = useState<QuestionBank[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -217,7 +222,16 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
             <Home className="w-4 h-4" />
           </button>
           <div className="h-4 w-px bg-neutral-800" />
-          <ModeSwitcher active="builder" onChange={(m) => m === 'editor' && onOpenEditor()} />
+          <ModeSwitcher
+            active="builder"
+            onChange={(m) => {
+              if (onSwitchMode) {
+                onSwitchMode(m);
+              } else if (m === 'editor') {
+                onOpenEditor();
+              }
+            }}
+          />
           <span className="hidden lg:inline text-[11px] text-neutral-500 truncate">
             Pick chapters and questions — they land straight in your paper
           </span>
@@ -552,6 +566,16 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
               <Plus className="w-3.5 h-3.5" />
               <span>Add {selectedKeys.size > 0 ? selectedKeys.size : ''} to Paper</span>
             </button>
+            {onOpenShareModal && (
+              <button
+                onClick={onOpenShareModal}
+                className="px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-white text-[11px] font-medium rounded-lg transition flex items-center gap-1.5 cursor-pointer"
+                title="Email paper, schedule Gmail send, or upload to Drive & share link"
+              >
+                <Share2 className="w-3.5 h-3.5" />
+                <span>Deliver / Share</span>
+              </button>
+            )}
             <button
               onClick={onOpenEditor}
               className="px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white text-[11px] font-medium rounded-lg transition flex items-center gap-1.5"

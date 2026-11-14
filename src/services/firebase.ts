@@ -1,12 +1,5 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import {
-  getAuth,
-  signInWithPopup,
-  GoogleAuthProvider,
-  onAuthStateChanged,
-  User,
-} from 'firebase/auth';
-import {
   getFirestore,
   doc,
   getDoc,
@@ -20,23 +13,41 @@ import {
 } from 'firebase/firestore';
 import firebaseConfig from '../../firebase-applet-config.json';
 import {
+  auth,
+  initAuth,
+  googleSignIn,
+  getAccessToken,
+  getCurrentUser,
+  logout,
+} from './auth';
+import {
   ExamPaper,
   SubjectTemplate,
   CurriculumSubjectRecord,
   CurriculumUnitItem,
+  ScheduledEmailJob,
 } from '../types/exam';
 
+function stripUndefinedDeep<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((item) => stripUndefinedDeep(item)) as unknown as T;
+  }
+  if (value !== null && typeof value === 'object') {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) {
+      if (v !== undefined) {
+        out[k] = stripUndefinedDeep(v);
+      }
+    }
+    return out as T;
+  }
+  return value;
+}
+
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-export const auth = getAuth(app);
 /* CRITICAL: The app will break without this line */
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
-
-const provider = new GoogleAuthProvider();
-provider.addScope('https://www.googleapis.com/auth/documents');
-provider.addScope('https://www.googleapis.com/auth/drive.file');
-
-let cachedAccessToken: string | null = null;
-let isSigningIn = false;
+export { auth, initAuth, googleSignIn, getAccessToken, getCurrentUser, logout };
 
 // Test connection on boot as required by skill
 async function testConnection() {
@@ -103,52 +114,7 @@ export function handleFirestoreError(
   throw new Error(JSON.stringify(errInfo));
 }
 
-// Authentication Listeners
-export const initAuth = (
-  onAuthSuccess?: (user: User, token: string) => void,
-  onAuthFailure?: () => void
-) => {
-  return onAuthStateChanged(auth, async (user: User | null) => {
-    if (user) {
-      if (cachedAccessToken) {
-        if (onAuthSuccess) onAuthSuccess(user, cachedAccessToken);
-      } else if (!isSigningIn) {
-        if (onAuthFailure) onAuthFailure();
-      }
-    } else {
-      cachedAccessToken = null;
-      if (onAuthFailure) onAuthFailure();
-    }
-  });
-};
-
-export const googleSignIn = async (): Promise<{ user: User; accessToken: string } | null> => {
-  try {
-    isSigningIn = true;
-    const result = await signInWithPopup(auth, provider);
-    const credential = GoogleAuthProvider.credentialFromResult(result);
-    if (!credential?.accessToken) {
-      throw new Error('Failed to get access token from Google Auth');
-    }
-
-    cachedAccessToken = credential.accessToken;
-    return { user: result.user, accessToken: cachedAccessToken };
-  } catch (error) {
-    console.error('Sign in error:', error);
-    throw error;
-  } finally {
-    isSigningIn = false;
-  }
-};
-
-export const getAccessToken = async (): Promise<string | null> => {
-  return cachedAccessToken;
-};
-
-export const logout = async () => {
-  await auth.signOut();
-  cachedAccessToken = null;
-};
+// Auth helpers are re-exported from ./auth above to share a single in-memory token cache.
 
 // ================= Firestore CRUD Operations =================
 
@@ -156,11 +122,11 @@ export const logout = async () => {
 export async function saveExamPaperToFirestore(paper: ExamPaper): Promise<void> {
   const user = auth.currentUser;
   const path = `exam_papers/${paper.id}`;
-  const payload = {
+  const payload = stripUndefinedDeep({
     ...paper,
     userId: user?.uid || 'guest',
     updatedAt: new Date().toISOString(),
-  };
+  });
 
   try {
     await setDoc(doc(db, 'exam_papers', paper.id), payload);
@@ -169,31 +135,35 @@ export async function saveExamPaperToFirestore(paper: ExamPaper): Promise<void> 
   }
 }
 
-// 2. Fetch User's Exam Papers (Loads user papers or all available public/guest papers)
+// 2. Fetch User's Exam Papers (Merges signed-in user's papers with guest/public papers)
 export async function loadExamPapersFromFirestore(): Promise<ExamPaper[]> {
   const user = auth.currentUser;
   const path = 'exam_papers';
 
   try {
-    let snapshot;
     if (user) {
-      // Query papers matching user ID
-      const q = query(collection(db, path), where('userId', '==', user.uid));
-      snapshot = await getDocs(q);
-      // Also get guest/public papers if user has none
-      if (snapshot.empty) {
-        snapshot = await getDocs(collection(db, path));
-      }
+      const [userSnap, guestSnap] = await Promise.all([
+        getDocs(query(collection(db, path), where('userId', '==', user.uid))),
+        getDocs(query(collection(db, path), where('userId', 'in', ['guest', 'public']))),
+      ]);
+      const byId = new Map<string, ExamPaper>();
+      guestSnap.forEach((d) => {
+        const data = d.data() as ExamPaper;
+        byId.set(data.id || d.id, data);
+      });
+      userSnap.forEach((d) => {
+        const data = d.data() as ExamPaper;
+        byId.set(data.id || d.id, data);
+      });
+      return Array.from(byId.values());
     } else {
-      // Unauthenticated / guest: load papers collection
-      snapshot = await getDocs(collection(db, path));
+      const snapshot = await getDocs(collection(db, path));
+      const papers: ExamPaper[] = [];
+      snapshot.forEach((d) => {
+        papers.push(d.data() as ExamPaper);
+      });
+      return papers;
     }
-
-    const papers: ExamPaper[] = [];
-    snapshot.forEach((d) => {
-      papers.push(d.data() as ExamPaper);
-    });
-    return papers;
   } catch (err) {
     console.warn('Could not load papers from Firestore:', err);
     return [];
@@ -214,11 +184,11 @@ export async function deleteExamPaperFromFirestore(paperId: string): Promise<voi
 export async function saveTemplateToFirestore(template: SubjectTemplate): Promise<void> {
   const user = auth.currentUser;
   const path = `custom_templates/${template.id}`;
-  const payload = {
+  const payload = stripUndefinedDeep({
     ...template,
     userId: user?.uid || 'guest',
     createdAt: new Date().toISOString(),
-  };
+  });
 
   try {
     await setDoc(doc(db, 'custom_templates', template.id), payload);
@@ -233,22 +203,29 @@ export async function loadTemplatesFromFirestore(): Promise<SubjectTemplate[]> {
   const path = 'custom_templates';
 
   try {
-    let snapshot;
     if (user) {
-      const q = query(collection(db, path), where('userId', '==', user.uid));
-      snapshot = await getDocs(q);
-      if (snapshot.empty) {
-        snapshot = await getDocs(collection(db, path));
-      }
+      const [userSnap, guestSnap] = await Promise.all([
+        getDocs(query(collection(db, path), where('userId', '==', user.uid))),
+        getDocs(query(collection(db, path), where('userId', 'in', ['guest', 'public']))),
+      ]);
+      const byId = new Map<string, SubjectTemplate>();
+      guestSnap.forEach((d) => {
+        const data = d.data() as SubjectTemplate;
+        byId.set(data.id || d.id, data);
+      });
+      userSnap.forEach((d) => {
+        const data = d.data() as SubjectTemplate;
+        byId.set(data.id || d.id, data);
+      });
+      return Array.from(byId.values());
     } else {
-      snapshot = await getDocs(collection(db, path));
+      const snapshot = await getDocs(collection(db, path));
+      const templates: SubjectTemplate[] = [];
+      snapshot.forEach((d) => {
+        templates.push(d.data() as SubjectTemplate);
+      });
+      return templates;
     }
-
-    const templates: SubjectTemplate[] = [];
-    snapshot.forEach((d) => {
-      templates.push(d.data() as SubjectTemplate);
-    });
-    return templates;
   } catch (err) {
     console.warn('Could not load templates from Firestore:', err);
     return [];
@@ -271,11 +248,11 @@ export async function saveCurriculumSubjectToFirestore(
 ): Promise<void> {
   const user = auth.currentUser;
   const path = `curriculum_subjects/${subject.id}`;
-  const payload = {
+  const payload = stripUndefinedDeep({
     ...subject,
     userId: user?.uid || 'guest',
     updatedAt: new Date().toISOString(),
-  };
+  });
 
   try {
     await setDoc(doc(db, 'curriculum_subjects', subject.id), payload);
@@ -301,10 +278,6 @@ export async function loadCurriculumSubjectsFromFirestore(): Promise<CurriculumS
 }
 
 // 9. Seed the bundled chapter-wise question banks
-//
-// Idempotent by design: each bank has a deterministic id, so an existing record
-// is left alone unless `force` is passed. This is what puts the question bank
-// on the database without needing an admin service account.
 export interface SeedableQuestionBank {
   id: string;
   classGrade: string;
@@ -337,7 +310,7 @@ export async function seedCurriculumSubjectsToFirestore(
       const now = new Date().toISOString();
       await setDoc(
         doc(db, 'curriculum_subjects', bank.id),
-        {
+        stripUndefinedDeep({
           id: bank.id,
           userId: user?.uid || 'guest',
           classGrade: bank.classGrade,
@@ -348,12 +321,11 @@ export async function seedCurriculumSubjectsToFirestore(
           curriculumAnswers: bank.curriculumAnswers,
           updatedAt: now,
           ...(options.force ? {} : { createdAt: now }),
-        },
+        }),
         { merge: true }
       );
       seeded.push(bank.id);
     } catch (err) {
-      // Seeding is a background convenience — never let it break app startup.
       console.warn(`Could not seed question bank "${bank.id}":`, err);
       failed.push(bank.id);
     }
@@ -367,6 +339,52 @@ export async function deleteCurriculumSubjectFromFirestore(subjectId: string): P
   const path = `curriculum_subjects/${subjectId}`;
   try {
     await deleteDoc(doc(db, 'curriculum_subjects', subjectId));
+  } catch (err) {
+    handleFirestoreError(err, OperationType.DELETE, path);
+  }
+}
+
+// 11. Scheduled Gmail Delivery Jobs (Owner-scoped in Firestore)
+export async function saveScheduledEmailToFirestore(job: ScheduledEmailJob): Promise<void> {
+  const user = auth.currentUser;
+  if (!user) return;
+  const path = `scheduled_emails/${job.id}`;
+  const payload = stripUndefinedDeep({
+    ...job,
+    userId: user.uid,
+    updatedAt: new Date().toISOString(),
+  });
+  try {
+    await setDoc(doc(db, 'scheduled_emails', job.id), payload);
+  } catch (err) {
+    handleFirestoreError(err, OperationType.WRITE, path);
+  }
+}
+
+export async function loadScheduledEmailsFromFirestore(): Promise<ScheduledEmailJob[]> {
+  const user = auth.currentUser;
+  if (!user) return [];
+  const path = 'scheduled_emails';
+  try {
+    const q = query(collection(db, path), where('userId', '==', user.uid));
+    const snapshot = await getDocs(q);
+    const jobs: ScheduledEmailJob[] = [];
+    snapshot.forEach((d) => {
+      jobs.push(d.data() as ScheduledEmailJob);
+    });
+    return jobs;
+  } catch (err) {
+    handleFirestoreError(err, OperationType.LIST, path);
+    return [];
+  }
+}
+
+export async function deleteScheduledEmailFromFirestore(jobId: string): Promise<void> {
+  const user = auth.currentUser;
+  if (!user) return;
+  const path = `scheduled_emails/${jobId}`;
+  try {
+    await deleteDoc(doc(db, 'scheduled_emails', jobId));
   } catch (err) {
     handleFirestoreError(err, OperationType.DELETE, path);
   }

@@ -353,18 +353,42 @@ export const BUILT_IN_TEMPLATES: SubjectTemplate[] = [
   },
 ];
 
-const LOCAL_STORAGE_KEY = 'exam_maker_custom_templates_v2';
+export const CUSTOM_TEMPLATES_STORAGE_KEY = 'exam_maker_custom_templates_v2';
 const PAPERS_STORAGE_KEY = 'exam_maker_saved_papers_v2';
+
+export function clonePaperForEditing(sourcePaper: ExamPaper): ExamPaper {
+  const cloned = JSON.parse(JSON.stringify(sourcePaper)) as ExamPaper;
+  const now = new Date().toISOString();
+  cloned.id = 'paper-' + Date.now() + '-' + Math.random().toString(36).substring(2, 6);
+  cloned.createdAt = cloned.createdAt || now;
+  cloned.updatedAt = now;
+  return cloned;
+}
 
 export function getCustomTemplates(): SubjectTemplate[] {
   try {
-    const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+    const raw = localStorage.getItem(CUSTOM_TEMPLATES_STORAGE_KEY);
     if (!raw) return [];
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
   } catch (e) {
     console.error('Failed to load custom templates from localStorage', e);
     return [];
   }
+}
+
+export function mergeCustomTemplatesToStorage(remoteTemplates: SubjectTemplate[]): SubjectTemplate[] {
+  const current = getCustomTemplates();
+  const map = new Map<string, SubjectTemplate>();
+  current.forEach((t) => {
+    if (t && t.id && t.paper) map.set(t.id, t);
+  });
+  remoteTemplates.forEach((t) => {
+    if (t && t.id && t.paper) map.set(t.id, t);
+  });
+  const merged = Array.from(map.values());
+  localStorage.setItem(CUSTOM_TEMPLATES_STORAGE_KEY, JSON.stringify(merged));
+  return merged;
 }
 
 export function saveCustomSubject(
@@ -393,7 +417,7 @@ export function saveCustomSubject(
   };
 
   const updated = [newTemplate, ...existing];
-  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+  localStorage.setItem(CUSTOM_TEMPLATES_STORAGE_KEY, JSON.stringify(updated));
   savePaperToLibrary(paper);
   return newTemplate;
 }
@@ -419,21 +443,22 @@ export function saveCustomTemplate(
   };
 
   const updated = [newTemplate, ...existing];
-  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+  localStorage.setItem(CUSTOM_TEMPLATES_STORAGE_KEY, JSON.stringify(updated));
   return newTemplate;
 }
 
 export function deleteCustomTemplate(id: string): void {
   const existing = getCustomTemplates();
   const updated = existing.filter((t) => t.id !== id);
-  localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updated));
+  localStorage.setItem(CUSTOM_TEMPLATES_STORAGE_KEY, JSON.stringify(updated));
 }
 
 export function getAllSavedPapers(): ExamPaper[] {
   try {
     const raw = localStorage.getItem(PAPERS_STORAGE_KEY);
     if (!raw) return [];
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
   } catch (e) {
     return [];
   }
@@ -445,9 +470,9 @@ export function savePaperToLibrary(paper: ExamPaper): void {
   let updated: ExamPaper[];
   if (index >= 0) {
     updated = [...existing];
-    updated[index] = { ...paper, updatedAt: new Date().toISOString() };
+    updated[index] = { ...paper, updatedAt: paper.updatedAt || new Date().toISOString() };
   } else {
-    updated = [{ ...paper, updatedAt: new Date().toISOString() }, ...existing];
+    updated = [{ ...paper, updatedAt: paper.updatedAt || new Date().toISOString() }, ...existing];
   }
   localStorage.setItem(PAPERS_STORAGE_KEY, JSON.stringify(updated));
 }

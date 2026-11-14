@@ -230,7 +230,13 @@ export function mergeQuestionsIntoPaper(paper: ExamPaper, incoming: Question[]):
     let target = sections.find((s) => sectionKind(s) === kind);
 
     if (!target) {
-      const letter = SECTION_LETTERS[sections.length] || String(sections.length + 1);
+      const usedLetters = new Set(
+        sections
+          .map((s) => s.name.match(/"([A-Z])"/)?.[1])
+          .filter((l): l is string => Boolean(l))
+      );
+      const letter =
+        SECTION_LETTERS.find((l) => !usedLetters.has(l)) || String(sections.length + 1);
       target = {
         id: `sec-${kind}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
         name: `SECTION "${letter}"`,
