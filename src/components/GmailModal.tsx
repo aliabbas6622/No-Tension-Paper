@@ -322,29 +322,29 @@ export const GmailModal: React.FC<GmailModalProps> = ({
   const pendingCount = scheduledJobs.filter((j) => j.status === 'pending').length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4">
-      <div className="bg-black border border-neutral-800 w-full max-w-xl max-h-[90vh] flex flex-col rounded-2xl shadow-2xl overflow-hidden animate-in fade-in duration-150 text-white">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/80 backdrop-blur-xs p-4">
+      <div className="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 w-full max-w-xl max-h-[90vh] flex flex-col rounded-2xl shadow-2xl overflow-hidden animate-in fade-in duration-150 text-neutral-900 dark:text-white">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-neutral-800 bg-neutral-950 shrink-0">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 shrink-0">
           <div className="flex items-center gap-2.5">
-            <Mail className="w-4 h-4 text-white" />
+            <Mail className="w-4 h-4 text-neutral-900 dark:text-white" />
             <div>
               <h3 className="font-semibold text-sm">Gmail Delivery &amp; Scheduler</h3>
-              <p className="text-[11px] text-neutral-400">
+              <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
                 Send exam papers now or schedule automated Gmail delivery
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-neutral-400 hover:text-white p-1 rounded-lg hover:bg-neutral-900 transition cursor-pointer"
+            className="text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200/70 dark:text-neutral-400 dark:hover:text-white p-1 rounded-lg dark:hover:bg-neutral-900 transition cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Sub-Tabs */}
-        <div className="px-5 py-2.5 border-b border-neutral-800 bg-black flex items-center gap-2 shrink-0">
+        <div className="px-5 py-2.5 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black flex items-center gap-2 shrink-0">
           <button
             type="button"
             onClick={() => {
@@ -353,8 +353,8 @@ export const GmailModal: React.FC<GmailModalProps> = ({
             }}
             className={`px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'compose'
-                ? 'bg-white text-black font-semibold'
-                : 'text-neutral-400 hover:text-white hover:bg-neutral-900'
+                ? 'bg-neutral-900 text-white dark:bg-white dark:text-black font-semibold'
+                : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-900'
             }`}
           >
             <Send className="w-3 h-3" />
@@ -368,8 +368,8 @@ export const GmailModal: React.FC<GmailModalProps> = ({
             }}
             className={`px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'scheduled'
-                ? 'bg-white text-black font-semibold'
-                : 'text-neutral-400 hover:text-white hover:bg-neutral-900'
+                ? 'bg-neutral-900 text-white dark:bg-white dark:text-black font-semibold'
+                : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-900'
             }`}
           >
             <Clock className="w-3 h-3" />
@@ -380,17 +380,17 @@ export const GmailModal: React.FC<GmailModalProps> = ({
         {/* Body */}
         <div className="p-5 space-y-4 text-xs overflow-y-auto flex-1">
           {errorMessage && (
-            <div className="p-3 bg-neutral-900 border border-neutral-700 rounded-lg flex items-start gap-2.5 text-neutral-200">
-              <AlertCircle className="w-4 h-4 text-white shrink-0 mt-0.5" />
-              <div className="text-[11px] text-neutral-300">{errorMessage}</div>
+            <div className="p-3 bg-neutral-100 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 rounded-lg flex items-start gap-2.5 text-neutral-800 dark:text-neutral-200">
+              <AlertCircle className="w-4 h-4 text-neutral-900 dark:text-white shrink-0 mt-0.5" />
+              <div className="text-[11px] text-neutral-700 dark:text-neutral-300">{errorMessage}</div>
             </div>
           )}
 
           {activeTab === 'scheduled' ? (
             <div className="space-y-3">
               {!token && (
-                <div className="p-3.5 bg-neutral-950 border border-neutral-800 rounded-xl flex items-center justify-between gap-3">
-                  <div className="text-[11px] text-neutral-300">
+                <div className="p-3.5 bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl flex items-center justify-between gap-3">
+                  <div className="text-[11px] text-neutral-700 dark:text-neutral-300">
                     Connect Gmail to dispatch pending scheduled emails automatically.
                   </div>
                   <GoogleSignInButton
@@ -402,18 +402,18 @@ export const GmailModal: React.FC<GmailModalProps> = ({
               )}
 
               {pendingQueueAction && (
-                <div className="p-4 bg-neutral-900 border border-white/30 rounded-xl space-y-3">
+                <div className="p-4 bg-neutral-100 dark:bg-neutral-900 border border-neutral-300 dark:border-white/30 rounded-xl space-y-3">
                   <div className="flex items-start gap-2.5">
-                    <AlertCircle className="w-4 h-4 text-white shrink-0 mt-0.5" />
+                    <AlertCircle className="w-4 h-4 text-neutral-900 dark:text-white shrink-0 mt-0.5" />
                     <div>
-                      <p className="font-semibold text-white text-xs">
+                      <p className="font-semibold text-neutral-900 dark:text-white text-xs">
                         {pendingQueueAction.type === 'send_now'
                           ? `Send "${pendingQueueAction.job.subject}" immediately?`
                           : pendingQueueAction.type === 'cancel'
                           ? `Cancel scheduled delivery for "${pendingQueueAction.job.subject}"?`
                           : `Delete "${pendingQueueAction.job.subject}" from history?`}
                       </p>
-                      <p className="text-[11px] text-neutral-400 mt-0.5">
+                      <p className="text-[11px] text-neutral-600 dark:text-neutral-400 mt-0.5">
                         Recipient: {pendingQueueAction.job.to} • Scheduled:{' '}
                         {new Date(pendingQueueAction.job.scheduledFor).toLocaleString()}
                       </p>
@@ -424,7 +424,7 @@ export const GmailModal: React.FC<GmailModalProps> = ({
                       type="button"
                       onClick={() => setPendingQueueAction(null)}
                       disabled={Boolean(processingJobId)}
-                      className="px-3 py-1.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded-lg text-[11px] cursor-pointer"
+                      className="px-3 py-1.5 bg-neutral-200 hover:bg-neutral-300 text-neutral-800 dark:bg-neutral-800 dark:hover:bg-neutral-700 dark:text-neutral-200 rounded-lg text-[11px] cursor-pointer"
                     >
                       Back
                     </button>
@@ -432,7 +432,7 @@ export const GmailModal: React.FC<GmailModalProps> = ({
                       type="button"
                       onClick={handleConfirmQueueAction}
                       disabled={Boolean(processingJobId)}
-                      className="px-3.5 py-1.5 bg-white text-black font-semibold hover:bg-neutral-200 rounded-lg text-[11px] flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                      className="px-3.5 py-1.5 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black font-semibold dark:hover:bg-neutral-200 rounded-lg text-[11px] flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                     >
                       {processingJobId && <Loader2 className="w-3 h-3 animate-spin" />}
                       <span>
@@ -448,9 +448,9 @@ export const GmailModal: React.FC<GmailModalProps> = ({
               )}
 
               {scheduledJobs.length === 0 ? (
-                <div className="py-10 text-center border border-dashed border-neutral-800 rounded-xl space-y-2">
-                  <Clock className="w-6 h-6 text-neutral-600 mx-auto" />
-                  <div className="font-medium text-neutral-300">No Scheduled Emails</div>
+                <div className="py-10 text-center border border-dashed border-neutral-300 dark:border-neutral-800 rounded-xl space-y-2">
+                  <Clock className="w-6 h-6 text-neutral-400 dark:text-neutral-600 mx-auto" />
+                  <div className="font-medium text-neutral-700 dark:text-neutral-300">No Scheduled Emails</div>
                   <p className="text-[11px] text-neutral-500 max-w-xs mx-auto">
                     Switch to &quot;Compose Email&quot; and select &quot;Schedule Send&quot; to schedule an exam paper delivery.
                   </p>
@@ -463,31 +463,31 @@ export const GmailModal: React.FC<GmailModalProps> = ({
                     return (
                       <div
                         key={job.id}
-                        className="p-3.5 bg-neutral-950 border border-neutral-800 rounded-xl space-y-2"
+                        className="p-3.5 bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl space-y-2"
                       >
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
-                            <div className="font-semibold text-white truncate">{job.subject}</div>
-                            <div className="text-[11px] text-neutral-400 truncate">
-                              To: <span className="text-neutral-200">{job.to}</span>
+                            <div className="font-semibold text-neutral-900 dark:text-white truncate">{job.subject}</div>
+                            <div className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">
+                              To: <span className="text-neutral-800 dark:text-neutral-200">{job.to}</span>
                             </div>
                           </div>
                           <span
                             className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase shrink-0 ${
                               job.status === 'sent'
-                                ? 'bg-white text-black font-bold'
+                                ? 'bg-neutral-900 text-white dark:bg-white dark:text-black font-bold'
                                 : job.status === 'failed'
-                                ? 'bg-neutral-800 text-white border border-neutral-600'
+                                ? 'bg-neutral-200 text-neutral-900 border border-neutral-400 dark:bg-neutral-800 dark:text-white dark:border-neutral-600'
                                 : job.status === 'cancelled'
-                                ? 'bg-neutral-900 text-neutral-500 border border-neutral-800'
-                                : 'bg-neutral-900 text-white border border-neutral-700'
+                                ? 'bg-neutral-100 text-neutral-500 border border-neutral-200 dark:bg-neutral-900 dark:text-neutral-500 dark:border-neutral-800'
+                                : 'bg-neutral-100 text-neutral-900 border border-neutral-300 dark:bg-neutral-900 dark:text-white dark:border-neutral-700'
                             }`}
                           >
                             {isOverdue ? 'Due Now' : job.status}
                           </span>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-3 text-[10px] text-neutral-400 font-mono">
+                        <div className="flex flex-wrap items-center gap-3 text-[10px] text-neutral-500 dark:text-neutral-400 font-mono">
                           <span className="flex items-center gap-1">
                             <Calendar className="w-3 h-3" />
                             {new Date(job.scheduledFor).toLocaleString()}
@@ -497,17 +497,17 @@ export const GmailModal: React.FC<GmailModalProps> = ({
                         </div>
 
                         {job.errorMessage && (
-                          <div className="text-[10px] text-neutral-300 bg-neutral-900 border border-neutral-800 rounded p-1.5">
+                          <div className="text-[10px] text-neutral-700 dark:text-neutral-300 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded p-1.5">
                             Notice: {job.errorMessage}
                           </div>
                         )}
 
-                        <div className="flex items-center justify-end gap-2 pt-1 border-t border-neutral-900">
+                        <div className="flex items-center justify-end gap-2 pt-1 border-t border-neutral-200 dark:border-neutral-900">
                           {(job.status === 'pending' || job.status === 'failed') && (
                             <button
                               type="button"
                               onClick={() => setPendingQueueAction({ type: 'send_now', job })}
-                              className="px-2.5 py-1 bg-white text-black font-semibold rounded-md text-[11px] hover:bg-neutral-200 flex items-center gap-1 cursor-pointer"
+                              className="px-2.5 py-1 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black font-semibold rounded-md text-[11px] dark:hover:bg-neutral-200 flex items-center gap-1 cursor-pointer"
                             >
                               <Send className="w-3 h-3" />
                               <span>Send Now</span>
@@ -517,7 +517,7 @@ export const GmailModal: React.FC<GmailModalProps> = ({
                             <button
                               type="button"
                               onClick={() => setPendingQueueAction({ type: 'cancel', job })}
-                              className="px-2.5 py-1 bg-neutral-900 border border-neutral-700 text-neutral-300 hover:text-white rounded-md text-[11px] flex items-center gap-1 cursor-pointer"
+                              className="px-2.5 py-1 bg-white border border-neutral-300 text-neutral-700 hover:text-neutral-900 dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-300 dark:hover:text-white rounded-md text-[11px] flex items-center gap-1 cursor-pointer"
                             >
                               <Ban className="w-3 h-3" />
                               <span>Cancel</span>
@@ -526,7 +526,7 @@ export const GmailModal: React.FC<GmailModalProps> = ({
                           <button
                             type="button"
                             onClick={() => setPendingQueueAction({ type: 'delete', job })}
-                            className="p-1.5 text-neutral-500 hover:text-white rounded-md hover:bg-neutral-900 cursor-pointer"
+                            className="p-1.5 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200/70 dark:hover:text-white rounded-md dark:hover:bg-neutral-900 cursor-pointer"
                             title="Remove from queue"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -539,13 +539,13 @@ export const GmailModal: React.FC<GmailModalProps> = ({
               )}
             </div>
           ) : successBanner ? (
-            <div className="p-5 bg-neutral-950 border border-neutral-800 rounded-xl text-center space-y-3">
-              <div className="w-10 h-10 bg-white text-black rounded-full flex items-center justify-center mx-auto">
-                <CheckCircle2 className="w-5 h-5 text-black" />
+            <div className="p-5 bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl text-center space-y-3">
+              <div className="w-10 h-10 bg-neutral-900 text-white dark:bg-white dark:text-black rounded-full flex items-center justify-center mx-auto">
+                <CheckCircle2 className="w-5 h-5 text-white dark:text-black" />
               </div>
               <div>
-                <h4 className="font-semibold text-white text-sm">{successBanner.title}</h4>
-                <p className="text-[11px] text-neutral-400 mt-1 leading-relaxed">
+                <h4 className="font-semibold text-neutral-900 dark:text-white text-sm">{successBanner.title}</h4>
+                <p className="text-[11px] text-neutral-600 dark:text-neutral-400 mt-1 leading-relaxed">
                   {successBanner.detail}
                 </p>
               </div>
@@ -557,7 +557,7 @@ export const GmailModal: React.FC<GmailModalProps> = ({
                     setToEmail('');
                     setCcEmail('');
                   }}
-                  className="px-4 py-2 bg-neutral-900 border border-neutral-700 hover:bg-neutral-800 text-white rounded-lg text-xs cursor-pointer"
+                  className="px-4 py-2 bg-white border border-neutral-300 hover:bg-neutral-100 text-neutral-900 dark:bg-neutral-900 dark:border-neutral-700 dark:hover:bg-neutral-800 dark:text-white rounded-lg text-xs cursor-pointer"
                 >
                   Compose Another
                 </button>
@@ -568,7 +568,7 @@ export const GmailModal: React.FC<GmailModalProps> = ({
                       setSuccessBanner(null);
                       setActiveTab('scheduled');
                     }}
-                    className="px-4 py-2 bg-white text-black font-semibold hover:bg-neutral-200 rounded-lg text-xs cursor-pointer"
+                    className="px-4 py-2 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black font-semibold dark:hover:bg-neutral-200 rounded-lg text-xs cursor-pointer"
                   >
                     View Scheduled Queue
                   </button>
@@ -576,13 +576,13 @@ export const GmailModal: React.FC<GmailModalProps> = ({
               </div>
             </div>
           ) : !token ? (
-            <div className="py-8 text-center space-y-4 border border-neutral-800 rounded-xl bg-neutral-950 p-6">
-              <div className="w-10 h-10 rounded-full bg-neutral-900 border border-neutral-800 flex items-center justify-center mx-auto">
-                <Mail className="w-5 h-5 text-white" />
+            <div className="py-8 text-center space-y-4 border border-neutral-200 dark:border-neutral-800 rounded-xl bg-neutral-50 dark:bg-neutral-950 p-6">
+              <div className="w-10 h-10 rounded-full bg-neutral-200/80 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-800 flex items-center justify-center mx-auto">
+                <Mail className="w-5 h-5 text-neutral-900 dark:text-white" />
               </div>
               <div className="space-y-1 max-w-md mx-auto">
-                <h4 className="font-semibold text-sm text-white">Connect Gmail</h4>
-                <p className="text-[11px] text-neutral-400 leading-relaxed">
+                <h4 className="font-semibold text-sm text-neutral-900 dark:text-white">Connect Gmail</h4>
+                <p className="text-[11px] text-neutral-500 dark:text-neutral-400 leading-relaxed">
                   Sign in with Google with permission to send or schedule examination papers and attachments through your Gmail account.
                 </p>
               </div>
@@ -596,18 +596,18 @@ export const GmailModal: React.FC<GmailModalProps> = ({
             </div>
           ) : isConfirmingAction ? (
             /* Mandatory Confirmation Dialog Step */
-            <div className="p-4 bg-neutral-950 border border-white/30 rounded-xl space-y-4">
+            <div className="p-4 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-white/30 rounded-xl space-y-4">
               <div className="flex items-start gap-2.5">
                 {deliveryMode === 'schedule' ? (
-                  <Clock className="w-4 h-4 text-white shrink-0 mt-0.5" />
+                  <Clock className="w-4 h-4 text-neutral-900 dark:text-white shrink-0 mt-0.5" />
                 ) : (
-                  <Send className="w-4 h-4 text-white shrink-0 mt-0.5" />
+                  <Send className="w-4 h-4 text-neutral-900 dark:text-white shrink-0 mt-0.5" />
                 )}
                 <div>
-                  <h4 className="font-semibold text-white text-sm">
+                  <h4 className="font-semibold text-neutral-900 dark:text-white text-sm">
                     {deliveryMode === 'schedule' ? 'Confirm Scheduled Gmail Send' : 'Confirm Send Email'}
                   </h4>
-                  <p className="text-[11px] text-neutral-400 mt-0.5">
+                  <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
                     {deliveryMode === 'schedule'
                       ? 'Verify the scheduled delivery time, recipients, and attachment before queuing.'
                       : 'Please verify the recipient details and attachment before sending via Gmail.'}
@@ -615,49 +615,49 @@ export const GmailModal: React.FC<GmailModalProps> = ({
                 </div>
               </div>
 
-              <div className="p-3 bg-black border border-neutral-800 rounded-lg space-y-1.5 text-[11px]">
+              <div className="p-3 bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 rounded-lg space-y-1.5 text-[11px]">
                 <div>
                   <span className="text-neutral-500">From: </span>
-                  <span className="text-neutral-200">{user?.email || 'Your Gmail account'}</span>
+                  <span className="text-neutral-800 dark:text-neutral-200">{user?.email || 'Your Gmail account'}</span>
                 </div>
                 <div>
                   <span className="text-neutral-500">To: </span>
-                  <span className="text-white font-medium">{toEmail}</span>
+                  <span className="text-neutral-900 dark:text-white font-medium">{toEmail}</span>
                 </div>
                 {ccEmail.trim() && (
                   <div>
                     <span className="text-neutral-500">Cc: </span>
-                    <span className="text-neutral-200">{ccEmail}</span>
+                    <span className="text-neutral-800 dark:text-neutral-200">{ccEmail}</span>
                   </div>
                 )}
                 <div>
                   <span className="text-neutral-500">Subject: </span>
-                  <span className="text-white">{subject}</span>
+                  <span className="text-neutral-900 dark:text-white">{subject}</span>
                 </div>
                 {deliveryMode === 'schedule' && (
                   <div>
                     <span className="text-neutral-500">Scheduled For: </span>
-                    <span className="text-white font-semibold">
+                    <span className="text-neutral-900 dark:text-white font-semibold">
                       {new Date(scheduledDateTime).toLocaleString()}
                     </span>
                   </div>
                 )}
                 <div>
                   <span className="text-neutral-500">Attachment: </span>
-                  <span className="text-neutral-200">
+                  <span className="text-neutral-800 dark:text-neutral-200">
                     {expectedAttachmentFilename() || 'None (email text only)'}
                   </span>
                 </div>
                 {driveShareLink.trim() && (
                   <div className="truncate">
                     <span className="text-neutral-500">Drive Link: </span>
-                    <span className="text-neutral-200 font-mono">{driveShareLink.trim()}</span>
+                    <span className="text-neutral-800 dark:text-neutral-200 font-mono">{driveShareLink.trim()}</span>
                   </div>
                 )}
               </div>
 
               {deliveryMode === 'schedule' && (
-                <p className="text-[10px] text-neutral-400 leading-relaxed">
+                <p className="text-[10px] text-neutral-500 dark:text-neutral-400 leading-relaxed">
                   Note: Because Gmail OAuth access stays strictly in your browser session for security, scheduled deliveries run automatically while this app is open (or can be dispatched immediately from Scheduled Queue when you sign back in).
                 </p>
               )}
@@ -667,7 +667,7 @@ export const GmailModal: React.FC<GmailModalProps> = ({
                   type="button"
                   onClick={() => setIsConfirmingAction(false)}
                   disabled={isSubmitting}
-                  className="px-3.5 py-2 bg-neutral-900 hover:bg-neutral-800 text-neutral-200 rounded-lg text-xs cursor-pointer"
+                  className="px-3.5 py-2 bg-neutral-200 hover:bg-neutral-300 text-neutral-800 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-neutral-200 rounded-lg text-xs cursor-pointer"
                 >
                   Cancel &amp; Edit
                 </button>
@@ -675,7 +675,7 @@ export const GmailModal: React.FC<GmailModalProps> = ({
                   type="button"
                   onClick={handleConfirmedSubmit}
                   disabled={isSubmitting}
-                  className="px-4 py-2 bg-white text-black font-semibold hover:bg-neutral-200 rounded-lg text-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  className="px-4 py-2 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black font-semibold dark:hover:bg-neutral-200 rounded-lg text-xs flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
                   {isSubmitting ? (
                     <>
@@ -699,19 +699,19 @@ export const GmailModal: React.FC<GmailModalProps> = ({
           ) : (
             <form onSubmit={handleReviewSubmit} className="space-y-3">
               {/* Account Strip */}
-              <div className="flex items-center justify-between p-2.5 bg-neutral-950 rounded-lg border border-neutral-800">
+              <div className="flex items-center justify-between p-2.5 bg-neutral-50 dark:bg-neutral-950 rounded-lg border border-neutral-200 dark:border-neutral-800">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-white text-black font-bold flex items-center justify-center text-[10px]">
+                  <div className="w-6 h-6 rounded-full bg-neutral-900 text-white dark:bg-white dark:text-black font-bold flex items-center justify-center text-[10px]">
                     {user?.displayName ? user.displayName[0] : 'G'}
                   </div>
-                  <div className="text-[11px] text-neutral-300">
+                  <div className="text-[11px] text-neutral-700 dark:text-neutral-300">
                     Sending as {user?.email || 'Google Account'}
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={handleSignOut}
-                  className="text-[11px] text-neutral-400 hover:text-white flex items-center gap-1 cursor-pointer"
+                  className="text-[11px] text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white flex items-center gap-1 cursor-pointer"
                 >
                   <LogOut className="w-3 h-3" />
                   <span>Switch</span>
@@ -719,15 +719,15 @@ export const GmailModal: React.FC<GmailModalProps> = ({
               </div>
 
               {/* Delivery Timing Mode */}
-              <div className="space-y-2 p-3 bg-neutral-950 border border-neutral-800 rounded-xl">
+              <div className="space-y-2 p-3 bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl">
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setDeliveryMode('now')}
                     className={`py-1.5 px-3 rounded-lg border text-[11px] font-medium flex items-center justify-center gap-1.5 cursor-pointer transition ${
                       deliveryMode === 'now'
-                        ? 'bg-white text-black border-white font-semibold'
-                        : 'bg-black text-neutral-300 border-neutral-800 hover:border-neutral-600'
+                        ? 'bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-black dark:border-white font-semibold'
+                        : 'bg-white text-neutral-700 border-neutral-300 hover:border-neutral-500 dark:bg-black dark:text-neutral-300 dark:border-neutral-800 dark:hover:border-neutral-600'
                     }`}
                   >
                     <Send className="w-3 h-3" />
@@ -738,8 +738,8 @@ export const GmailModal: React.FC<GmailModalProps> = ({
                     onClick={() => setDeliveryMode('schedule')}
                     className={`py-1.5 px-3 rounded-lg border text-[11px] font-medium flex items-center justify-center gap-1.5 cursor-pointer transition ${
                       deliveryMode === 'schedule'
-                        ? 'bg-white text-black border-white font-semibold'
-                        : 'bg-black text-neutral-300 border-neutral-800 hover:border-neutral-600'
+                        ? 'bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-black dark:border-white font-semibold'
+                        : 'bg-white text-neutral-700 border-neutral-300 hover:border-neutral-500 dark:bg-black dark:text-neutral-300 dark:border-neutral-800 dark:hover:border-neutral-600'
                     }`}
                   >
                     <Clock className="w-3 h-3" />
@@ -749,14 +749,14 @@ export const GmailModal: React.FC<GmailModalProps> = ({
 
                 {deliveryMode === 'schedule' && (
                   <div className="space-y-2 pt-1">
-                    <label className="block text-[10px] text-neutral-400">
+                    <label className="block text-[10px] text-neutral-600 dark:text-neutral-400">
                       Delivery Date &amp; Time
                     </label>
                     <input
                       type="datetime-local"
                       value={scheduledDateTime}
                       onChange={(e) => setScheduledDateTime(e.target.value)}
-                      className="w-full px-3 py-1.5 bg-black border border-neutral-700 rounded-lg text-xs text-white focus:outline-none focus:border-white"
+                      className="w-full px-3 py-1.5 bg-white dark:bg-black border border-neutral-300 dark:border-neutral-700 rounded-lg text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-neutral-900 dark:focus:border-white"
                     />
                     <div className="flex flex-wrap gap-1.5">
                       {[
@@ -770,7 +770,7 @@ export const GmailModal: React.FC<GmailModalProps> = ({
                           onClick={() =>
                             applySchedulePreset(new Date(Date.now() + preset.ms))
                           }
-                          className="px-2 py-0.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 rounded text-[10px] text-neutral-300 cursor-pointer"
+                          className="px-2 py-0.5 bg-white hover:bg-neutral-200 border border-neutral-300 text-neutral-700 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:border-neutral-700 rounded text-[10px] dark:text-neutral-300 cursor-pointer"
                         >
                           {preset.label}
                         </button>
@@ -783,7 +783,7 @@ export const GmailModal: React.FC<GmailModalProps> = ({
                           d.setHours(8, 0, 0, 0);
                           applySchedulePreset(d);
                         }}
-                        className="px-2 py-0.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 rounded text-[10px] text-neutral-300 cursor-pointer"
+                        className="px-2 py-0.5 bg-white hover:bg-neutral-200 border border-neutral-300 text-neutral-700 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:border-neutral-700 rounded text-[10px] dark:text-neutral-300 cursor-pointer"
                       >
                         Tomorrow 8:00 AM
                       </button>
@@ -793,7 +793,7 @@ export const GmailModal: React.FC<GmailModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-[11px] text-neutral-400 mb-1">
+                <label className="block text-[11px] text-neutral-600 dark:text-neutral-400 mb-1">
                   To (comma-separated for multiple recipients) *
                 </label>
                 <input
@@ -802,23 +802,23 @@ export const GmailModal: React.FC<GmailModalProps> = ({
                   value={toEmail}
                   onChange={(e) => setToEmail(e.target.value)}
                   placeholder="coordinator@school.edu, principal@school.edu"
-                  className="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-xs text-white focus:outline-none focus:border-neutral-500"
+                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-800 rounded-lg text-xs text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:border-neutral-900 dark:focus:border-neutral-500"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 <div>
-                  <label className="block text-[11px] text-neutral-400 mb-1">Cc (optional)</label>
+                  <label className="block text-[11px] text-neutral-600 dark:text-neutral-400 mb-1">Cc (optional)</label>
                   <input
                     type="text"
                     value={ccEmail}
                     onChange={(e) => setCcEmail(e.target.value)}
                     placeholder="department@school.edu"
-                    className="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-xs text-white focus:outline-none focus:border-neutral-500"
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-800 rounded-lg text-xs text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:border-neutral-900 dark:focus:border-neutral-500"
                   />
                 </div>
                 <div>
-                  <label className="block text-[11px] text-neutral-400 mb-1 flex items-center gap-1">
+                  <label className="block text-[11px] text-neutral-600 dark:text-neutral-400 mb-1 flex items-center gap-1">
                     <Link2 className="w-3 h-3" />
                     <span>Drive Share Link (optional)</span>
                   </label>
@@ -827,23 +827,23 @@ export const GmailModal: React.FC<GmailModalProps> = ({
                     value={driveShareLink}
                     onChange={(e) => setDriveShareLink(e.target.value)}
                     placeholder="https://drive.google.com/..."
-                    className="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-xs text-white focus:outline-none focus:border-neutral-500"
+                    className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-800 rounded-lg text-xs text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:border-neutral-900 dark:focus:border-neutral-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-[11px] text-neutral-400 mb-1">Subject</label>
+                <label className="block text-[11px] text-neutral-600 dark:text-neutral-400 mb-1">Subject</label>
                 <input
                   type="text"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  className="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-xs text-white focus:outline-none focus:border-neutral-500"
+                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-800 rounded-lg text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-neutral-900 dark:focus:border-neutral-500"
                 />
               </div>
 
               <div>
-                <label className="block text-[11px] text-neutral-400 mb-1.5 flex items-center gap-1.5">
+                <label className="block text-[11px] text-neutral-600 dark:text-neutral-400 mb-1.5 flex items-center gap-1.5">
                   <Paperclip className="w-3 h-3" />
                   <span>Attachment Format</span>
                 </label>
@@ -862,8 +862,8 @@ export const GmailModal: React.FC<GmailModalProps> = ({
                       onClick={() => setAttachmentFormat(opt.id)}
                       className={`py-1.5 px-2 rounded-lg border text-[11px] font-medium transition cursor-pointer ${
                         attachmentFormat === opt.id
-                          ? 'bg-white text-black border-white'
-                          : 'bg-neutral-950 text-neutral-300 border-neutral-800 hover:border-neutral-600'
+                          ? 'bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-black dark:border-white'
+                          : 'bg-neutral-50 text-neutral-700 border-neutral-300 hover:border-neutral-500 dark:bg-neutral-950 dark:text-neutral-300 dark:border-neutral-800 dark:hover:border-neutral-600'
                       }`}
                     >
                       {opt.label}
@@ -873,28 +873,28 @@ export const GmailModal: React.FC<GmailModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-[11px] text-neutral-400 mb-1">Message</label>
+                <label className="block text-[11px] text-neutral-600 dark:text-neutral-400 mb-1">Message</label>
                 <textarea
                   rows={4}
                   value={messageBody}
                   onChange={(e) => setMessageBody(e.target.value)}
-                  className="w-full px-3 py-2 bg-neutral-950 border border-neutral-800 rounded-lg text-xs text-white focus:outline-none focus:border-neutral-500 resize-y"
+                  className="w-full px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-800 rounded-lg text-xs text-neutral-900 dark:text-white focus:outline-none focus:border-neutral-900 dark:focus:border-neutral-500 resize-y"
                 />
               </div>
 
-              <label className="flex items-center gap-2 text-[11px] text-neutral-300 cursor-pointer select-none">
+              <label className="flex items-center gap-2 text-[11px] text-neutral-700 dark:text-neutral-300 cursor-pointer select-none">
                 <input
                   type="checkbox"
                   checked={includePaperText}
                   onChange={(e) => setIncludePaperText(e.target.checked)}
-                  className="rounded border-neutral-700 bg-neutral-950"
+                  className="rounded border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-950 accent-neutral-900 dark:accent-white"
                 />
                 <span>Include full formatted exam paper text in email body</span>
               </label>
 
               <button
                 type="submit"
-                className="w-full py-2.5 px-4 bg-white text-black font-semibold rounded-lg text-xs hover:bg-neutral-200 transition flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full py-2.5 px-4 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black font-semibold rounded-lg text-xs dark:hover:bg-neutral-200 transition flex items-center justify-center gap-2 cursor-pointer"
               >
                 {deliveryMode === 'schedule' ? (
                   <>
@@ -913,10 +913,10 @@ export const GmailModal: React.FC<GmailModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3 border-t border-neutral-800 bg-neutral-950 flex justify-end shrink-0">
+        <div className="px-5 py-3 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 flex justify-end shrink-0">
           <button
             onClick={onClose}
-            className="px-4 py-1.5 bg-neutral-900 text-neutral-300 text-xs rounded-lg hover:bg-neutral-800 cursor-pointer"
+            className="px-4 py-1.5 bg-neutral-200 hover:bg-neutral-300 text-neutral-900 dark:bg-neutral-900 dark:text-neutral-300 text-xs rounded-lg dark:hover:bg-neutral-800 cursor-pointer"
           >
             Close
           </button>

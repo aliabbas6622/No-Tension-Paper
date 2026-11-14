@@ -148,22 +148,22 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4">
-      <div className="bg-black border border-neutral-800 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] text-white">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/80 backdrop-blur-xs p-4">
+      <div className="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] text-neutral-900 dark:text-white">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-800 bg-neutral-950">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950">
           <div className="flex items-center gap-2.5">
-            <Bookmark className="w-5 h-5 text-white" />
+            <Bookmark className="w-5 h-5 text-neutral-900 dark:text-white" />
             <div>
-              <h3 className="font-semibold text-white text-sm">Subject Templates</h3>
-              <p className="text-[11px] text-neutral-400">
+              <h3 className="font-semibold text-neutral-900 dark:text-white text-sm">Subject Templates</h3>
+              <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
                 Switch subjects or save current layout as a reusable template
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-neutral-400 hover:text-white p-1 rounded-lg hover:bg-neutral-900 transition cursor-pointer"
+            className="text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200/70 dark:text-neutral-400 dark:hover:text-white p-1 rounded-lg dark:hover:bg-neutral-900 transition cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -171,21 +171,21 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
 
         {/* Success Banner */}
         {successMsg && (
-          <div className="mx-6 mt-3 p-2.5 bg-neutral-900 border border-neutral-700 rounded-lg flex items-center gap-2 text-white text-xs">
-            <Check className="w-3.5 h-3.5 text-white" />
+          <div className="mx-6 mt-3 p-2.5 bg-neutral-100 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 rounded-lg flex items-center gap-2 text-neutral-900 dark:text-white text-xs">
+            <Check className="w-3.5 h-3.5 text-neutral-900 dark:text-white" />
             <span>{successMsg}</span>
           </div>
         )}
 
         {/* Tab selection & Save trigger */}
-        <div className="px-6 pt-3 flex items-center justify-between gap-2 border-b border-neutral-800 pb-3">
+        <div className="px-6 pt-3 flex items-center justify-between gap-2 border-b border-neutral-200 dark:border-neutral-800 pb-3">
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => setActiveTab('builtIn')}
               className={`px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
                 activeTab === 'builtIn'
-                  ? 'bg-white text-black font-semibold'
-                  : 'text-neutral-400 hover:text-white hover:bg-neutral-900'
+                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-black font-semibold'
+                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-900'
               }`}
             >
               Standard Subjects ({BUILT_IN_TEMPLATES.length})
@@ -194,8 +194,8 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
               onClick={() => setActiveTab('custom')}
               className={`px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
                 activeTab === 'custom'
-                  ? 'bg-white text-black font-semibold'
-                  : 'text-neutral-400 hover:text-white hover:bg-neutral-900'
+                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-black font-semibold'
+                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-900'
               }`}
             >
               Saved by You ({customTemplates.length})
@@ -205,17 +205,17 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsSubjectAdderOpen(true)}
-              className="px-3 py-1 bg-white hover:bg-neutral-200 text-black font-semibold rounded-lg text-xs transition flex items-center gap-1 cursor-pointer shadow-xs"
+              className="px-3 py-1 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:hover:bg-neutral-200 dark:text-black font-semibold rounded-lg text-xs transition flex items-center gap-1 cursor-pointer shadow-xs"
               title="Add subject from curriculum answers JSON"
             >
-              <BookPlus className="w-3.5 h-3.5 text-black" />
+              <BookPlus className="w-3.5 h-3.5 text-white dark:text-black" />
               <span>+ Subject Adder</span>
             </button>
             <button
               onClick={() => setIsSaving(!isSaving)}
-              className="px-3 py-1 bg-neutral-900 hover:bg-neutral-800 text-white rounded-lg text-xs font-medium transition flex items-center gap-1 border border-neutral-700 cursor-pointer"
+              className="px-3 py-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-900 border-neutral-300 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-white rounded-lg text-xs font-medium transition flex items-center gap-1 border dark:border-neutral-700 cursor-pointer"
             >
-              <Plus className="w-3 h-3 text-white" />
+              <Plus className="w-3 h-3 text-neutral-900 dark:text-white" />
               <span>Save Current</span>
             </button>
           </div>
@@ -225,22 +225,22 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
         {isSaving && (
           <form
             onSubmit={handleSaveCurrent}
-            className="mx-6 mt-3 p-3.5 bg-neutral-950 border border-neutral-700 rounded-xl space-y-2.5 text-xs"
+            className="mx-6 mt-3 p-3.5 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 rounded-xl space-y-2.5 text-xs"
           >
-            <div className="font-semibold text-white">Save Current Layout as Subject Template</div>
+            <div className="font-semibold text-neutral-900 dark:text-white">Save Current Layout as Subject Template</div>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
               <input
                 type="text"
                 value={newTemplateName}
                 onChange={(e) => setNewTemplateName(e.target.value)}
                 placeholder="Template Title"
-                className="sm:col-span-2 bg-black border border-neutral-700 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-hidden"
+                className="sm:col-span-2 bg-white dark:bg-black border border-neutral-300 dark:border-neutral-700 rounded-lg px-3 py-1.5 text-xs text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
                 autoFocus
               />
               <select
                 value={newCategory}
                 onChange={(e) => setNewCategory(e.target.value as any)}
-                className="bg-black border border-neutral-700 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-hidden"
+                className="bg-white dark:bg-black border border-neutral-300 dark:border-neutral-700 rounded-lg px-2 py-1.5 text-xs text-neutral-900 dark:text-white focus:outline-hidden"
               >
                 <option value="Math">Math</option>
                 <option value="Science">Science</option>
@@ -254,13 +254,13 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
               <button
                 type="button"
                 onClick={() => setIsSaving(false)}
-                className="px-3 py-1 bg-neutral-900 text-neutral-300 text-xs rounded-lg hover:bg-neutral-800 cursor-pointer"
+                className="px-3 py-1 bg-neutral-200 text-neutral-800 hover:bg-neutral-300 dark:bg-neutral-900 dark:text-neutral-300 text-xs rounded-lg dark:hover:bg-neutral-800 cursor-pointer"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                className="px-4 py-1 bg-white text-black font-semibold text-xs rounded-lg hover:bg-neutral-200 cursor-pointer"
+                className="px-4 py-1 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black font-semibold text-xs rounded-lg dark:hover:bg-neutral-200 cursor-pointer"
               >
                 Save
               </button>
@@ -275,29 +275,29 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
               {BUILT_IN_TEMPLATES.map((template) => (
                 <div
                   key={template.id}
-                  className="p-4 bg-neutral-950 border border-neutral-800 hover:border-neutral-700 rounded-xl transition flex flex-col justify-between"
+                  className="p-4 bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 hover:border-neutral-400 dark:hover:border-neutral-700 rounded-xl transition flex flex-col justify-between"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-black border border-neutral-800 text-neutral-400">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400">
                         {template.category}
                       </span>
-                      <span className="text-[11px] text-neutral-400 font-mono">
+                      <span className="text-[11px] text-neutral-600 dark:text-neutral-400 font-mono">
                         {template.paper.header.maxMarks} Marks
                       </span>
                     </div>
-                    <div className="font-semibold text-white text-sm pt-1">{template.name}</div>
-                    <p className="text-[11px] text-neutral-400">{template.description}</p>
+                    <div className="font-semibold text-neutral-900 dark:text-white text-sm pt-1">{template.name}</div>
+                    <p className="text-[11px] text-neutral-600 dark:text-neutral-400">{template.description}</p>
                     <div className="text-[10px] text-neutral-500 pt-1">
                       {template.paper.sections.length} Sections •{' '}
                       {template.paper.sections.reduce((a, s) => a + s.questions.length, 0)} Questions
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-3 border-t border-neutral-900 flex justify-end">
+                  <div className="mt-4 pt-3 border-t border-neutral-200 dark:border-neutral-900 flex justify-end">
                     <button
                       onClick={() => handleLoad(template)}
-                      className="px-3 py-1.5 bg-white text-black text-xs font-semibold rounded-lg hover:bg-neutral-200 transition cursor-pointer flex items-center gap-1.5"
+                      className="px-3 py-1.5 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black text-xs font-semibold rounded-lg dark:hover:bg-neutral-200 transition cursor-pointer flex items-center gap-1.5"
                     >
                       <BookOpen className="w-3.5 h-3.5" />
                       <span>Use Template</span>
@@ -309,9 +309,9 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
           ) : (
             <div>
               {customTemplates.length === 0 ? (
-                <div className="text-center py-12 px-4 border border-dashed border-neutral-800 rounded-xl">
-                  <Bookmark className="w-8 h-8 text-neutral-600 mx-auto mb-2" />
-                  <div className="text-xs font-medium text-neutral-300">No Custom Templates Yet</div>
+                <div className="text-center py-12 px-4 border border-dashed border-neutral-300 dark:border-neutral-800 rounded-xl">
+                  <Bookmark className="w-8 h-8 text-neutral-400 dark:text-neutral-600 mx-auto mb-2" />
+                  <div className="text-xs font-medium text-neutral-700 dark:text-neutral-300">No Custom Templates Yet</div>
                   <p className="text-[11px] text-neutral-500 mt-1">
                     Click &quot;Save Current&quot; to save this paper layout for future use.
                   </p>
@@ -321,32 +321,32 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
                   {customTemplates.map((template) => (
                     <div
                       key={template.id}
-                      className="p-4 bg-neutral-950 border border-neutral-800 rounded-xl transition flex flex-col justify-between"
+                      className="p-4 bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl transition flex flex-col justify-between"
                     >
                       <div className="space-y-1">
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-black border border-neutral-800 text-neutral-400">
+                          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 text-neutral-600 dark:text-neutral-400">
                             {template.category}
                           </span>
-                          <span className="text-[11px] text-neutral-400 font-mono">
+                          <span className="text-[11px] text-neutral-600 dark:text-neutral-400 font-mono">
                             {template.paper.header.maxMarks} Marks
                           </span>
                         </div>
-                        <div className="font-semibold text-white text-sm pt-1">{template.name}</div>
-                        <p className="text-[11px] text-neutral-400">{template.subject}</p>
+                        <div className="font-semibold text-neutral-900 dark:text-white text-sm pt-1">{template.name}</div>
+                        <p className="text-[11px] text-neutral-600 dark:text-neutral-400">{template.subject}</p>
                       </div>
 
-                      <div className="mt-4 pt-3 border-t border-neutral-900 flex items-center justify-between">
+                      <div className="mt-4 pt-3 border-t border-neutral-200 dark:border-neutral-900 flex items-center justify-between">
                         <button
                           onClick={() => handleDelete(template.id, template.name)}
-                          className="text-xs text-neutral-500 hover:text-white flex items-center gap-1 cursor-pointer"
+                          className="text-xs text-neutral-500 hover:text-neutral-900 dark:hover:text-white flex items-center gap-1 cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                           <span>Delete</span>
                         </button>
                         <button
                           onClick={() => handleLoad(template)}
-                          className="px-3 py-1.5 bg-white text-black text-xs font-semibold rounded-lg hover:bg-neutral-200 transition cursor-pointer"
+                          className="px-3 py-1.5 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black text-xs font-semibold rounded-lg dark:hover:bg-neutral-200 transition cursor-pointer"
                         >
                           Load
                         </button>
@@ -360,17 +360,17 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-3 border-t border-neutral-800 bg-neutral-950 flex items-center justify-between">
+        <div className="px-6 py-3 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <button
               onClick={handleExportTemplates}
               disabled={customTemplates.length === 0}
-              className="text-xs text-neutral-400 hover:text-white disabled:opacity-30 flex items-center gap-1 cursor-pointer"
+              className="text-xs text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white disabled:opacity-30 flex items-center gap-1 cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
               <span>Export</span>
             </button>
-            <label className="text-xs text-neutral-400 hover:text-white flex items-center gap-1 cursor-pointer">
+            <label className="text-xs text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white flex items-center gap-1 cursor-pointer">
               <Upload className="w-3.5 h-3.5" />
               <span>Import</span>
               <input
@@ -383,7 +383,7 @@ export const TemplateModal: React.FC<TemplateModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="px-4 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white font-medium text-xs rounded-lg transition cursor-pointer"
+            className="px-4 py-1.5 bg-neutral-200 hover:bg-neutral-300 text-neutral-900 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:text-white font-medium text-xs rounded-lg transition cursor-pointer"
           >
             Close
           </button>

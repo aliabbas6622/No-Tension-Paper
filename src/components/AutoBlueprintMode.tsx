@@ -14,6 +14,7 @@ import {
   selectQuestionsWithAI,
 } from '../services/blueprintSelection';
 import { AppMode, ModeSwitcher } from './ModeSwitcher';
+import { AppTheme, ThemeToggleButton } from './ThemeToggleButton';
 import {
   AlertCircle,
   ArrowDown,
@@ -40,6 +41,8 @@ import {
 
 interface AutoBlueprintModeProps {
   currentPaper: ExamPaper;
+  theme: AppTheme;
+  onToggleTheme: () => void;
   onApplyPaperToEditor: (updatedPaper: ExamPaper, meta: { count: number; mode: 'replace' | 'append'; engine: SelectionEngine }) => void;
   onSwitchMode: (mode: AppMode) => void;
   onOpenDashboard: () => void;
@@ -70,6 +73,8 @@ const KIND_LABELS: Record<QuestionKind, string> = {
 
 export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
   currentPaper,
+  theme,
+  onToggleTheme,
   onApplyPaperToEditor,
   onSwitchMode,
   onOpenDashboard,
@@ -465,69 +470,73 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
   };
 
   return (
-    <div className="h-screen w-screen overflow-hidden flex flex-col bg-black text-white">
+    <div className="h-screen w-screen overflow-hidden flex flex-col bg-neutral-50 text-neutral-900 dark:bg-black dark:text-white">
       {/* Top Bar */}
-      <header className="h-12 shrink-0 border-b border-neutral-800 bg-black flex items-center justify-between px-3 sm:px-4 gap-3">
+      <header className="h-12 shrink-0 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black flex items-center justify-between px-3 sm:px-4 gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
           <button
             onClick={onOpenDashboard}
-            className="p-1.5 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-900 transition cursor-pointer shrink-0"
+            className="p-1.5 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white rounded-lg dark:hover:bg-neutral-900 transition cursor-pointer shrink-0"
             title="Return to Dashboard / Home"
           >
             <Home className="w-4 h-4" />
           </button>
-          <div className="h-4 w-px bg-neutral-800 shrink-0" />
+          <div className="h-4 w-px bg-neutral-200 dark:bg-neutral-800 shrink-0" />
           <ModeSwitcher active="auto" onChange={onSwitchMode} />
         </div>
 
-        {/* Clean Step Indicator */}
-        <div className="hidden md:flex items-center gap-2 text-[11px] font-medium shrink-0">
-          <button
-            type="button"
-            onClick={() => setStep('configure')}
-            className={`px-2.5 py-1 rounded-md whitespace-nowrap transition cursor-pointer ${
-              step === 'configure'
-                ? 'bg-neutral-900 text-white border border-neutral-700'
-                : 'text-neutral-400 hover:text-white'
-            }`}
-          >
-            01. Chapters &amp; Counts
-          </button>
-          <span className="text-neutral-600">/</span>
-          <button
-            type="button"
-            disabled={reviewedItems.length === 0}
-            onClick={() => reviewedItems.length > 0 && setStep('review')}
-            className={`px-2.5 py-1 rounded-md whitespace-nowrap transition ${
-              step === 'review'
-                ? 'bg-neutral-900 text-white border border-neutral-700'
-                : reviewedItems.length > 0
-                ? 'text-neutral-400 hover:text-white cursor-pointer'
-                : 'text-neutral-600 cursor-not-allowed'
-            }`}
-          >
-            02. Review &amp; Swap
-          </button>
-          <span className="text-neutral-600">/</span>
-          <span className="text-neutral-500 whitespace-nowrap">03. Editor</span>
+        {/* Clean Step Indicator & Theme Toggle */}
+        <div className="flex items-center gap-2 shrink-0">
+          <div className="hidden md:flex items-center gap-2 text-[11px] font-medium shrink-0">
+            <button
+              type="button"
+              onClick={() => setStep('configure')}
+              className={`px-2.5 py-1 rounded-md whitespace-nowrap transition cursor-pointer ${
+                step === 'configure'
+                  ? 'bg-neutral-900 text-white border border-neutral-900 dark:bg-neutral-900 dark:text-white dark:border-neutral-700'
+                  : 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
+              }`}
+            >
+              01. Chapters &amp; Counts
+            </button>
+            <span className="text-neutral-400 dark:text-neutral-600">/</span>
+            <button
+              type="button"
+              disabled={reviewedItems.length === 0}
+              onClick={() => reviewedItems.length > 0 && setStep('review')}
+              className={`px-2.5 py-1 rounded-md whitespace-nowrap transition ${
+                step === 'review'
+                  ? 'bg-neutral-900 text-white border border-neutral-900 dark:bg-neutral-900 dark:text-white dark:border-neutral-700'
+                  : reviewedItems.length > 0
+                  ? 'text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white cursor-pointer'
+                  : 'text-neutral-300 dark:text-neutral-600 cursor-not-allowed'
+              }`}
+            >
+              02. Review &amp; Swap
+            </button>
+            <span className="text-neutral-400 dark:text-neutral-600">/</span>
+            <span className="text-neutral-400 dark:text-neutral-500 whitespace-nowrap">03. Editor</span>
+          </div>
+
+          <ThemeToggleButton theme={theme} onToggle={onToggleTheme} showLabel />
         </div>
       </header>
 
       {isLoadingBanks ? (
-        <div className="flex-1 flex items-center justify-center text-neutral-400 text-xs gap-2">
+        <div className="flex-1 flex items-center justify-center text-neutral-500 dark:text-neutral-400 text-xs gap-2">
           <Loader2 className="w-4 h-4 animate-spin" />
           <span>Loading curriculum question banks...</span>
         </div>
       ) : banks.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center px-6">
-          <Database className="w-6 h-6 text-neutral-600" />
-          <div className="text-sm font-semibold text-white">No question bank available</div>
-          <p className="text-xs text-neutral-400 max-w-sm">
+          <Database className="w-6 h-6 text-neutral-400 dark:text-neutral-600" />
+          <div className="text-sm font-semibold text-neutral-900 dark:text-white">No question bank available</div>
+          <p className="text-xs text-neutral-600 dark:text-neutral-400 max-w-sm">
             Import a curriculum JSON using Subject Adder on the Dashboard first, then return here to generate weighted or AI-selected papers.
           </p>
           <button
             onClick={onOpenDashboard}
-            className="px-4 py-2 bg-white text-black text-xs font-semibold rounded-lg hover:bg-neutral-200 cursor-pointer"
+            className="px-4 py-2 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black text-xs font-semibold rounded-lg dark:hover:bg-neutral-200 cursor-pointer"
           >
             Go to Dashboard
           </button>
@@ -537,10 +546,10 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
         <div className="flex-1 flex flex-col min-h-0">
           <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden">
             {/* Left Sidebar: Subject & Chapter Selection + Weightage */}
-            <aside className="w-full lg:w-88 shrink-0 border-b lg:border-b-0 lg:border-r border-neutral-800 bg-black flex flex-col max-h-[44vh] lg:max-h-none min-h-0">
-              <div className="p-4 border-b border-neutral-800 space-y-2.5 shrink-0">
+            <aside className="w-full lg:w-88 shrink-0 border-b lg:border-b-0 lg:border-r border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black flex flex-col max-h-[44vh] lg:max-h-none min-h-0">
+              <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 space-y-2.5 shrink-0">
                 <div className="flex items-center justify-between gap-2">
-                  <label className="text-[11px] font-semibold text-neutral-300">
+                  <label className="text-[11px] font-semibold text-neutral-700 dark:text-neutral-300">
                     Subject Question Bank
                   </label>
                   {activeBank && (
@@ -552,7 +561,7 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                 <select
                   value={activeBankId}
                   onChange={(e) => setActiveBankId(e.target.value)}
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-white"
+                  className="w-full bg-neutral-50 border border-neutral-300 text-neutral-900 focus:border-neutral-900 dark:bg-neutral-950 dark:border-neutral-800 rounded-lg px-3 py-2 text-xs dark:text-white focus:outline-none dark:focus:border-white"
                 >
                   {banks.map((bank) => (
                     <option key={bank.id} value={bank.id}>
@@ -562,30 +571,30 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                 </select>
               </div>
 
-              <div className="px-4 py-2.5 border-b border-neutral-900 flex items-center justify-between gap-2 shrink-0">
-                <div className="text-xs font-semibold text-white">
+              <div className="px-4 py-2.5 border-b border-neutral-200 dark:border-neutral-900 flex items-center justify-between gap-2 shrink-0">
+                <div className="text-xs font-semibold text-neutral-900 dark:text-white">
                   Chapters ({selectedChapters.length}/{chapters.length})
                 </div>
                 <div className="flex items-center gap-1.5 text-[11px]">
                   <button
                     type="button"
                     onClick={() => selectAllChapters(true)}
-                    className="px-2 py-1 text-neutral-300 hover:text-white hover:bg-neutral-900 rounded cursor-pointer whitespace-nowrap"
+                    className="px-2 py-1 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:text-white dark:hover:bg-neutral-900 rounded cursor-pointer whitespace-nowrap"
                   >
                     All
                   </button>
                   <button
                     type="button"
                     onClick={() => selectAllChapters(false)}
-                    className="px-2 py-1 text-neutral-400 hover:text-white hover:bg-neutral-900 rounded cursor-pointer whitespace-nowrap"
+                    className="px-2 py-1 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-900 rounded cursor-pointer whitespace-nowrap"
                   >
                     None
                   </button>
-                  <span className="text-neutral-700">|</span>
+                  <span className="text-neutral-300 dark:text-neutral-700">|</span>
                   <button
                     type="button"
                     onClick={applyEqualWeights}
-                    className="px-2 py-1 text-neutral-300 hover:text-white hover:bg-neutral-900 rounded cursor-pointer whitespace-nowrap"
+                    className="px-2 py-1 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:text-white dark:hover:bg-neutral-900 rounded cursor-pointer whitespace-nowrap"
                     title="Set equal percentage weights across selected chapters"
                   >
                     Equal %
@@ -593,7 +602,7 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                   <button
                     type="button"
                     onClick={applyProportionalWeightsBySize}
-                    className="px-2 py-1 text-neutral-300 hover:text-white hover:bg-neutral-900 rounded cursor-pointer whitespace-nowrap"
+                    className="px-2 py-1 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:text-white dark:hover:bg-neutral-900 rounded cursor-pointer whitespace-nowrap"
                     title="Weight chapters proportionally by question count"
                   >
                     By Size
@@ -610,8 +619,8 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                       key={ch.unitIndex}
                       className={`p-3 rounded-xl border transition ${
                         ch.selected
-                          ? 'bg-neutral-950 border-neutral-700'
-                          : 'bg-black border-neutral-900 opacity-60'
+                          ? 'bg-neutral-50 border-neutral-300 dark:bg-neutral-950 dark:border-neutral-700'
+                          : 'bg-white border-neutral-200 dark:bg-black dark:border-neutral-900 opacity-60'
                       }`}
                     >
                       <button
@@ -621,24 +630,24 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                       >
                         <div className="pt-0.5 shrink-0">
                           {ch.selected ? (
-                            <CheckSquare className="w-4 h-4 text-white" />
+                            <CheckSquare className="w-4 h-4 text-neutral-900 dark:text-white" />
                           ) : (
-                            <Square className="w-4 h-4 text-neutral-600" />
+                            <Square className="w-4 h-4 text-neutral-400 dark:text-neutral-600" />
                           )}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-xs font-medium text-white leading-snug">
+                          <div className="text-xs font-medium text-neutral-900 dark:text-white leading-snug">
                             {ch.unitName}
                           </div>
-                          <div className="mt-1 text-[11px] text-neutral-400 font-mono tabular-nums">
+                          <div className="mt-1 text-[11px] text-neutral-500 dark:text-neutral-400 font-mono tabular-nums">
                             {ch.available.mcq} MCQ · {ch.available.short} Short · {ch.available.detailed} Long ({totalAvail})
                           </div>
                         </div>
                       </button>
 
                       {ch.selected && (
-                        <div className="mt-2.5 pt-2.5 border-t border-neutral-900 flex items-center gap-2.5">
-                          <span className="text-[11px] text-neutral-400 shrink-0">Weight</span>
+                        <div className="mt-2.5 pt-2.5 border-t border-neutral-200 dark:border-neutral-900 flex items-center gap-2.5">
+                          <span className="text-[11px] text-neutral-600 dark:text-neutral-400 shrink-0">Weight</span>
                           <input
                             type="range"
                             min={0}
@@ -648,7 +657,7 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                               updateChapterWeight(ch.unitIndex, Number(e.target.value))
                             }
                             aria-label={`Weight for ${ch.unitName}`}
-                            className="flex-1 accent-white cursor-pointer"
+                            className="flex-1 accent-neutral-900 dark:accent-white cursor-pointer"
                           />
                           <div className="flex items-center gap-1 shrink-0">
                             <input
@@ -659,7 +668,7 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                               onChange={(e) =>
                                 updateChapterWeight(ch.unitIndex, Number(e.target.value))
                               }
-                              className="w-12 bg-black border border-neutral-800 rounded px-1.5 py-0.5 text-[11px] font-mono tabular-nums text-right text-white focus:outline-none focus:border-white"
+                              className="w-12 bg-white border border-neutral-300 text-neutral-900 focus:border-neutral-900 dark:bg-black dark:border-neutral-800 rounded px-1.5 py-0.5 text-[11px] font-mono tabular-nums text-right dark:text-white focus:outline-none dark:focus:border-white"
                             />
                             <span className="text-[11px] text-neutral-500 font-mono tabular-nums w-9 text-right">
                               ({sharePct}%)
@@ -679,10 +688,10 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
               <div className="max-w-4xl space-y-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <h2 className="text-base font-bold text-white tracking-tight">
+                    <h2 className="text-base font-bold text-neutral-900 dark:text-white tracking-tight">
                       Section Question Counts
                     </h2>
-                    <p className="text-xs text-neutral-400 mt-0.5">
+                    <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-0.5">
                       Choose how many questions to pick from the {selectedChapters.length} selected chapters for each section.
                     </p>
                   </div>
@@ -693,7 +702,7 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                         key={preset.label}
                         type="button"
                         onClick={() => applyPreset(preset.counts)}
-                        className="px-2.5 py-1.5 bg-neutral-950 hover:bg-neutral-900 border border-neutral-800 rounded-lg text-[11px] text-neutral-300 hover:text-white transition cursor-pointer whitespace-nowrap shrink-0"
+                        className="px-2.5 py-1.5 bg-white hover:bg-neutral-100 border border-neutral-200 text-neutral-700 hover:text-neutral-900 dark:bg-neutral-950 dark:hover:bg-neutral-900 dark:border-neutral-800 rounded-lg text-[11px] dark:text-neutral-300 dark:hover:text-white transition cursor-pointer whitespace-nowrap shrink-0"
                       >
                         {preset.label}
                       </button>
@@ -701,7 +710,7 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                   </div>
                 </div>
 
-                <div className="divide-y divide-neutral-800 border border-neutral-800 rounded-xl bg-neutral-950 overflow-hidden">
+                <div className="divide-y divide-neutral-200 border border-neutral-200 bg-white dark:divide-neutral-800 dark:border-neutral-800 rounded-xl dark:bg-neutral-950 overflow-hidden">
                   {sectionConfigs.map((sec) => {
                     const maxAvail = availableByKind[sec.kind];
                     const sectionSubtotal = sec.count * sec.marksPerQuestion;
@@ -711,10 +720,10 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                         className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                       >
                         <div className="min-w-0 space-y-0.5">
-                          <div className="text-xs font-semibold text-white">
+                          <div className="text-xs font-semibold text-neutral-900 dark:text-white">
                             {sec.sectionName} · {sec.label}
                           </div>
-                          <div className="text-[11px] text-neutral-400 font-mono tabular-nums">
+                          <div className="text-[11px] text-neutral-500 dark:text-neutral-400 font-mono tabular-nums">
                             Available in selected chapters: {maxAvail} · Section Marks: {sectionSubtotal}
                           </div>
                         </div>
@@ -722,13 +731,13 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                         <div className="flex flex-wrap items-center gap-4 shrink-0">
                           {/* Question Count Stepper */}
                           <div className="flex items-center gap-2">
-                            <span className="text-[11px] text-neutral-400">Questions</span>
-                            <div className="inline-flex items-center border border-neutral-800 rounded-lg bg-black">
+                            <span className="text-[11px] text-neutral-600 dark:text-neutral-400">Questions</span>
+                            <div className="inline-flex items-center border border-neutral-300 bg-neutral-50 dark:border-neutral-800 rounded-lg dark:bg-black">
                               <button
                                 type="button"
                                 onClick={() => updateSectionCount(sec.kind, sec.count - 1)}
                                 disabled={sec.count <= 0}
-                                className="p-1.5 text-neutral-300 hover:text-white disabled:opacity-30 cursor-pointer"
+                                className="p-1.5 text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white disabled:opacity-30 cursor-pointer"
                                 aria-label={`Decrease ${sec.label} count`}
                               >
                                 <Minus className="w-3.5 h-3.5" />
@@ -741,13 +750,13 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                                 onChange={(e) =>
                                   updateSectionCount(sec.kind, Number(e.target.value))
                                 }
-                                className="w-12 bg-transparent text-center text-xs font-mono font-semibold tabular-nums text-white focus:outline-none"
+                                className="w-12 bg-transparent text-center text-xs font-mono font-semibold tabular-nums text-neutral-900 dark:text-white focus:outline-none"
                               />
                               <button
                                 type="button"
                                 onClick={() => updateSectionCount(sec.kind, sec.count + 1)}
                                 disabled={sec.count >= maxAvail}
-                                className="p-1.5 text-neutral-300 hover:text-white disabled:opacity-30 cursor-pointer"
+                                className="p-1.5 text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white disabled:opacity-30 cursor-pointer"
                                 aria-label={`Increase ${sec.label} count`}
                               >
                                 <Plus className="w-3.5 h-3.5" />
@@ -757,7 +766,7 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
 
                           {/* Marks per Question */}
                           <div className="flex items-center gap-1.5">
-                            <span className="text-[11px] text-neutral-400">Marks each</span>
+                            <span className="text-[11px] text-neutral-600 dark:text-neutral-400">Marks each</span>
                             <input
                               type="number"
                               min={1}
@@ -766,7 +775,7 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                               onChange={(e) =>
                                 updateSectionMarks(sec.kind, Number(e.target.value))
                               }
-                              className="w-14 px-2 py-1.5 bg-black border border-neutral-800 rounded-lg text-xs font-mono tabular-nums text-right text-white focus:outline-none focus:border-white"
+                              className="w-14 px-2 py-1.5 bg-neutral-50 border border-neutral-300 text-neutral-900 focus:border-neutral-900 dark:bg-black dark:border-neutral-800 rounded-lg text-xs font-mono tabular-nums text-right dark:text-white focus:outline-none dark:focus:border-white"
                             />
                           </div>
                         </div>
@@ -779,10 +788,10 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
               {/* Selection Strategy: Pre-Weighted vs AI */}
               <div className="max-w-4xl space-y-4">
                 <div>
-                  <h2 className="text-base font-bold text-white tracking-tight">
+                  <h2 className="text-base font-bold text-neutral-900 dark:text-white tracking-tight">
                     Selection Strategy
                   </h2>
-                  <p className="text-xs text-neutral-400 mt-0.5">
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400 mt-0.5">
                     Pick questions using your chapter weightage distribution or let Gemini AI curate a balanced paper.
                   </p>
                 </div>
@@ -793,22 +802,24 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                     onClick={() => setEngine('weighted')}
                     className={`p-4 rounded-xl border text-left transition cursor-pointer flex items-start gap-3 ${
                       engine === 'weighted'
-                        ? 'bg-neutral-900 border-white text-white'
-                        : 'bg-neutral-950 border-neutral-800 text-neutral-300 hover:border-neutral-600'
+                        ? 'bg-neutral-100 border-neutral-900 text-neutral-900 dark:bg-neutral-900 dark:border-white dark:text-white'
+                        : 'bg-white border-neutral-200 text-neutral-700 hover:border-neutral-400 dark:bg-neutral-950 dark:border-neutral-800 dark:text-neutral-300 dark:hover:border-neutral-600'
                     }`}
                   >
                     <div
                       className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                        engine === 'weighted' ? 'bg-white text-black' : 'bg-neutral-900 text-white'
+                        engine === 'weighted'
+                          ? 'bg-neutral-900 text-white dark:bg-white dark:text-black'
+                          : 'bg-neutral-100 text-neutral-800 dark:bg-neutral-900 dark:text-white'
                       }`}
                     >
                       <Scale className="w-4 h-4" />
                     </div>
                     <div className="space-y-1">
-                      <div className="text-xs font-semibold text-white">
+                      <div className="text-xs font-semibold text-neutral-900 dark:text-white">
                         Pre-Weighted Blueprint
                       </div>
-                      <p className="text-[11px] text-neutral-400 leading-relaxed">
+                      <p className="text-[11px] text-neutral-600 dark:text-neutral-400 leading-relaxed">
                         Draws questions strictly proportional to each chapter&apos;s percentage weight using balanced quota apportionment. Instant and deterministic.
                       </p>
                     </div>
@@ -819,22 +830,24 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                     onClick={() => setEngine('ai')}
                     className={`p-4 rounded-xl border text-left transition cursor-pointer flex items-start gap-3 ${
                       engine === 'ai'
-                        ? 'bg-neutral-900 border-white text-white'
-                        : 'bg-neutral-950 border-neutral-800 text-neutral-300 hover:border-neutral-600'
+                        ? 'bg-neutral-100 border-neutral-900 text-neutral-900 dark:bg-neutral-900 dark:border-white dark:text-white'
+                        : 'bg-white border-neutral-200 text-neutral-700 hover:border-neutral-400 dark:bg-neutral-950 dark:border-neutral-800 dark:text-neutral-300 dark:hover:border-neutral-600'
                     }`}
                   >
                     <div
                       className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
-                        engine === 'ai' ? 'bg-white text-black' : 'bg-neutral-900 text-white'
+                        engine === 'ai'
+                          ? 'bg-neutral-900 text-white dark:bg-white dark:text-black'
+                          : 'bg-neutral-100 text-neutral-800 dark:bg-neutral-900 dark:text-white'
                       }`}
                     >
                       <Cpu className="w-4 h-4" />
                     </div>
                     <div className="space-y-1">
-                      <div className="text-xs font-semibold text-white">
+                      <div className="text-xs font-semibold text-neutral-900 dark:text-white">
                         AI Smart Selection
                       </div>
-                      <p className="text-[11px] text-neutral-400 leading-relaxed">
+                      <p className="text-[11px] text-neutral-600 dark:text-neutral-400 leading-relaxed">
                         Gemini analyzes the candidate pool to maximize topic diversity, avoid redundant concepts, balance difficulty, and tag each selected question.
                       </p>
                     </div>
@@ -842,9 +855,9 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                 </div>
 
                 {engine === 'ai' && (
-                  <div className="p-4 rounded-xl border border-neutral-800 bg-neutral-950 space-y-3">
+                  <div className="p-4 rounded-xl border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950 space-y-3">
                     <div className="flex items-center justify-between gap-2">
-                      <label className="text-xs font-semibold text-white">
+                      <label className="text-xs font-semibold text-neutral-900 dark:text-white">
                         Focus &amp; Difficulty Guidance (Optional)
                       </label>
                       <span className="text-[11px] text-neutral-500">
@@ -856,7 +869,7 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                       value={focusPrompt}
                       onChange={(e) => setFocusPrompt(e.target.value)}
                       placeholder="e.g. Emphasize logic gates and networking concepts; avoid overlapping questions across Section A and B..."
-                      className="w-full px-3 py-2 bg-black border border-neutral-800 rounded-lg text-xs text-white placeholder-neutral-500 focus:outline-none focus:border-white resize-y"
+                      className="w-full px-3 py-2 bg-neutral-50 border border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-900 dark:bg-black dark:border-neutral-800 rounded-lg text-xs dark:text-white dark:placeholder-neutral-500 focus:outline-none dark:focus:border-white resize-y"
                     />
                     <div className="flex flex-wrap gap-1.5">
                       {AI_FOCUS_SUGGESTIONS.map((suggestion) => (
@@ -864,7 +877,7 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                           key={suggestion}
                           type="button"
                           onClick={() => setFocusPrompt(suggestion)}
-                          className="px-2.5 py-1 bg-black hover:bg-neutral-900 border border-neutral-800 rounded-md text-[11px] text-neutral-400 hover:text-white transition cursor-pointer text-left"
+                          className="px-2.5 py-1 bg-neutral-50 hover:bg-neutral-100 border border-neutral-200 text-neutral-600 hover:text-neutral-900 dark:bg-black dark:hover:bg-neutral-900 dark:border-neutral-800 rounded-md text-[11px] dark:text-neutral-400 dark:hover:text-white transition cursor-pointer text-left"
                         >
                           {suggestion}
                         </button>
@@ -874,16 +887,16 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                 )}
 
                 {selectionError && (
-                  <div className="p-3.5 bg-neutral-900 border border-neutral-700 rounded-xl flex flex-wrap items-center justify-between gap-3 text-xs">
-                    <div className="flex items-start gap-2.5 text-neutral-200">
-                      <AlertCircle className="w-4 h-4 text-white shrink-0 mt-0.5" />
+                  <div className="p-3.5 bg-neutral-100 border border-neutral-300 dark:bg-neutral-900 dark:border-neutral-700 rounded-xl flex flex-wrap items-center justify-between gap-3 text-xs">
+                    <div className="flex items-start gap-2.5 text-neutral-800 dark:text-neutral-200">
+                      <AlertCircle className="w-4 h-4 text-neutral-900 dark:text-white shrink-0 mt-0.5" />
                       <span>{selectionError}</span>
                     </div>
                     {engine === 'ai' && (
                       <button
                         type="button"
                         onClick={() => runSelection('weighted')}
-                        className="px-3 py-1.5 bg-white text-black font-semibold rounded-lg text-[11px] hover:bg-neutral-200 cursor-pointer whitespace-nowrap shrink-0"
+                        className="px-3 py-1.5 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black font-semibold rounded-lg text-[11px] dark:hover:bg-neutral-200 cursor-pointer whitespace-nowrap shrink-0"
                       >
                         Use Pre-Weighted Instead
                       </button>
@@ -895,9 +908,9 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
           </div>
 
           {/* Sticky Bottom Action Bar (Stage 1) */}
-          <footer className="shrink-0 border-t border-neutral-800 bg-black px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-            <div className="text-xs text-neutral-400 font-mono tabular-nums flex flex-wrap items-center gap-3">
-              <span className="text-white font-semibold">
+          <footer className="shrink-0 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+            <div className="text-xs text-neutral-500 dark:text-neutral-400 font-mono tabular-nums flex flex-wrap items-center gap-3">
+              <span className="text-neutral-900 dark:text-white font-semibold">
                 {totalRequestedQuestions} Questions · {totalConfiguredMarks} Marks
               </span>
               <span>·</span>
@@ -914,7 +927,7 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
               disabled={
                 isSelecting || selectedChapters.length === 0 || totalRequestedQuestions <= 0
               }
-              className="px-5 py-2 bg-white text-black font-semibold text-xs rounded-lg hover:bg-neutral-200 disabled:opacity-40 transition flex items-center gap-2 cursor-pointer whitespace-nowrap shrink-0"
+              className="px-5 py-2 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black font-semibold text-xs rounded-lg dark:hover:bg-neutral-200 disabled:opacity-40 transition flex items-center gap-2 cursor-pointer whitespace-nowrap shrink-0"
             >
               {isSelecting ? (
                 <>
@@ -936,21 +949,21 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
         /* STAGE 2: REVIEW SELECTED QUESTIONS, SWAP & TAKE TO EDITOR */
         <div className="flex-1 flex flex-col min-h-0">
           {/* Review Toolbar */}
-          <div className="shrink-0 border-b border-neutral-800 bg-neutral-950 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+          <div className="shrink-0 border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950 px-4 py-3 flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
               <button
                 type="button"
                 onClick={() => setStep('configure')}
-                className="px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-xs text-white rounded-lg flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
+                className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 border border-neutral-300 text-neutral-900 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:border-neutral-700 text-xs dark:text-white rounded-lg flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
                 <span>Adjust Blueprint</span>
               </button>
               <div className="min-w-0">
-                <div className="text-xs font-semibold text-white truncate">
+                <div className="text-xs font-semibold text-neutral-900 dark:text-white truncate">
                   Review Selected Paper — {result?.engine === 'ai' ? 'AI Curated' : 'Pre-Weighted'}
                 </div>
-                <div className="text-[11px] text-neutral-400 truncate">
+                <div className="text-[11px] text-neutral-600 dark:text-neutral-400 truncate">
                   {result?.rationale}
                 </div>
               </div>
@@ -962,8 +975,8 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                 onClick={() => setShowAnswers((v) => !v)}
                 className={`px-2.5 py-1.5 rounded-lg border text-[11px] flex items-center gap-1.5 cursor-pointer whitespace-nowrap ${
                   showAnswers
-                    ? 'bg-neutral-900 border-neutral-700 text-white'
-                    : 'bg-black border-neutral-800 text-neutral-400 hover:text-white'
+                    ? 'bg-neutral-900 border-neutral-900 text-white dark:bg-neutral-900 dark:border-neutral-700 dark:text-white'
+                    : 'bg-white border-neutral-300 text-neutral-600 hover:text-neutral-900 dark:bg-black dark:border-neutral-800 dark:text-neutral-400 dark:hover:text-white'
                 }`}
               >
                 {showAnswers ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}
@@ -974,7 +987,7 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                 type="button"
                 onClick={() => runSelection()}
                 disabled={isSelecting}
-                className="px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-white text-[11px] font-medium rounded-lg flex items-center gap-1.5 cursor-pointer whitespace-nowrap disabled:opacity-50"
+                className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 border border-neutral-300 text-neutral-900 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:border-neutral-700 dark:text-white text-[11px] font-medium rounded-lg flex items-center gap-1.5 cursor-pointer whitespace-nowrap disabled:opacity-50"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isSelecting ? 'animate-spin' : ''}`} />
                 <span>Regenerate</span>
@@ -985,8 +998,8 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
           <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-6">
             {/* Shortfall notice if bank had fewer items than requested */}
             {result && result.shortfalls.length > 0 && (
-              <div className="max-w-5xl mx-auto p-3.5 bg-neutral-900 border border-neutral-700 rounded-xl flex items-start gap-2.5 text-xs text-neutral-200">
-                <AlertCircle className="w-4 h-4 text-white shrink-0 mt-0.5" />
+              <div className="max-w-5xl mx-auto p-3.5 bg-neutral-100 border border-neutral-300 text-neutral-800 dark:bg-neutral-900 dark:border-neutral-700 rounded-xl flex items-start gap-2.5 text-xs dark:text-neutral-200">
+                <AlertCircle className="w-4 h-4 text-neutral-900 dark:text-white shrink-0 mt-0.5" />
                 <div>
                   Some sections filled fewer questions than requested because the selected chapters contain fewer available questions:{' '}
                   {result.shortfalls
@@ -997,25 +1010,25 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
             )}
 
             {/* Chapter Coverage Distribution */}
-            <div className="max-w-5xl mx-auto border border-neutral-800 rounded-xl bg-neutral-950 overflow-hidden">
-              <div className="px-4 py-2.5 border-b border-neutral-800 flex items-center justify-between gap-2">
-                <h3 className="text-xs font-semibold text-white">
+            <div className="max-w-5xl mx-auto border border-neutral-200 bg-white dark:border-neutral-800 rounded-xl dark:bg-neutral-950 overflow-hidden">
+              <div className="px-4 py-2.5 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between gap-2">
+                <h3 className="text-xs font-semibold text-neutral-900 dark:text-white">
                   Chapter Weightage vs. Selected Coverage
                 </h3>
-                <span className="text-[11px] text-neutral-400 font-mono tabular-nums">
+                <span className="text-[11px] text-neutral-500 dark:text-neutral-400 font-mono tabular-nums">
                   {reviewedItems.length} Questions · {reviewedTotalMarks} Total Marks
                 </span>
               </div>
-              <div className="divide-y divide-neutral-900">
+              <div className="divide-y divide-neutral-200 dark:divide-neutral-900">
                 {chapterDistributionStats.map((stat) => (
                   <div
                     key={stat.unitIndex}
                     className="px-4 py-2.5 flex items-center justify-between gap-4 text-xs"
                   >
-                    <span className="text-neutral-200 truncate">{stat.unitName}</span>
-                    <div className="flex items-center gap-4 text-[11px] font-mono tabular-nums shrink-0 text-neutral-400">
+                    <span className="text-neutral-800 dark:text-neutral-200 truncate">{stat.unitName}</span>
+                    <div className="flex items-center gap-4 text-[11px] font-mono tabular-nums shrink-0 text-neutral-500 dark:text-neutral-400">
                       <span>Target: {stat.targetPct}%</span>
-                      <span className="text-white font-semibold">
+                      <span className="text-neutral-900 dark:text-white font-semibold">
                         Selected: {stat.selectedCount} ({stat.actualPct}%)
                       </span>
                       <span>{stat.marks} Marks</span>
@@ -1038,14 +1051,14 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                 return (
                   <div
                     key={secCfg.kind}
-                    className="border border-neutral-800 rounded-xl bg-neutral-950 overflow-hidden"
+                    className="border border-neutral-200 bg-white dark:border-neutral-800 rounded-xl dark:bg-neutral-950 overflow-hidden"
                   >
-                    <div className="px-4 py-3 border-b border-neutral-800 bg-black flex flex-wrap items-center justify-between gap-3">
+                    <div className="px-4 py-3 border-b border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-black flex flex-wrap items-center justify-between gap-3">
                       <div>
-                        <div className="text-xs font-bold text-white">
+                        <div className="text-xs font-bold text-neutral-900 dark:text-white">
                           {secCfg.sectionName} · {secCfg.label}
                         </div>
-                        <div className="text-[11px] text-neutral-400 font-mono tabular-nums">
+                        <div className="text-[11px] text-neutral-500 dark:text-neutral-400 font-mono tabular-nums">
                           {items.length} Questions · {sectionMarks} Marks · {unusedPool.length} unused available in selected chapters
                         </div>
                       </div>
@@ -1058,7 +1071,7 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                               prev === secCfg.kind ? null : secCfg.kind
                             )
                           }
-                          className="px-2.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-white rounded-lg text-[11px] font-medium flex items-center gap-1 cursor-pointer whitespace-nowrap shrink-0"
+                          className="px-2.5 py-1.5 bg-white hover:bg-neutral-100 border border-neutral-300 text-neutral-900 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:border-neutral-700 dark:text-white rounded-lg text-[11px] font-medium flex items-center gap-1 cursor-pointer whitespace-nowrap shrink-0"
                         >
                           <Plus className="w-3.5 h-3.5" />
                           <span>Add Question</span>
@@ -1068,34 +1081,34 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
 
                     {/* Optional drawer to add an extra unused question to this section */}
                     {addKindDrawer === secCfg.kind && unusedPool.length > 0 && (
-                      <div className="p-3 bg-neutral-900 border-b border-neutral-800 space-y-2">
+                      <div className="p-3 bg-neutral-100 border-b border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800 space-y-2">
                         <div className="flex items-center justify-between">
-                          <span className="text-[11px] font-semibold text-white">
+                          <span className="text-[11px] font-semibold text-neutral-900 dark:text-white">
                             Pick an unused {KIND_LABELS[secCfg.kind]} question to append
                           </span>
                           <button
                             type="button"
                             onClick={() => setAddKindDrawer(null)}
-                            className="text-[11px] text-neutral-400 hover:text-white cursor-pointer"
+                            className="text-[11px] text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white cursor-pointer"
                           >
                             Close
                           </button>
                         </div>
-                        <div className="max-h-48 overflow-y-auto divide-y divide-neutral-800 border border-neutral-800 rounded-lg bg-black">
+                        <div className="max-h-48 overflow-y-auto divide-y divide-neutral-200 border border-neutral-200 bg-white dark:divide-neutral-800 dark:border-neutral-800 rounded-lg dark:bg-black">
                           {unusedPool.map((bq) => (
                             <button
                               key={bq.key}
                               type="button"
                               onClick={() => handleAddExtraQuestion(secCfg.kind, bq)}
-                              className="w-full text-left px-3 py-2 hover:bg-neutral-900 transition flex items-start justify-between gap-3 cursor-pointer"
+                              className="w-full text-left px-3 py-2 hover:bg-neutral-100 dark:hover:bg-neutral-900 transition flex items-start justify-between gap-3 cursor-pointer"
                             >
                               <div className="min-w-0">
-                                <div className="text-xs text-white">{bq.question.text}</div>
+                                <div className="text-xs text-neutral-900 dark:text-white">{bq.question.text}</div>
                                 <div className="text-[10px] text-neutral-500 mt-0.5">
                                   {bq.unitName}
                                 </div>
                               </div>
-                              <span className="text-[11px] font-semibold text-white shrink-0">
+                              <span className="text-[11px] font-semibold text-neutral-900 dark:text-white shrink-0">
                                 + Add
                               </span>
                             </button>
@@ -1109,7 +1122,7 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                         No questions selected for this section. Use &quot;Add Question&quot; above if available.
                       </div>
                     ) : (
-                      <div className="divide-y divide-neutral-900">
+                      <div className="divide-y divide-neutral-200 dark:divide-neutral-900">
                         {items.map((item, idx) => {
                           const canSwap = unusedPool.length > 0;
                           const isPickerOpen = swapPickerReviewId === item.reviewId;
@@ -1118,7 +1131,7 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                             <div key={item.reviewId} className="p-4 space-y-2.5">
                               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                                 <div className="flex-1 min-w-0 space-y-1.5">
-                                  <div className="text-xs text-white leading-relaxed">
+                                  <div className="text-xs text-neutral-900 dark:text-white leading-relaxed">
                                     <span className="font-bold mr-1.5 font-mono tabular-nums">
                                       {toRoman(idx)}
                                     </span>
@@ -1131,7 +1144,7 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                                         {item.bankQuestion.question.options.map((opt) => (
                                           <div
                                             key={opt.id}
-                                            className="text-[11px] text-neutral-300 flex gap-1.5"
+                                            className="text-[11px] text-neutral-700 dark:text-neutral-300 flex gap-1.5"
                                           >
                                             <span className="text-neutral-500">{opt.label}</span>
                                             <span>{opt.text}</span>
@@ -1141,8 +1154,8 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                                     )}
 
                                   {showAnswers && item.bankQuestion.question.answerKey && (
-                                    <div className="pl-4 text-[11px] text-neutral-300">
-                                      <span className="font-semibold text-white">Key: </span>
+                                    <div className="pl-4 text-[11px] text-neutral-700 dark:text-neutral-300">
+                                      <span className="font-semibold text-neutral-900 dark:text-white">Key: </span>
                                       <span>{item.bankQuestion.question.answerKey}</span>
                                     </div>
                                   )}
@@ -1156,13 +1169,13 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                                     {item.tag && (
                                       <>
                                         <span aria-hidden="true">·</span>
-                                        <span className="text-neutral-300">{item.tag}</span>
+                                        <span className="text-neutral-700 dark:text-neutral-300">{item.tag}</span>
                                       </>
                                     )}
                                     {item.reason && (
                                       <>
                                         <span aria-hidden="true">·</span>
-                                        <span className="text-neutral-400">{item.reason}</span>
+                                        <span className="text-neutral-600 dark:text-neutral-400">{item.reason}</span>
                                       </>
                                     )}
                                   </div>
@@ -1174,7 +1187,7 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                                     type="button"
                                     disabled={idx === 0}
                                     onClick={() => handleMoveWithinKind(item.reviewId, -1)}
-                                    className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-900 rounded-md disabled:opacity-30 cursor-pointer"
+                                    className="p-1.5 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-900 rounded-md disabled:opacity-30 cursor-pointer"
                                     title="Move up"
                                   >
                                     <ArrowUp className="w-3.5 h-3.5" />
@@ -1183,7 +1196,7 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                                     type="button"
                                     disabled={idx === items.length - 1}
                                     onClick={() => handleMoveWithinKind(item.reviewId, 1)}
-                                    className="p-1.5 text-neutral-400 hover:text-white hover:bg-neutral-900 rounded-md disabled:opacity-30 cursor-pointer"
+                                    className="p-1.5 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-900 rounded-md disabled:opacity-30 cursor-pointer"
                                     title="Move down"
                                   >
                                     <ArrowDown className="w-3.5 h-3.5" />
@@ -1192,7 +1205,7 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                                     type="button"
                                     disabled={!canSwap}
                                     onClick={() => handleQuickSwap(item.reviewId)}
-                                    className="px-2 py-1 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-neutral-200 rounded-md text-[11px] flex items-center gap-1 disabled:opacity-30 cursor-pointer whitespace-nowrap"
+                                    className="px-2 py-1 bg-neutral-100 hover:bg-neutral-200 border border-neutral-300 text-neutral-800 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-200 rounded-md text-[11px] flex items-center gap-1 disabled:opacity-30 cursor-pointer whitespace-nowrap"
                                     title="Swap with another unused question"
                                   >
                                     <Shuffle className="w-3 h-3" />
@@ -1206,7 +1219,7 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                                         prev === item.reviewId ? null : item.reviewId
                                       )
                                     }
-                                    className="px-2 py-1 bg-black hover:bg-neutral-900 border border-neutral-800 text-neutral-300 rounded-md text-[11px] disabled:opacity-30 cursor-pointer whitespace-nowrap"
+                                    className="px-2 py-1 bg-white hover:bg-neutral-100 border border-neutral-300 text-neutral-700 dark:bg-black dark:hover:bg-neutral-900 dark:border-neutral-800 dark:text-neutral-300 rounded-md text-[11px] disabled:opacity-30 cursor-pointer whitespace-nowrap"
                                     title="Choose a specific replacement question"
                                   >
                                     Choose
@@ -1214,7 +1227,7 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                                   <button
                                     type="button"
                                     onClick={() => handleRemoveReviewedItem(item.reviewId)}
-                                    className="p-1.5 text-neutral-500 hover:text-white hover:bg-neutral-900 rounded-md cursor-pointer"
+                                    className="p-1.5 text-neutral-400 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-500 dark:hover:text-white dark:hover:bg-neutral-900 rounded-md cursor-pointer"
                                     title="Remove question from selection"
                                   >
                                     <Trash2 className="w-3.5 h-3.5" />
@@ -1224,20 +1237,20 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
 
                               {/* Inline Replacement Picker */}
                               {isPickerOpen && unusedPool.length > 0 && (
-                                <div className="ml-4 p-3 bg-black border border-neutral-700 rounded-lg space-y-2">
+                                <div className="ml-4 p-3 bg-neutral-50 border border-neutral-300 dark:bg-black dark:border-neutral-700 rounded-lg space-y-2">
                                   <div className="flex items-center justify-between text-[11px]">
-                                    <span className="font-semibold text-white">
+                                    <span className="font-semibold text-neutral-900 dark:text-white">
                                       Choose replacement from unused {KIND_LABELS[secCfg.kind]} pool ({unusedPool.length})
                                     </span>
                                     <button
                                       type="button"
                                       onClick={() => setSwapPickerReviewId(null)}
-                                      className="text-neutral-400 hover:text-white cursor-pointer"
+                                      className="text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white cursor-pointer"
                                     >
                                       Cancel
                                     </button>
                                   </div>
-                                  <div className="max-h-44 overflow-y-auto divide-y divide-neutral-900">
+                                  <div className="max-h-44 overflow-y-auto divide-y divide-neutral-200 dark:divide-neutral-900">
                                     {unusedPool.map((candidate) => (
                                       <button
                                         key={candidate.key}
@@ -1245,17 +1258,17 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                                         onClick={() =>
                                           handleSpecificSwap(item.reviewId, candidate)
                                         }
-                                        className="w-full text-left py-2 px-2 hover:bg-neutral-900 rounded transition flex items-start justify-between gap-3 cursor-pointer"
+                                        className="w-full text-left py-2 px-2 hover:bg-neutral-100 dark:hover:bg-neutral-900 rounded transition flex items-start justify-between gap-3 cursor-pointer"
                                       >
                                         <div className="min-w-0">
-                                          <div className="text-xs text-neutral-200">
+                                          <div className="text-xs text-neutral-800 dark:text-neutral-200">
                                             {candidate.question.text}
                                           </div>
                                           <div className="text-[10px] text-neutral-500 mt-0.5">
                                             {candidate.unitName}
                                           </div>
                                         </div>
-                                        <span className="text-[11px] font-semibold text-white shrink-0 flex items-center gap-1">
+                                        <span className="text-[11px] font-semibold text-neutral-900 dark:text-white shrink-0 flex items-center gap-1">
                                           <Check className="w-3 h-3" />
                                           Select
                                         </span>
@@ -1276,20 +1289,20 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
           </div>
 
           {/* Sticky Bottom Action Bar (Stage 2: Take to Editor) */}
-          <footer className="shrink-0 border-t border-neutral-800 bg-black px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+          <footer className="shrink-0 border-t border-neutral-200 bg-white dark:border-neutral-800 dark:bg-black px-4 py-3 flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-3">
-              <span className="text-xs font-semibold text-white font-mono tabular-nums">
+              <span className="text-xs font-semibold text-neutral-900 dark:text-white font-mono tabular-nums">
                 {reviewedItems.length} Questions · {reviewedTotalMarks} Marks Ready
               </span>
 
-              <div className="inline-flex items-center gap-0.5 p-0.5 bg-neutral-950 border border-neutral-800 rounded-lg text-[11px]">
+              <div className="inline-flex items-center gap-0.5 p-0.5 bg-neutral-100 border border-neutral-200 dark:bg-neutral-950 dark:border-neutral-800 rounded-lg text-[11px]">
                 <button
                   type="button"
                   onClick={() => setApplyMode('replace')}
                   className={`px-2.5 py-1 rounded-md font-medium transition cursor-pointer whitespace-nowrap ${
                     applyMode === 'replace'
-                      ? 'bg-white text-black font-semibold'
-                      : 'text-neutral-400 hover:text-white'
+                      ? 'bg-neutral-900 text-white dark:bg-white dark:text-black font-semibold'
+                      : 'text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
                   }`}
                 >
                   Create Fresh Paper Sections
@@ -1299,8 +1312,8 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                   onClick={() => setApplyMode('append')}
                   className={`px-2.5 py-1 rounded-md font-medium transition cursor-pointer whitespace-nowrap ${
                     applyMode === 'append'
-                      ? 'bg-white text-black font-semibold'
-                      : 'text-neutral-400 hover:text-white'
+                      ? 'bg-neutral-900 text-white dark:bg-white dark:text-black font-semibold'
+                      : 'text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white'
                   }`}
                 >
                   Append to Active Paper
@@ -1312,7 +1325,7 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
               type="button"
               onClick={handleTakeToEditor}
               disabled={reviewedItems.length === 0}
-              className="px-5 py-2 bg-white text-black font-semibold text-xs rounded-lg hover:bg-neutral-200 disabled:opacity-40 transition flex items-center gap-2 cursor-pointer whitespace-nowrap shrink-0"
+              className="px-5 py-2 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black font-semibold text-xs rounded-lg dark:hover:bg-neutral-200 disabled:opacity-40 transition flex items-center gap-2 cursor-pointer whitespace-nowrap shrink-0"
             >
               <PenLine className="w-3.5 h-3.5" />
               <span>Take to Editor</span>

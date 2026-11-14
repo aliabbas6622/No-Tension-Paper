@@ -94,12 +94,12 @@ export const PaperPreview: React.FC<PaperPreviewProps> = ({ paper, onPrint }) =>
   };
 
   return (
-    <div className="h-full flex flex-col bg-neutral-950 text-white min-w-0">
+    <div className="h-full flex flex-col bg-neutral-100 text-neutral-900 dark:bg-neutral-950 dark:text-white min-w-0">
       {/* Ultra-Minimal Monochrome Preview Toolbar */}
-      <div className="no-print h-10 px-4 bg-black border-b border-neutral-800 flex items-center justify-between gap-2 text-xs shrink-0 select-none">
+      <div className="no-print h-10 px-4 bg-white dark:bg-black border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between gap-2 text-xs shrink-0 select-none">
         <div className="flex items-center gap-2">
-          <span className="text-[11px] font-semibold text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-white inline-block"></span>
+          <span className="text-[11px] font-semibold text-neutral-600 dark:text-neutral-400 uppercase tracking-wider flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-neutral-900 dark:bg-white inline-block"></span>
             Real-Time Paper Preview
           </span>
         </div>
@@ -111,8 +111,8 @@ export const PaperPreview: React.FC<PaperPreviewProps> = ({ paper, onPrint }) =>
               onClick={() => setShowAnswerKeys(!showAnswerKeys)}
               className={`p-1 px-2 rounded transition flex items-center gap-1 text-[11px] cursor-pointer ${
                 showAnswerKeys
-                  ? 'bg-white text-black font-semibold'
-                  : 'text-neutral-400 hover:text-white hover:bg-neutral-900 border border-neutral-800'
+                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-black font-semibold'
+                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 border border-neutral-300 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-900 dark:border-neutral-800'
               }`}
               title="Toggle display of Answer Keys from curriculum"
             >
@@ -124,28 +124,28 @@ export const PaperPreview: React.FC<PaperPreviewProps> = ({ paper, onPrint }) =>
           {/* Copy Plaintext button */}
           <button
             onClick={handleCopyText}
-            className="p-1 text-neutral-400 hover:text-white rounded hover:bg-neutral-900 transition flex items-center gap-1 text-[11px] cursor-pointer"
+            className="p-1 text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-900 rounded transition flex items-center gap-1 text-[11px] cursor-pointer"
             title="Copy paper as text"
           >
-            {copied ? <Check className="w-3.5 h-3.5 text-white" /> : <Copy className="w-3.5 h-3.5" />}
+            {copied ? <Check className="w-3.5 h-3.5 text-neutral-900 dark:text-white" /> : <Copy className="w-3.5 h-3.5" />}
             <span className="hidden sm:inline">{copied ? 'Copied' : 'Copy'}</span>
           </button>
 
           {/* Zoom Controls */}
-          <div className="flex items-center bg-neutral-900 rounded p-0.5 border border-neutral-800">
+          <div className="flex items-center bg-neutral-100 dark:bg-neutral-900 rounded p-0.5 border border-neutral-200 dark:border-neutral-800">
             <button
               onClick={() => setZoomLevel((z) => Math.max(65, z - 10))}
-              className="p-1 text-neutral-400 hover:text-white rounded transition cursor-pointer"
+              className="p-1 text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white rounded transition cursor-pointer"
               title="Zoom out"
             >
               <ZoomOut className="w-3 h-3" />
             </button>
-            <span className="px-1 text-[10px] font-mono text-neutral-300">
+            <span className="px-1 text-[10px] font-mono text-neutral-700 dark:text-neutral-300">
               {zoomLevel}%
             </span>
             <button
               onClick={() => setZoomLevel((z) => Math.min(140, z + 10))}
-              className="p-1 text-neutral-400 hover:text-white rounded transition cursor-pointer"
+              className="p-1 text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white rounded transition cursor-pointer"
               title="Zoom in"
             >
               <ZoomIn className="w-3 h-3" />
@@ -155,7 +155,7 @@ export const PaperPreview: React.FC<PaperPreviewProps> = ({ paper, onPrint }) =>
       </div>
 
       {/* Independent Paper Scroll Area: ONLY this area scrolls when user moves mouse here */}
-      <div className="flex-1 overflow-y-auto p-4 sm:p-8 flex justify-center items-start bg-neutral-950">
+      <div className="flex-1 overflow-y-auto p-4 sm:p-8 flex justify-center items-start bg-neutral-100 dark:bg-neutral-950">
         <div
           style={{ zoom: zoomLevel / 100 }}
           className="paper-zoom w-full max-w-[820px] pb-16"

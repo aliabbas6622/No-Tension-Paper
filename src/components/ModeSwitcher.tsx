@@ -16,7 +16,7 @@ export const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ active, onChange, cl
 
   return (
     <div
-      className={`inline-flex items-center gap-0.5 p-0.5 bg-neutral-950 border border-neutral-800 rounded-lg no-print ${className}`}
+      className={`inline-flex items-center gap-0.5 p-0.5 bg-neutral-100 border border-neutral-200 dark:bg-neutral-950 dark:border-neutral-800 rounded-lg no-print ${className}`}
       role="tablist"
       aria-label="Switch creation mode"
     >
@@ -26,8 +26,8 @@ export const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ active, onChange, cl
         onClick={() => onChange('auto')}
         className={`${base} ${
           active === 'auto'
-            ? 'bg-white text-black'
-            : 'text-neutral-400 hover:text-white hover:bg-neutral-900'
+            ? 'bg-neutral-900 text-white dark:bg-white dark:text-black'
+            : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-200/70 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-900'
         }`}
         title="Auto Blueprint — select chapters, section counts, and AI or weighted selection"
       >
@@ -40,8 +40,8 @@ export const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ active, onChange, cl
         onClick={() => onChange('builder')}
         className={`${base} ${
           active === 'builder'
-            ? 'bg-white text-black'
-            : 'text-neutral-400 hover:text-white hover:bg-neutral-900'
+            ? 'bg-neutral-900 text-white dark:bg-white dark:text-black'
+            : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-200/70 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-900'
         }`}
         title="Question Bank — manually pick individual questions from chapters"
       >
@@ -54,8 +54,8 @@ export const ModeSwitcher: React.FC<ModeSwitcherProps> = ({ active, onChange, cl
         onClick={() => onChange('editor')}
         className={`${base} ${
           active === 'editor'
-            ? 'bg-white text-black'
-            : 'text-neutral-400 hover:text-white hover:bg-neutral-900'
+            ? 'bg-neutral-900 text-white dark:bg-white dark:text-black'
+            : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-200/70 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-900'
         }`}
         title="Editor — hand-edit the paper, sections, and live preview"
       >

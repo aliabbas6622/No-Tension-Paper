@@ -30,9 +30,12 @@ import {
   SlidersHorizontal,
 } from 'lucide-react';
 import { SubjectAdderModal } from './SubjectAdderModal';
+import { AppTheme, ThemeToggleButton } from './ThemeToggleButton';
 
 interface DashboardProps {
   currentPaper: ExamPaper;
+  theme: AppTheme;
+  onToggleTheme: () => void;
   onOpenPaper: (paper: ExamPaper) => void;
   onNewBlankPaper: () => void;
   onOpenBuilder: () => void;
@@ -47,6 +50,8 @@ interface DashboardProps {
 
 export const Dashboard: React.FC<DashboardProps> = ({
   currentPaper,
+  theme,
+  onToggleTheme,
   onOpenPaper,
   onNewBlankPaper,
   onOpenBuilder,
@@ -149,18 +154,18 @@ export const Dashboard: React.FC<DashboardProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col font-sans selection:bg-white selection:text-black">
+    <div className="min-h-screen bg-neutral-50 text-neutral-900 dark:bg-black dark:text-white flex flex-col font-sans selection:bg-neutral-900 selection:text-white dark:selection:bg-white dark:selection:text-black">
       {/* Ultra-Minimal Monochrome Top Navigation */}
-      <header className="border-b border-neutral-900 bg-black/90 sticky top-0 z-20 backdrop-blur-xs px-6 py-3.5 flex items-center justify-between">
+      <header className="border-b border-neutral-200 dark:border-neutral-900 bg-white/90 dark:bg-black/90 sticky top-0 z-20 backdrop-blur-xs px-6 py-3.5 flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-white text-black flex items-center justify-center font-bold text-sm tracking-tighter">
+          <div className="w-8 h-8 rounded-lg bg-neutral-900 text-white dark:bg-white dark:text-black flex items-center justify-center font-bold text-sm tracking-tighter">
             EP
           </div>
           <div>
-            <h1 className="text-sm font-bold tracking-wider uppercase text-white">
+            <h1 className="text-sm font-bold tracking-wider uppercase text-neutral-900 dark:text-white">
               Exam Paper Maker
             </h1>
-            <p className="text-[11px] text-neutral-400">Minimalist Assessment Dashboard</p>
+            <p className="text-[11px] text-neutral-500 dark:text-neutral-400">Minimalist Assessment Dashboard</p>
           </div>
         </div>
 
@@ -168,10 +173,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
           {/* Subject Adder Button */}
           <button
             onClick={() => setIsSubjectAdderOpen(true)}
-            className="px-3.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-white text-xs font-semibold rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+            className="px-3.5 py-1.5 bg-neutral-100 hover:bg-neutral-200 border border-neutral-300 text-neutral-900 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:border-neutral-700 dark:text-white text-xs font-semibold rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-xs whitespace-nowrap shrink-0"
             title="Import curriculum answers JSON to add a new subject"
           >
-            <BookPlus className="w-3.5 h-3.5 text-white" />
+            <BookPlus className="w-3.5 h-3.5" />
             <span>+ Subject Adder</span>
           </button>
 
@@ -179,7 +184,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           {onOpenAutoBlueprint && (
             <button
               onClick={onOpenAutoBlueprint}
-              className="px-3.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-white text-xs font-semibold rounded-lg transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
+              className="px-3.5 py-1.5 bg-neutral-100 hover:bg-neutral-200 border border-neutral-300 text-neutral-900 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:border-neutral-700 dark:text-white text-xs font-semibold rounded-lg transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
               title="Select chapters and section counts using AI or pre-weighted balance"
             >
               <SlidersHorizontal className="w-3.5 h-3.5" />
@@ -190,7 +195,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           {/* Question Bank Builder */}
           <button
             onClick={onOpenBuilder}
-            className="px-3.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-200 text-xs font-medium rounded-lg transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
+            className="px-3.5 py-1.5 bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-neutral-800 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:border-neutral-800 dark:text-neutral-200 text-xs font-medium rounded-lg transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
             title="Build a paper manually from the chapter-wise question bank"
           >
             <Hammer className="w-3.5 h-3.5" />
@@ -200,7 +205,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           {/* Google Drive */}
           <button
             onClick={onOpenGoogleDrive}
-            className="px-3.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-200 text-xs font-medium rounded-lg transition flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 py-1.5 bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-neutral-800 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:border-neutral-800 dark:text-neutral-200 text-xs font-medium rounded-lg transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
             title="Open or save exam papers in Google Drive"
           >
             <HardDrive className="w-3.5 h-3.5" />
@@ -211,7 +216,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
           {onOpenGmailScheduled && (
             <button
               onClick={onOpenGmailScheduled}
-              className="px-3.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-200 text-xs font-medium rounded-lg transition flex items-center gap-1.5 cursor-pointer"
+              className="px-3.5 py-1.5 bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-neutral-800 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:border-neutral-800 dark:text-neutral-200 text-xs font-medium rounded-lg transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
               title="View or schedule Gmail deliveries"
             >
               <Clock className="w-3.5 h-3.5" />
@@ -221,13 +226,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </button>
           )}
 
+          {/* Theme Toggle */}
+          <ThemeToggleButton theme={theme} onToggle={onToggleTheme} showLabel />
+
           {/* New Blank Paper Button */}
           <button
             onClick={onNewBlankPaper}
-            className="px-3.5 py-1.5 bg-white hover:bg-neutral-200 text-black text-xs font-semibold rounded-lg transition flex items-center gap-1.5 shadow-xs cursor-pointer"
+            className="px-3.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:hover:bg-neutral-200 dark:text-black text-xs font-semibold rounded-lg transition flex items-center gap-1.5 shadow-xs cursor-pointer whitespace-nowrap shrink-0"
             title="Create a new fresh exam paper"
           >
-            <Plus className="w-3.5 h-3.5 text-black" />
+            <Plus className="w-3.5 h-3.5" />
             <span>New Exam Paper</span>
           </button>
         </div>
@@ -236,15 +244,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
       {/* Main Dashboard Content */}
       <main className="flex-1 max-w-6xl w-full mx-auto p-6 sm:p-8 space-y-10">
         {/* Quick Hero Banner */}
-        <div className="border border-neutral-800 bg-neutral-950 p-6 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950 p-6 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="space-y-1.5 max-w-xl">
-            <span className="text-[10px] font-mono tracking-widest uppercase px-2 py-0.5 rounded bg-neutral-900 border border-neutral-800 text-neutral-400">
+            <span className="text-[10px] font-mono tracking-widest uppercase px-2 py-0.5 rounded bg-neutral-100 border border-neutral-200 text-neutral-600 dark:bg-neutral-900 dark:border-neutral-800 dark:text-neutral-400">
               Active Paper
             </span>
-            <h2 className="text-lg font-bold text-white tracking-tight">
+            <h2 className="text-lg font-bold text-neutral-900 dark:text-white tracking-tight">
               {currentPaper.header.subjectTitle || 'Current Exam Paper'}
             </h2>
-            <p className="text-xs text-neutral-400">
+            <p className="text-xs text-neutral-600 dark:text-neutral-400">
               {currentPaper.header.examinationTitle} • {currentPaper.sections.length} Sections •{' '}
               {currentPaper.sections.reduce((a, s) => a + s.questions.length, 0)} Questions • Max Marks:{' '}
               {currentPaper.header.maxMarks}
@@ -255,7 +263,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             {onOpenShareForPaper && (
               <button
                 onClick={() => onOpenShareForPaper(currentPaper)}
-                className="px-4 py-2.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-white font-semibold text-xs rounded-xl transition flex items-center gap-2 cursor-pointer"
+                className="px-4 py-2.5 bg-neutral-100 hover:bg-neutral-200 border border-neutral-300 text-neutral-900 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:border-neutral-700 dark:text-white font-semibold text-xs rounded-xl transition flex items-center gap-2 cursor-pointer"
                 title="Email paper, schedule Gmail send, or upload to Drive & share link"
               >
                 <Share2 className="w-3.5 h-3.5" />
@@ -264,7 +272,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             )}
             <button
               onClick={() => onOpenPaper(currentPaper)}
-              className="px-5 py-2.5 bg-white text-black font-semibold text-xs rounded-xl hover:bg-neutral-200 transition flex items-center gap-2 cursor-pointer"
+              className="px-5 py-2.5 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black font-semibold text-xs rounded-xl dark:hover:bg-neutral-200 transition flex items-center gap-2 cursor-pointer"
             >
               <span>Edit Paper in Workspace</span>
               <ChevronRight className="w-4 h-4" />
@@ -275,21 +283,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* The app's primary creation surfaces */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {onOpenAutoBlueprint && (
-            <div className="border border-neutral-800 bg-neutral-950 p-6 rounded-2xl flex flex-col justify-between gap-4">
+            <div className="border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950 p-6 rounded-2xl flex flex-col justify-between gap-4">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <span className="w-7 h-7 rounded-lg bg-white text-black flex items-center justify-center">
+                  <span className="w-7 h-7 rounded-lg bg-neutral-900 text-white dark:bg-white dark:text-black flex items-center justify-center">
                     <SlidersHorizontal className="w-4 h-4" />
                   </span>
-                  <h3 className="text-base font-bold text-white tracking-tight">Auto Paper</h3>
+                  <h3 className="text-base font-bold text-neutral-900 dark:text-white tracking-tight">Auto Paper</h3>
                 </div>
-                <p className="text-xs text-neutral-400 leading-relaxed">
+                <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
                   Select chapters, set question counts per section, choose Pre-Weighted chapter balance or AI selection, review and swap picks, then send directly to the Editor.
                 </p>
               </div>
               <button
                 onClick={onOpenAutoBlueprint}
-                className="self-start px-4 py-2 bg-white text-black font-semibold text-xs rounded-xl hover:bg-neutral-200 transition flex items-center gap-2 cursor-pointer whitespace-nowrap"
+                className="self-start px-4 py-2 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black font-semibold text-xs rounded-xl dark:hover:bg-neutral-200 transition flex items-center gap-2 cursor-pointer whitespace-nowrap"
               >
                 <SlidersHorizontal className="w-3.5 h-3.5" />
                 <span>Configure Blueprint</span>
@@ -297,43 +305,43 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </div>
           )}
 
-          <div className="border border-neutral-800 bg-neutral-950 p-6 rounded-2xl flex flex-col justify-between gap-4">
+          <div className="border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950 p-6 rounded-2xl flex flex-col justify-between gap-4">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <span className="w-7 h-7 rounded-lg bg-neutral-900 border border-neutral-800 text-white flex items-center justify-center">
+                <span className="w-7 h-7 rounded-lg bg-neutral-100 border border-neutral-200 text-neutral-900 dark:bg-neutral-900 dark:border-neutral-800 dark:text-white flex items-center justify-center">
                   <Hammer className="w-4 h-4" />
                 </span>
-                <h3 className="text-base font-bold text-white tracking-tight">Builder</h3>
+                <h3 className="text-base font-bold text-neutral-900 dark:text-white tracking-tight">Builder</h3>
               </div>
-              <p className="text-xs text-neutral-400 leading-relaxed">
+              <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
                 Browse the chapter-wise question bank manually, inspect model answers, tick the exact questions you want, and append them into your active paper.
               </p>
             </div>
             <button
               onClick={onOpenBuilder}
-              className="self-start px-4 py-2 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white font-semibold text-xs rounded-xl transition flex items-center gap-2 cursor-pointer whitespace-nowrap"
+              className="self-start px-4 py-2 bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-neutral-900 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:border-neutral-800 dark:text-white font-semibold text-xs rounded-xl transition flex items-center gap-2 cursor-pointer whitespace-nowrap"
             >
               <Hammer className="w-3.5 h-3.5" />
               <span>Open Builder</span>
             </button>
           </div>
 
-          <div className="border border-neutral-800 bg-neutral-950 p-6 rounded-2xl flex flex-col justify-between gap-4">
+          <div className="border border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-950 p-6 rounded-2xl flex flex-col justify-between gap-4">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <span className="w-7 h-7 rounded-lg bg-neutral-900 border border-neutral-800 text-white flex items-center justify-center">
+                <span className="w-7 h-7 rounded-lg bg-neutral-100 border border-neutral-200 text-neutral-900 dark:bg-neutral-900 dark:border-neutral-800 dark:text-white flex items-center justify-center">
                   <PenLine className="w-4 h-4" />
                 </span>
-                <h3 className="text-base font-bold text-white tracking-tight">Editor</h3>
+                <h3 className="text-base font-bold text-neutral-900 dark:text-white tracking-tight">Editor</h3>
               </div>
-              <p className="text-xs text-neutral-400 leading-relaxed">
+              <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
                 Hand-edit the paper: header metadata, sections, marks, options and answer keys,
                 with the live A4 preview beside you and export to PDF, Word, Google Docs, or Gmail.
               </p>
             </div>
             <button
               onClick={() => onOpenPaper(currentPaper)}
-              className="self-start px-4 py-2 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white font-semibold text-xs rounded-xl transition flex items-center gap-2 cursor-pointer whitespace-nowrap"
+              className="self-start px-4 py-2 bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-neutral-900 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:border-neutral-800 dark:text-white font-semibold text-xs rounded-xl transition flex items-center gap-2 cursor-pointer whitespace-nowrap"
             >
               <PenLine className="w-3.5 h-3.5" />
               <span>Open Editor</span>
@@ -342,20 +350,20 @@ export const Dashboard: React.FC<DashboardProps> = ({
         </div>
 
         {/* Featured Curriculum Subject Adder Hero Banner */}
-        <div className="border border-neutral-800 bg-gradient-to-r from-neutral-950 via-neutral-900/50 to-neutral-950 p-6 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div className="border border-neutral-200 bg-gradient-to-r from-white via-neutral-100 to-white dark:border-neutral-800 dark:from-neutral-950 dark:via-neutral-900/50 dark:to-neutral-950 p-6 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="space-y-2 max-w-2xl">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono tracking-widest uppercase px-2 py-0.5 rounded bg-white text-black font-bold">
+              <span className="text-[10px] font-mono tracking-widest uppercase px-2 py-0.5 rounded bg-neutral-900 text-white dark:bg-white dark:text-black font-bold">
                 Feature
               </span>
-              <span className="text-xs font-semibold text-white tracking-wide uppercase">
+              <span className="text-xs font-semibold text-neutral-900 dark:text-white tracking-wide uppercase">
                 Curriculum Subject Adder
               </span>
             </div>
-            <h3 className="text-base font-bold text-white tracking-tight">
+            <h3 className="text-base font-bold text-neutral-900 dark:text-white tracking-tight">
               Add New Subject from Curriculum Answers JSON
             </h3>
-            <p className="text-xs text-neutral-400 leading-relaxed">
+            <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed">
               Specify your <strong>Class</strong> (e.g. Class 11, Class 9) and <strong>Subject</strong>, then paste curriculum JSON with Units, Pages, MCQs, short questions, and answer keys. The system instantly structures an official exam paper and stores it in your subject templates library.
             </p>
           </div>
@@ -363,9 +371,9 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => setIsSubjectAdderOpen(true)}
-              className="px-4 py-2.5 bg-white hover:bg-neutral-200 text-black font-semibold text-xs rounded-xl transition flex items-center gap-2 cursor-pointer shadow-sm"
+              className="px-4 py-2.5 bg-neutral-900 hover:bg-neutral-800 text-white dark:bg-white dark:hover:bg-neutral-200 dark:text-black font-semibold text-xs rounded-xl transition flex items-center gap-2 cursor-pointer shadow-sm"
             >
-              <BookPlus className="w-4 h-4 text-black" />
+              <BookPlus className="w-4 h-4" />
               <span>Launch Subject Adder</span>
             </button>
           </div>
@@ -373,12 +381,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         {/* Section: Subject Templates */}
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-800 pb-3">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-neutral-200 dark:border-neutral-800 pb-3">
             <div>
-              <h3 className="text-sm font-bold uppercase tracking-wider text-white">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-neutral-900 dark:text-white">
                 Subject Templates
               </h3>
-              <p className="text-xs text-neutral-400">
+              <p className="text-xs text-neutral-600 dark:text-neutral-400">
                 Choose a pre-formatted subject template or create your own with the Subject Adder
               </p>
             </div>
@@ -387,21 +395,21 @@ export const Dashboard: React.FC<DashboardProps> = ({
               {/* Add Subject Button */}
               <button
                 onClick={() => setIsSubjectAdderOpen(true)}
-                className="px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-white text-xs font-semibold rounded-lg transition flex items-center gap-1.5 shrink-0 cursor-pointer"
+                className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 border border-neutral-300 text-neutral-900 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:border-neutral-700 dark:text-white text-xs font-semibold rounded-lg transition flex items-center gap-1.5 shrink-0 cursor-pointer"
               >
-                <Plus className="w-3.5 h-3.5 text-white" />
+                <Plus className="w-3.5 h-3.5" />
                 <span>Add Subject</span>
               </button>
 
               {/* Search Input */}
               <div className="relative w-full sm:w-60">
-                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-500" />
                 <input
                   type="text"
                   placeholder="Search templates..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-lg pl-9 pr-3 py-1.5 text-xs text-white placeholder-neutral-500 focus:outline-hidden focus:border-white"
+                  className="w-full bg-white border border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-900 dark:bg-neutral-950 dark:border-neutral-800 rounded-lg pl-9 pr-3 py-1.5 text-xs dark:text-white dark:placeholder-neutral-500 focus:outline-hidden dark:focus:border-white"
                 />
               </div>
             </div>
@@ -415,8 +423,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer whitespace-nowrap ${
                   selectedCategory === cat
-                    ? 'bg-white text-black font-semibold'
-                    : 'bg-neutral-950 text-neutral-400 hover:text-white border border-neutral-900 hover:border-neutral-800'
+                    ? 'bg-neutral-900 text-white dark:bg-white dark:text-black font-semibold'
+                    : 'bg-white text-neutral-600 hover:text-neutral-900 border border-neutral-200 hover:border-neutral-300 dark:bg-neutral-950 dark:text-neutral-400 dark:hover:text-white dark:border-neutral-900 dark:hover:border-neutral-800'
                 }`}
               >
                 {cat}
@@ -430,39 +438,39 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <div
                 key={template.id}
                 onClick={() => onOpenPaper(clonePaperForEditing(template.paper))}
-                className="group border border-neutral-800 bg-neutral-950 hover:bg-neutral-900 p-5 rounded-xl transition cursor-pointer flex flex-col justify-between"
+                className="group border border-neutral-200 bg-white hover:bg-neutral-100/70 dark:border-neutral-800 dark:bg-neutral-950 dark:hover:bg-neutral-900 p-5 rounded-xl transition cursor-pointer flex flex-col justify-between"
               >
                 <div className="space-y-2">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-neutral-900 text-neutral-300 border border-neutral-800">
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-neutral-100 text-neutral-700 border border-neutral-200 dark:bg-neutral-900 dark:text-neutral-300 dark:border-neutral-800">
                         {template.category}
                       </span>
                       {template.classGrade && (
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-white text-black font-bold">
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-neutral-900 text-white dark:bg-white dark:text-black font-bold">
                           {template.classGrade}
                         </span>
                       )}
                     </div>
-                    <span className="text-[11px] text-neutral-400 font-mono">
+                    <span className="text-[11px] text-neutral-500 dark:text-neutral-400 font-mono">
                       {template.paper.header.maxMarks} Marks
                     </span>
                   </div>
 
-                  <h4 className="font-semibold text-sm text-white group-hover:text-white transition">
+                  <h4 className="font-semibold text-sm text-neutral-900 dark:text-white transition">
                     {template.name}
                   </h4>
-                  <p className="text-xs text-neutral-400 line-clamp-2">
+                  <p className="text-xs text-neutral-600 dark:text-neutral-400 line-clamp-2">
                     {template.description || template.paper.header.subjectTitle}
                   </p>
                 </div>
 
-                <div className="mt-5 pt-3 border-t border-neutral-900 flex items-center justify-between text-xs text-neutral-400">
+                <div className="mt-5 pt-3 border-t border-neutral-200 dark:border-neutral-900 flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400">
                   <span>
                     {template.paper.sections.length} Sections •{' '}
                     {template.paper.sections.reduce((a, s) => a + s.questions.length, 0)} Qs
                   </span>
-                  <span className="font-medium text-white group-hover:underline flex items-center gap-1">
+                  <span className="font-medium text-neutral-900 dark:text-white group-hover:underline flex items-center gap-1">
                     <span>Use Template</span>
                     <ChevronRight className="w-3.5 h-3.5" />
                   </span>
@@ -474,32 +482,32 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         {/* Section: Saved Papers Library */}
         {savedPapers.length > 0 && (
-          <div className="space-y-4 pt-4 border-t border-neutral-900">
+          <div className="space-y-4 pt-4 border-t border-neutral-200 dark:border-neutral-900">
             <div>
-              <h3 className="text-sm font-bold uppercase tracking-wider text-white">
+              <h3 className="text-sm font-bold uppercase tracking-wider text-neutral-900 dark:text-white">
                 Saved Papers Library ({savedPapers.length})
               </h3>
-              <p className="text-xs text-neutral-400">
+              <p className="text-xs text-neutral-600 dark:text-neutral-400">
                 Previously authored exam papers saved on this machine
               </p>
             </div>
 
-            <div className="divide-y divide-neutral-900 border border-neutral-800 rounded-xl overflow-hidden bg-neutral-950">
+            <div className="divide-y divide-neutral-200 border border-neutral-200 dark:divide-neutral-900 dark:border-neutral-800 rounded-xl overflow-hidden bg-white dark:bg-neutral-950">
               {savedPapers.map((saved) => (
                 <div
                   key={saved.id}
                   onClick={() => onOpenPaper(saved)}
-                  className="p-4 hover:bg-neutral-900 transition flex items-center justify-between gap-4 cursor-pointer"
+                  className="p-4 hover:bg-neutral-50 dark:hover:bg-neutral-900 transition flex items-center justify-between gap-4 cursor-pointer"
                 >
                   <div className="min-w-0 flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-neutral-900 border border-neutral-800 flex items-center justify-center text-white shrink-0">
+                    <div className="w-9 h-9 rounded-lg bg-neutral-100 border border-neutral-200 text-neutral-900 dark:bg-neutral-900 dark:border-neutral-800 flex items-center justify-center dark:text-white shrink-0">
                       <FileText className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
-                      <div className="text-xs font-semibold text-white truncate">
+                      <div className="text-xs font-semibold text-neutral-900 dark:text-white truncate">
                         {saved.header.subjectTitle || saved.title}
                       </div>
-                      <div className="text-[11px] text-neutral-400 truncate">
+                      <div className="text-[11px] text-neutral-500 dark:text-neutral-400 truncate">
                         {saved.header.examinationTitle} • {saved.sections.length} Sections • Max Marks:{' '}
                         {saved.header.maxMarks}
                       </div>
@@ -513,7 +521,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                           e.stopPropagation();
                           onOpenShareForPaper(saved);
                         }}
-                        className="px-2.5 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-xs font-medium text-white rounded-lg transition flex items-center gap-1.5 cursor-pointer"
+                        className="px-2.5 py-1.5 bg-neutral-100 hover:bg-neutral-200 border border-neutral-300 text-neutral-900 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:border-neutral-700 text-xs font-medium dark:text-white rounded-lg transition flex items-center gap-1.5 cursor-pointer"
                         title="Email, schedule Gmail send, or upload to Drive & share link"
                       >
                         <Mail className="w-3 h-3" />
@@ -522,7 +530,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     )}
                     <button
                       onClick={(e) => handleDeleteSavedPaper(e, saved.id)}
-                      className="p-1.5 text-neutral-500 hover:text-white rounded hover:bg-neutral-800 transition cursor-pointer"
+                      className="p-1.5 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200 dark:hover:text-white rounded dark:hover:bg-neutral-800 transition cursor-pointer"
                       title="Delete paper"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -532,7 +540,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         e.stopPropagation();
                         onOpenPaper(saved);
                       }}
-                      className="px-3 py-1.5 bg-white text-black font-semibold hover:bg-neutral-200 text-xs rounded-lg transition cursor-pointer"
+                      className="px-3 py-1.5 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black font-semibold dark:hover:bg-neutral-200 text-xs rounded-lg transition cursor-pointer"
                     >
                       Open
                     </button>

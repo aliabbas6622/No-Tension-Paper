@@ -3,6 +3,7 @@ import { ExamPaper, Question } from '../types/exam';
 import { QuestionBank, loadQuestionBanks, syncBundledQuestionBanks } from '../services/questionBank';
 import { BankQuestion, QuestionKind, buildBankQuestions } from '../services/paperComposer';
 import { AppMode, ModeSwitcher } from './ModeSwitcher';
+import { AppTheme, ThemeToggleButton } from './ThemeToggleButton';
 import {
   AlertCircle,
   BookOpen,
@@ -25,6 +26,8 @@ import {
 
 interface BuilderModeProps {
   currentPaper: ExamPaper;
+  theme: AppTheme;
+  onToggleTheme: () => void;
   onAddQuestionsToPaper: (questions: Question[], label: string) => void;
   onOpenEditor: () => void;
   onOpenDashboard: () => void;
@@ -41,13 +44,15 @@ const KIND_LABELS: Record<QuestionKind, string> = {
 };
 
 const KIND_CHIP_STYLES: Record<QuestionKind, string> = {
-  mcq: 'bg-white text-black',
-  short: 'bg-neutral-800 text-white',
-  detailed: 'bg-neutral-900 text-neutral-300 border border-neutral-700',
+  mcq: 'bg-neutral-900 text-white dark:bg-white dark:text-black',
+  short: 'bg-neutral-200 text-neutral-900 dark:bg-neutral-800 dark:text-white',
+  detailed: 'bg-neutral-100 text-neutral-700 border border-neutral-300 dark:bg-neutral-900 dark:text-neutral-300 dark:border-neutral-700',
 };
 
 export const BuilderMode: React.FC<BuilderModeProps> = ({
   currentPaper,
+  theme,
+  onToggleTheme,
   onAddQuestionsToPaper,
   onOpenEditor,
   onOpenDashboard,
@@ -210,18 +215,18 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
   const paperQuestionCount = currentPaper.sections.reduce((a, s) => a + s.questions.length, 0);
 
   return (
-    <div className="h-screen w-screen overflow-hidden flex flex-col bg-black text-white">
+    <div className="h-screen w-screen overflow-hidden flex flex-col bg-neutral-50 text-neutral-900 dark:bg-black dark:text-white">
       {/* Builder top bar */}
-      <header className="h-12 shrink-0 border-b border-neutral-800 bg-black flex items-center justify-between px-3 sm:px-4 gap-3">
+      <header className="h-12 shrink-0 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black flex items-center justify-between px-3 sm:px-4 gap-3">
         <div className="flex items-center gap-2.5 min-w-0">
           <button
             onClick={onOpenDashboard}
-            className="p-1.5 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-900 transition"
+            className="p-1.5 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white rounded-lg dark:hover:bg-neutral-900 transition cursor-pointer"
             title="Return to Dashboard / Home"
           >
             <Home className="w-4 h-4" />
           </button>
-          <div className="h-4 w-px bg-neutral-800" />
+          <div className="h-4 w-px bg-neutral-200 dark:bg-neutral-800" />
           <ModeSwitcher
             active="builder"
             onChange={(m) => {
@@ -238,10 +243,11 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
+          <ThemeToggleButton theme={theme} onToggle={onToggleTheme} showLabel />
           <button
             onClick={() => handleSync(true)}
             disabled={isSyncing}
-            className="px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-neutral-200 text-[11px] font-medium rounded-lg transition flex items-center gap-1.5 disabled:opacity-50"
+            className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-neutral-800 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:border-neutral-800 dark:text-neutral-200 text-[11px] font-medium rounded-lg transition flex items-center gap-1.5 disabled:opacity-50 cursor-pointer whitespace-nowrap shrink-0"
             title="Push the bundled question bank to Firestore"
           >
             {isSyncing ? (
@@ -258,8 +264,8 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
         <div
           className={`shrink-0 px-4 py-2 text-[11px] flex items-center gap-2 border-b ${
             status.tone === 'error'
-              ? 'bg-neutral-900 border-neutral-800 text-white'
-              : 'bg-neutral-900 border-neutral-800 text-neutral-300'
+              ? 'bg-neutral-100 border-neutral-200 text-neutral-900 dark:bg-neutral-900 dark:border-neutral-800 dark:text-white'
+              : 'bg-neutral-100 border-neutral-200 text-neutral-700 dark:bg-neutral-900 dark:border-neutral-800 dark:text-neutral-300'
           }`}
         >
           {status.tone === 'error' ? (
@@ -278,9 +284,9 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
         </div>
       ) : banks.length === 0 ? (
         <div className="flex-1 flex flex-col items-center justify-center gap-3 text-center px-6">
-          <Database className="w-6 h-6 text-neutral-600" />
-          <div className="text-sm text-white font-semibold">No question bank available</div>
-          <p className="text-xs text-neutral-400 max-w-sm">
+          <Database className="w-6 h-6 text-neutral-400 dark:text-neutral-600" />
+          <div className="text-sm text-neutral-900 dark:text-white font-semibold">No question bank available</div>
+          <p className="text-xs text-neutral-600 dark:text-neutral-400 max-w-sm">
             Import a curriculum JSON through the Subject Adder to create a chapter-based question
             bank, then return here to build papers from it.
           </p>
@@ -288,15 +294,15 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
       ) : (
         <div className="flex-1 flex min-h-0">
           {/* Bank + chapter sidebar */}
-          <aside className="w-64 shrink-0 border-r border-neutral-800 flex flex-col min-h-0 bg-black">
-            <div className="p-3 space-y-2 border-b border-neutral-900">
+          <aside className="w-64 shrink-0 border-r border-neutral-200 dark:border-neutral-800 flex flex-col min-h-0 bg-white dark:bg-black">
+            <div className="p-3 space-y-2 border-b border-neutral-200 dark:border-neutral-900">
               <label className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500">
                 Question Bank
               </label>
               <select
                 value={activeBankId}
                 onChange={(e) => handleSelectBank(e.target.value)}
-                className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-hidden focus:border-white"
+                className="w-full bg-neutral-50 border border-neutral-300 text-neutral-900 focus:border-neutral-900 dark:bg-neutral-950 dark:border-neutral-800 rounded-lg px-2.5 py-1.5 text-xs dark:text-white focus:outline-hidden dark:focus:border-white"
               >
                 {banks.map((bank) => (
                   <option key={bank.id} value={bank.id}>
@@ -310,8 +316,8 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
                   <span
                     className={`px-1.5 py-0.5 rounded font-mono flex items-center gap-1 ${
                       activeBank.source === 'database'
-                        ? 'bg-white text-black'
-                        : 'bg-neutral-900 text-neutral-400 border border-neutral-800'
+                        ? 'bg-neutral-900 text-white dark:bg-white dark:text-black'
+                        : 'bg-neutral-100 text-neutral-600 border border-neutral-200 dark:bg-neutral-900 dark:text-neutral-400 dark:border-neutral-800'
                     }`}
                     title={
                       activeBank.source === 'database'
@@ -330,10 +336,10 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
             <div className="flex-1 overflow-y-auto p-2 space-y-1">
               <button
                 onClick={() => setActiveChapter(ALL_CHAPTERS)}
-                className={`w-full text-left px-2.5 py-2 rounded-lg text-xs transition flex items-center justify-between gap-2 ${
+                className={`w-full text-left px-2.5 py-2 rounded-lg text-xs transition flex items-center justify-between gap-2 cursor-pointer ${
                   activeChapter === ALL_CHAPTERS
-                    ? 'bg-white text-black font-semibold'
-                    : 'text-neutral-300 hover:bg-neutral-900'
+                    ? 'bg-neutral-900 text-white dark:bg-white dark:text-black font-semibold'
+                    : 'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-900'
                 }`}
               >
                 <span className="flex items-center gap-1.5">
@@ -349,8 +355,10 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
                   <button
                     key={chapter.index}
                     onClick={() => setActiveChapter(chapter.index)}
-                    className={`w-full text-left px-2.5 py-2 rounded-lg transition ${
-                      isActive ? 'bg-white text-black' : 'text-neutral-300 hover:bg-neutral-900'
+                    className={`w-full text-left px-2.5 py-2 rounded-lg transition cursor-pointer ${
+                      isActive
+                        ? 'bg-neutral-900 text-white dark:bg-white dark:text-black'
+                        : 'text-neutral-700 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:bg-neutral-900'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
@@ -361,7 +369,7 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
                     </div>
                     <div
                       className={`mt-1 flex items-center gap-1.5 text-[9px] font-mono ${
-                        isActive ? 'text-black/70' : 'text-neutral-500'
+                        isActive ? 'text-white/75 dark:text-black/70' : 'text-neutral-500'
                       }`}
                     >
                       {chapter.counts.mcq > 0 && <span>{chapter.counts.mcq} MCQ</span>}
@@ -377,10 +385,10 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
           {/* Question list */}
           <section className="flex-1 flex flex-col min-h-0 min-w-0">
             {/* Filters */}
-            <div className="shrink-0 p-3 border-b border-neutral-900 space-y-2.5">
+            <div className="shrink-0 p-3 border-b border-neutral-200 dark:border-neutral-900 bg-white dark:bg-black space-y-2.5">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <h2 className="text-sm font-bold text-white truncate">
+                  <h2 className="text-sm font-bold text-neutral-900 dark:text-white truncate">
                     {activeChapter === ALL_CHAPTERS
                       ? 'All Chapters'
                       : chapters.find((c) => c.index === activeChapter)?.name}
@@ -399,10 +407,10 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
                 <div className="flex items-center gap-2 shrink-0">
                   <button
                     onClick={() => setShowAnswers((v) => !v)}
-                    className={`px-2 py-1 rounded-md text-[11px] border transition flex items-center gap-1.5 ${
+                    className={`px-2 py-1 rounded-md text-[11px] border transition flex items-center gap-1.5 cursor-pointer ${
                       showAnswers
-                        ? 'bg-neutral-900 border-neutral-700 text-white'
-                        : 'bg-neutral-950 border-neutral-800 text-neutral-400 hover:text-white'
+                        ? 'bg-neutral-900 border-neutral-900 text-white dark:bg-neutral-900 dark:border-neutral-700 dark:text-white'
+                        : 'bg-neutral-50 border-neutral-300 text-neutral-600 hover:text-neutral-900 dark:bg-neutral-950 dark:border-neutral-800 dark:text-neutral-400 dark:hover:text-white'
                     }`}
                     title="Show the model answer under each question"
                   >
@@ -413,7 +421,7 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
                   <button
                     onClick={toggleVisible}
                     disabled={visibleQuestions.length === 0}
-                    className="px-2 py-1 rounded-md text-[11px] border border-neutral-800 bg-neutral-950 text-neutral-300 hover:text-white hover:border-neutral-700 transition flex items-center gap-1.5 disabled:opacity-40"
+                    className="px-2 py-1 rounded-md text-[11px] border border-neutral-300 bg-neutral-50 text-neutral-700 hover:text-neutral-900 hover:border-neutral-400 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-300 dark:hover:text-white dark:hover:border-neutral-700 transition flex items-center gap-1.5 disabled:opacity-40 cursor-pointer"
                   >
                     {allVisibleSelected ? (
                       <CheckSquare className="w-3 h-3" />
@@ -427,13 +435,13 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
 
               <div className="flex items-center gap-2">
                 <div className="relative flex-1 min-w-0">
-                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-500" />
+                  <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-neutral-400 dark:text-neutral-500" />
                   <input
                     type="text"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                     placeholder="Search questions, options, or keywords…"
-                    className="w-full bg-neutral-950 border border-neutral-800 rounded-lg pl-8 pr-3 py-1.5 text-xs text-white placeholder-neutral-500 focus:outline-hidden focus:border-white"
+                    className="w-full bg-neutral-50 border border-neutral-300 text-neutral-900 placeholder-neutral-400 focus:border-neutral-900 dark:bg-neutral-950 dark:border-neutral-800 rounded-lg pl-8 pr-3 py-1.5 text-xs dark:text-white dark:placeholder-neutral-500 focus:outline-hidden dark:focus:border-white"
                   />
                 </div>
 
@@ -442,10 +450,10 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
                     <button
                       key={kind}
                       onClick={() => setKindFilter(kind)}
-                      className={`px-2 py-1 rounded-md text-[11px] font-medium transition ${
+                      className={`px-2 py-1 rounded-md text-[11px] font-medium transition cursor-pointer ${
                         kindFilter === kind
-                          ? 'bg-white text-black'
-                          : 'bg-neutral-950 text-neutral-400 hover:text-white border border-neutral-800'
+                          ? 'bg-neutral-900 text-white dark:bg-white dark:text-black'
+                          : 'bg-neutral-50 text-neutral-600 hover:text-neutral-900 border border-neutral-200 dark:bg-neutral-950 dark:text-neutral-400 dark:hover:text-white dark:border-neutral-800'
                       }`}
                     >
                       {kind === 'all' ? 'All' : KIND_LABELS[kind]}
@@ -471,21 +479,21 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
                       onClick={() => toggleQuestion(bq.key)}
                       className={`rounded-xl border p-3 cursor-pointer transition flex items-start gap-3 ${
                         isSelected
-                          ? 'border-white bg-neutral-900'
-                          : 'border-neutral-800 bg-neutral-950 hover:border-neutral-700'
+                          ? 'border-neutral-900 bg-neutral-100 dark:border-white dark:bg-neutral-900'
+                          : 'border-neutral-200 bg-white hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-950 dark:hover:border-neutral-700'
                       }`}
                     >
                       <div className="pt-0.5 shrink-0">
                         {isSelected ? (
-                          <CheckSquare className="w-4 h-4 text-white" />
+                          <CheckSquare className="w-4 h-4 text-neutral-900 dark:text-white" />
                         ) : (
-                          <Square className="w-4 h-4 text-neutral-600" />
+                          <Square className="w-4 h-4 text-neutral-400 dark:text-neutral-600" />
                         )}
                       </div>
 
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-3">
-                          <div className="text-xs text-white leading-relaxed">
+                          <div className="text-xs text-neutral-900 dark:text-white leading-relaxed">
                             <span className="font-bold mr-1.5">{bq.question.number}</span>
                             {bq.question.text}
                           </div>
@@ -495,7 +503,7 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
                             >
                               {KIND_LABELS[bq.kind]}
                             </span>
-                            <span className="text-[10px] font-mono text-neutral-400">
+                            <span className="text-[10px] font-mono text-neutral-500 dark:text-neutral-400">
                               {bq.question.marks} M
                             </span>
                           </div>
@@ -504,8 +512,8 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
                         {bq.question.options && bq.question.options.length > 0 && (
                           <div className="mt-1.5 grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-0.5">
                             {bq.question.options.map((opt) => (
-                              <div key={opt.id} className="text-[11px] text-neutral-400 flex gap-1.5">
-                                <span className="text-neutral-500">{opt.label}</span>
+                              <div key={opt.id} className="text-[11px] text-neutral-600 dark:text-neutral-400 flex gap-1.5">
+                                <span className="text-neutral-400 dark:text-neutral-500">{opt.label}</span>
                                 <span className="truncate">{opt.text}</span>
                               </div>
                             ))}
@@ -513,8 +521,8 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
                         )}
 
                         {showAnswers && bq.question.answerKey && (
-                          <div className="mt-1.5 text-[10px] text-neutral-300 flex items-baseline gap-1.5">
-                            <span className="font-bold uppercase tracking-wider text-[9px] bg-white text-black px-1.5 rounded">
+                          <div className="mt-1.5 text-[10px] text-neutral-700 dark:text-neutral-300 flex items-baseline gap-1.5">
+                            <span className="font-bold uppercase tracking-wider text-[9px] bg-neutral-900 text-white dark:bg-white dark:text-black px-1.5 rounded">
                               Key
                             </span>
                             <span className="truncate">{bq.question.answerKey}</span>
@@ -538,9 +546,9 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
 
       {/* Sticky action bar */}
       {!isLoading && banks.length > 0 && (
-        <footer className="shrink-0 border-t border-neutral-800 bg-black px-4 py-2.5 flex items-center justify-between gap-3">
-          <div className="min-w-0 text-[11px] text-neutral-400 flex items-center gap-3">
-            <span className="flex items-center gap-1.5 text-white font-semibold">
+        <footer className="shrink-0 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black px-4 py-2.5 flex items-center justify-between gap-3">
+          <div className="min-w-0 text-[11px] text-neutral-500 dark:text-neutral-400 flex items-center gap-3">
+            <span className="flex items-center gap-1.5 text-neutral-900 dark:text-white font-semibold">
               <ListChecks className="w-3.5 h-3.5" />
               {selectedKeys.size} selected
             </span>
@@ -554,14 +562,14 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
             <button
               onClick={() => setSelectedKeys(new Set())}
               disabled={selectedKeys.size === 0}
-              className="px-3 py-1.5 text-[11px] text-neutral-400 hover:text-white rounded-lg transition disabled:opacity-40"
+              className="px-3 py-1.5 text-[11px] text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white rounded-lg transition disabled:opacity-40 cursor-pointer"
             >
               Clear
             </button>
             <button
               onClick={handleAddToPaper}
               disabled={selectedKeys.size === 0}
-              className="px-3.5 py-1.5 bg-white text-black font-semibold text-[11px] rounded-lg hover:bg-neutral-200 transition flex items-center gap-1.5 disabled:opacity-40 disabled:hover:bg-white"
+              className="px-3.5 py-1.5 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black font-semibold text-[11px] rounded-lg dark:hover:bg-neutral-200 transition flex items-center gap-1.5 disabled:opacity-40 cursor-pointer whitespace-nowrap"
             >
               <Plus className="w-3.5 h-3.5" />
               <span>Add {selectedKeys.size > 0 ? selectedKeys.size : ''} to Paper</span>
@@ -569,7 +577,7 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
             {onOpenShareModal && (
               <button
                 onClick={onOpenShareModal}
-                className="px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 text-white text-[11px] font-medium rounded-lg transition flex items-center gap-1.5 cursor-pointer"
+                className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 border border-neutral-300 text-neutral-900 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:border-neutral-700 dark:text-white text-[11px] font-medium rounded-lg transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
                 title="Email paper, schedule Gmail send, or upload to Drive & share link"
               >
                 <Share2 className="w-3.5 h-3.5" />
@@ -578,7 +586,7 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
             )}
             <button
               onClick={onOpenEditor}
-              className="px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 border border-neutral-800 text-white text-[11px] font-medium rounded-lg transition flex items-center gap-1.5"
+              className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-neutral-900 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:border-neutral-800 dark:text-white text-[11px] font-medium rounded-lg transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap"
             >
               <BookOpen className="w-3.5 h-3.5" />
               <span>Open Editor</span>

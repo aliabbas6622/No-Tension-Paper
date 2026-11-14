@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ExamPaper } from '../types/exam';
 import { AppMode, ModeSwitcher } from './ModeSwitcher';
+import { AppTheme, ThemeToggleButton } from './ThemeToggleButton';
 import {
   Home,
   ChevronDown,
@@ -21,6 +22,8 @@ import {
 
 interface HeaderNavProps {
   paper: ExamPaper;
+  theme: AppTheme;
+  onToggleTheme: () => void;
   activeMode?: AppMode;
   onSwitchMode?: (mode: AppMode) => void;
   activeSectionId: string;
@@ -45,6 +48,8 @@ interface HeaderNavProps {
 
 export const HeaderNav: React.FC<HeaderNavProps> = ({
   paper,
+  theme,
+  onToggleTheme,
   activeMode = 'editor',
   onSwitchMode,
   activeSectionId,
@@ -102,13 +107,13 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   };
 
   return (
-    <header className="border-b border-neutral-800 bg-black text-white h-12 flex items-center justify-between px-3 sm:px-4 z-40 select-none no-print shrink-0">
+    <header className="border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black text-neutral-900 dark:text-white h-12 flex items-center justify-between px-3 sm:px-4 z-40 select-none no-print shrink-0">
       {/* Left: Home Icon & Section Dropdown (low density) */}
       <div className="flex items-center gap-2.5 min-w-0">
         {/* Home / Dashboard Icon Button with Tooltip */}
         <button
           onClick={onOpenDashboard}
-          className="p-1.5 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-900 transition relative group cursor-pointer"
+          className="p-1.5 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white rounded-lg dark:hover:bg-neutral-900 transition relative group cursor-pointer"
           title="Return to Dashboard / Home"
         >
           <Home className="w-4 h-4" />
@@ -117,7 +122,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           </span>
         </button>
 
-        <div className="h-4 w-px bg-neutral-800" />
+        <div className="h-4 w-px bg-neutral-200 dark:bg-neutral-800" />
 
         {/* Builder / Editor switcher */}
         {onSwitchMode && (
@@ -125,8 +130,8 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
         )}
 
         {/* Paper Title (Compact) */}
-        <div className="hidden lg:flex items-center gap-1.5 text-xs text-neutral-400 max-w-[180px] truncate">
-          <span className="font-semibold text-white truncate">
+        <div className="hidden lg:flex items-center gap-1.5 text-xs text-neutral-500 dark:text-neutral-400 max-w-[180px] truncate">
+          <span className="font-semibold text-neutral-900 dark:text-white truncate">
             {paper.header.subjectTitle.replace(/^SUBJECT:\s*/i, '') || paper.title}
           </span>
         </div>
@@ -135,15 +140,15 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
         <div className="relative" ref={sectionRef}>
           <button
             onClick={() => setIsSectionDropdownOpen(!isSectionDropdownOpen)}
-            className="flex items-center gap-2 px-2.5 py-1 bg-neutral-950 hover:bg-neutral-900 border border-neutral-800 rounded-lg text-xs font-medium text-white transition cursor-pointer max-w-[240px] sm:max-w-xs truncate"
+            className="flex items-center gap-2 px-2.5 py-1 bg-neutral-50 hover:bg-neutral-100 border-neutral-200 text-neutral-900 dark:bg-neutral-950 dark:hover:bg-neutral-900 border dark:border-neutral-800 rounded-lg text-xs font-medium dark:text-white transition cursor-pointer max-w-[240px] sm:max-w-xs truncate"
             title="Switch Section / Header"
           >
             <span className="truncate">{activeLabel}</span>
-            <ChevronDown className="w-3.5 h-3.5 text-neutral-400 shrink-0" />
+            <ChevronDown className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400 shrink-0" />
           </button>
 
           {isSectionDropdownOpen && (
-            <div className="absolute left-0 top-full mt-1.5 w-64 bg-neutral-950 border border-neutral-800 rounded-xl shadow-2xl py-1 z-50 animate-in fade-in duration-100 text-xs">
+            <div className="absolute left-0 top-full mt-1.5 w-64 bg-white border border-neutral-200 dark:bg-neutral-950 dark:border-neutral-800 rounded-xl shadow-2xl py-1 z-50 animate-in fade-in duration-100 text-xs">
               <div className="px-3 py-1.5 text-[10px] font-semibold text-neutral-500 uppercase tracking-wider">
                 Select View
               </div>
@@ -154,15 +159,17 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
                   onSelectSection('header');
                   setIsSectionDropdownOpen(false);
                 }}
-                className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-neutral-900 cursor-pointer ${
-                  activeSectionId === 'header' ? 'text-white font-bold bg-neutral-900' : 'text-neutral-300'
+                className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-neutral-100 dark:hover:bg-neutral-900 cursor-pointer ${
+                  activeSectionId === 'header'
+                    ? 'text-neutral-900 font-bold bg-neutral-100 dark:text-white dark:bg-neutral-900'
+                    : 'text-neutral-700 dark:text-neutral-300'
                 }`}
               >
                 <span>Exam Header & Information</span>
                 <span className="text-[10px] text-neutral-500">Titles/Date</span>
               </button>
 
-              <div className="my-1 border-t border-neutral-800/80" />
+              <div className="my-1 border-t border-neutral-200 dark:border-neutral-800/80" />
               <div className="px-3 py-1 text-[10px] font-semibold text-neutral-500 uppercase tracking-wider">
                 Sections ({paper.sections.length})
               </div>
@@ -174,27 +181,29 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
                     onSelectSection(sec.id);
                     setIsSectionDropdownOpen(false);
                   }}
-                  className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-neutral-900 cursor-pointer ${
-                    activeSectionId === sec.id ? 'text-white font-bold bg-neutral-900' : 'text-neutral-300'
+                  className={`w-full text-left px-3 py-2 flex items-center justify-between hover:bg-neutral-100 dark:hover:bg-neutral-900 cursor-pointer ${
+                    activeSectionId === sec.id
+                      ? 'text-neutral-900 font-bold bg-neutral-100 dark:text-white dark:bg-neutral-900'
+                      : 'text-neutral-700 dark:text-neutral-300'
                   }`}
                 >
                   <span className="truncate">{sec.name}</span>
-                  <span className="text-[10px] text-neutral-400 shrink-0 ml-2">
+                  <span className="text-[10px] text-neutral-500 dark:text-neutral-400 shrink-0 ml-2">
                     {sec.questions.length} Qs • {sec.marksBadge}
                   </span>
                 </button>
               ))}
 
-              <div className="my-1 border-t border-neutral-800/80" />
+              <div className="my-1 border-t border-neutral-200 dark:border-neutral-800/80" />
 
               <button
                 onClick={() => {
                   onAddSection();
                   setIsSectionDropdownOpen(false);
                 }}
-                className="w-full text-left px-3 py-2 text-neutral-300 hover:text-white hover:bg-neutral-900 flex items-center gap-1.5 cursor-pointer font-medium"
+                className="w-full text-left px-3 py-2 text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:text-white dark:hover:bg-neutral-900 flex items-center gap-1.5 cursor-pointer font-medium"
               >
-                <Plus className="w-3.5 h-3.5 text-neutral-400" />
+                <Plus className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
                 <span>Add New Section</span>
               </button>
             </div>
@@ -207,13 +216,13 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
         {/* Save to Firebase Database Icon */}
         <button
           onClick={handleSave}
-          className="p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-900 transition relative group cursor-pointer"
+          className="p-2 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white rounded-lg dark:hover:bg-neutral-900 transition relative group cursor-pointer"
           title="Save Exam Paper (Firebase Database & Local)"
         >
           {savedBanner ? (
-            <Check className="w-4 h-4 text-white" />
+            <Check className="w-4 h-4 text-neutral-900 dark:text-white" />
           ) : isSavingDatabase ? (
-            <Cloud className="w-4 h-4 text-white animate-pulse" />
+            <Cloud className="w-4 h-4 text-neutral-900 dark:text-white animate-pulse" />
           ) : (
             <Save className="w-4 h-4" />
           )}
@@ -225,7 +234,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
         {/* Templates Icon Button */}
         <button
           onClick={onOpenTemplates}
-          className="p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-900 transition relative group cursor-pointer"
+          className="p-2 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white rounded-lg dark:hover:bg-neutral-900 transition relative group cursor-pointer"
           title="Subject Templates (Math, Science, History...)"
         >
           <Bookmark className="w-4 h-4" />
@@ -237,7 +246,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
         {/* Display Settings Toggle Icon */}
         <button
           onClick={onOpenSettings}
-          className="p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-900 transition relative group cursor-pointer"
+          className="p-2 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white rounded-lg dark:hover:bg-neutral-900 transition relative group cursor-pointer"
           title="Settings (Toggle Instructions, Ending, Marks)"
         >
           <Sliders className="w-4 h-4" />
@@ -249,7 +258,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
         {/* Reset Icon Button */}
         <button
           onClick={onResetDefault}
-          className="p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-900 transition relative group cursor-pointer"
+          className="p-2 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white rounded-lg dark:hover:bg-neutral-900 transition relative group cursor-pointer"
           title="Reset to Default Intermediate Layout"
         >
           <RotateCcw className="w-4 h-4" />
@@ -261,7 +270,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
         {/* Google Drive Icon Button */}
         <button
           onClick={onOpenGoogleDrive}
-          className="p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-900 transition relative group cursor-pointer"
+          className="p-2 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white rounded-lg dark:hover:bg-neutral-900 transition relative group cursor-pointer"
           title="Google Drive (Save & Open Papers)"
         >
           <HardDrive className="w-4 h-4" />
@@ -273,12 +282,12 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
         {/* Send / Schedule via Gmail Icon Button */}
         <button
           onClick={onOpenGmail}
-          className="p-2 text-neutral-400 hover:text-white rounded-lg hover:bg-neutral-900 transition relative group cursor-pointer"
+          className="p-2 text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white rounded-lg dark:hover:bg-neutral-900 transition relative group cursor-pointer"
           title="Send or Schedule Paper via Gmail"
         >
           <Mail className="w-4 h-4" />
           {pendingScheduledCount > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 min-w-[14px] h-[14px] px-0.5 rounded-full bg-white text-black font-bold text-[9px] flex items-center justify-center">
+            <span className="absolute -top-0.5 -right-0.5 min-w-[14px] h-[14px] px-0.5 rounded-full bg-neutral-900 text-white dark:bg-white dark:text-black font-bold text-[9px] flex items-center justify-center">
               {pendingScheduledCount}
             </span>
           )}
@@ -287,23 +296,30 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           </span>
         </button>
 
-        <div className="h-4 w-px bg-neutral-800 mx-1" />
+        {/* Theme Toggle Icon */}
+        <ThemeToggleButton
+          theme={theme}
+          onToggle={onToggleTheme}
+          className="border-transparent bg-transparent dark:bg-transparent dark:border-transparent text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-900"
+        />
+
+        <div className="h-4 w-px bg-neutral-200 dark:bg-neutral-800 mx-1" />
 
         {/* SINGLE EXPORT ICON BUTTON */}
         <div className="relative" ref={exportRef}>
           <button
             onClick={() => setIsExportDropdownOpen(!isExportDropdownOpen)}
-            className="p-2 bg-white text-black hover:bg-neutral-200 rounded-lg transition relative group cursor-pointer flex items-center gap-1"
+            className="p-2 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200 rounded-lg transition relative group cursor-pointer flex items-center gap-1"
             title="Export Options (PDF, Word, Google Docs)"
           >
-            <Share2 className="w-4 h-4 text-black" />
+            <Share2 className="w-4 h-4" />
             <span className="absolute left-1/2 -translate-x-1/2 top-full mt-1.5 px-2 py-0.5 bg-neutral-900 border border-neutral-700 text-[10px] text-white rounded opacity-0 group-hover:opacity-100 pointer-events-none transition whitespace-nowrap z-50">
               Export Paper
             </span>
           </button>
 
           {isExportDropdownOpen && (
-            <div className="absolute right-0 top-full mt-1.5 w-60 bg-neutral-950 border border-neutral-800 rounded-xl shadow-2xl py-1 z-50 animate-in fade-in duration-100 text-xs">
+            <div className="absolute right-0 top-full mt-1.5 w-60 bg-white border border-neutral-200 dark:bg-neutral-950 dark:border-neutral-800 rounded-xl shadow-2xl py-1 z-50 animate-in fade-in duration-100 text-xs">
               <div className="px-3 py-1.5 text-[10px] font-semibold text-neutral-500 uppercase tracking-wider flex items-center justify-between">
                 <span>Export & Download</span>
                 <button
@@ -311,7 +327,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
                     setIsExportDropdownOpen(false);
                     onOpenExportModal();
                   }}
-                  className="text-[10px] text-neutral-400 hover:text-white underline cursor-pointer"
+                  className="text-[10px] text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white underline cursor-pointer"
                 >
                   All Options
                 </button>
@@ -323,9 +339,9 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
                   setIsExportDropdownOpen(false);
                   onDownloadPDF();
                 }}
-                className="w-full text-left px-3 py-2 hover:bg-neutral-900 text-white flex items-center gap-2.5 cursor-pointer"
+                className="w-full text-left px-3 py-2 hover:bg-neutral-100 text-neutral-900 dark:hover:bg-neutral-900 dark:text-white flex items-center gap-2.5 cursor-pointer"
               >
-                <FileDown className="w-4 h-4 text-neutral-300" />
+                <FileDown className="w-4 h-4 text-neutral-500 dark:text-neutral-300" />
                 <div>
                   <div className="font-medium">Download PDF File (.pdf)</div>
                   <div className="text-[10px] text-neutral-500">Direct file download</div>
@@ -338,9 +354,9 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
                   setIsExportDropdownOpen(false);
                   onPrintPDF();
                 }}
-                className="w-full text-left px-3 py-2 hover:bg-neutral-900 text-white flex items-center gap-2.5 cursor-pointer"
+                className="w-full text-left px-3 py-2 hover:bg-neutral-100 text-neutral-900 dark:hover:bg-neutral-900 dark:text-white flex items-center gap-2.5 cursor-pointer"
               >
-                <Printer className="w-4 h-4 text-neutral-300" />
+                <Printer className="w-4 h-4 text-neutral-500 dark:text-neutral-300" />
                 <div>
                   <div className="font-medium">Print Paper / PDF Dialog</div>
                   <div className="text-[10px] text-neutral-500">Browser print formatting</div>
@@ -353,9 +369,9 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
                   setIsExportDropdownOpen(false);
                   onExportWord();
                 }}
-                className="w-full text-left px-3 py-2 hover:bg-neutral-900 text-white flex items-center gap-2.5 cursor-pointer"
+                className="w-full text-left px-3 py-2 hover:bg-neutral-100 text-neutral-900 dark:hover:bg-neutral-900 dark:text-white flex items-center gap-2.5 cursor-pointer"
               >
-                <FileDown className="w-4 h-4 text-neutral-300" />
+                <FileDown className="w-4 h-4 text-neutral-500 dark:text-neutral-300" />
                 <div>
                   <div className="font-medium">Download Word (.docx)</div>
                   <div className="text-[10px] text-neutral-500">Editable Word document</div>
@@ -368,9 +384,9 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
                   setIsExportDropdownOpen(false);
                   onOpenGoogleDocs();
                 }}
-                className="w-full text-left px-3 py-2 hover:bg-neutral-900 text-white flex items-center gap-2.5 cursor-pointer"
+                className="w-full text-left px-3 py-2 hover:bg-neutral-100 text-neutral-900 dark:hover:bg-neutral-900 dark:text-white flex items-center gap-2.5 cursor-pointer"
               >
-                <FileText className="w-4 h-4 text-neutral-300" />
+                <FileText className="w-4 h-4 text-neutral-500 dark:text-neutral-300" />
                 <div>
                   <div className="font-medium">Export to Google Docs</div>
                   <div className="text-[10px] text-neutral-500">Editable Doc in Drive</div>
@@ -383,9 +399,9 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
                   setIsExportDropdownOpen(false);
                   onOpenGoogleDrive();
                 }}
-                className="w-full text-left px-3 py-2 hover:bg-neutral-900 text-white flex items-center gap-2.5 cursor-pointer"
+                className="w-full text-left px-3 py-2 hover:bg-neutral-100 text-neutral-900 dark:hover:bg-neutral-900 dark:text-white flex items-center gap-2.5 cursor-pointer"
               >
-                <HardDrive className="w-4 h-4 text-neutral-300" />
+                <HardDrive className="w-4 h-4 text-neutral-500 dark:text-neutral-300" />
                 <div>
                   <div className="font-medium">Save / Open in Google Drive</div>
                   <div className="text-[10px] text-neutral-500">PDF, Word, or JSON backup</div>
@@ -398,9 +414,9 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
                   setIsExportDropdownOpen(false);
                   onOpenGmail();
                 }}
-                className="w-full text-left px-3 py-2 hover:bg-neutral-900 text-white flex items-center gap-2.5 cursor-pointer"
+                className="w-full text-left px-3 py-2 hover:bg-neutral-100 text-neutral-900 dark:hover:bg-neutral-900 dark:text-white flex items-center gap-2.5 cursor-pointer"
               >
-                <Mail className="w-4 h-4 text-neutral-300" />
+                <Mail className="w-4 h-4 text-neutral-500 dark:text-neutral-300" />
                 <div>
                   <div className="font-medium">Email / Schedule via Gmail</div>
                   <div className="text-[10px] text-neutral-500">Send now or schedule delivery</div>
@@ -413,9 +429,9 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
                     setIsExportDropdownOpen(false);
                     onOpenShareModal();
                   }}
-                  className="w-full text-left px-3 py-2 hover:bg-neutral-900 text-white flex items-center gap-2.5 cursor-pointer border-t border-neutral-800/80"
+                  className="w-full text-left px-3 py-2 hover:bg-neutral-100 text-neutral-900 dark:hover:bg-neutral-900 dark:text-white flex items-center gap-2.5 cursor-pointer border-t border-neutral-200 dark:border-neutral-800/80"
                 >
-                  <Share2 className="w-4 h-4 text-neutral-300" />
+                  <Share2 className="w-4 h-4 text-neutral-500 dark:text-neutral-300" />
                   <div>
                     <div className="font-medium">Deliver &amp; Share Hub</div>
                     <div className="text-[10px] text-neutral-500">Email, Schedule, or Drive Share Link</div>

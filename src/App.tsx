@@ -34,6 +34,7 @@ import { Dashboard } from './components/Dashboard';
 import { BuilderMode } from './components/BuilderMode';
 import { AutoBlueprintMode } from './components/AutoBlueprintMode';
 import { AppMode } from './components/ModeSwitcher';
+import { AppTheme } from './components/ThemeToggleButton';
 import { mergeQuestionsIntoPaper } from './services/paperComposer';
 import { syncBundledQuestionBanks } from './services/questionBank';
 import { exportPaperToWord } from './services/wordExport';
@@ -54,6 +55,30 @@ interface BannerNotification {
 
 export default function App() {
   const [viewMode, setViewMode] = useState<'dashboard' | 'builder' | 'auto' | 'workspace'>('dashboard');
+  const [theme, setTheme] = useState<AppTheme>(() => {
+    try {
+      const saved = localStorage.getItem('exam_maker_theme');
+      if (saved === 'light' || saved === 'dark') return saved;
+    } catch {
+      // ignore
+    }
+    return 'dark';
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.classList.toggle('dark', theme === 'dark');
+    root.style.colorScheme = theme;
+    try {
+      localStorage.setItem('exam_maker_theme', theme);
+    } catch {
+      // ignore
+    }
+  }, [theme]);
+
+  const toggleTheme = useCallback(() => {
+    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
+  }, []);
 
   const [paper, setPaper] = useState<ExamPaper>(() => {
     try {
@@ -834,13 +859,13 @@ export default function App() {
     <>
       {/* Global Toast Notification Banner (Visible across Dashboard, Builder, and Workspace) */}
       {bannerMessage && (
-        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-[60] max-w-md px-4 py-2 rounded-xl text-xs font-medium shadow-2xl flex items-center gap-2.5 border bg-neutral-900 border-neutral-700 text-white animate-in fade-in slide-in-from-top-2 duration-150 no-print">
+        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-[60] max-w-md px-4 py-2 rounded-xl text-xs font-medium shadow-2xl flex items-center gap-2.5 border bg-white border-neutral-300 text-neutral-900 dark:bg-neutral-900 dark:border-neutral-700 dark:text-white animate-in fade-in slide-in-from-top-2 duration-150 no-print">
           {bannerMessage.type === 'loading' ? (
-            <Loader2 className="w-3.5 h-3.5 animate-spin text-white shrink-0" />
+            <Loader2 className="w-3.5 h-3.5 animate-spin text-neutral-900 dark:text-white shrink-0" />
           ) : bannerMessage.type === 'error' ? (
-            <AlertCircle className="w-3.5 h-3.5 text-white shrink-0" />
+            <AlertCircle className="w-3.5 h-3.5 text-neutral-900 dark:text-white shrink-0" />
           ) : (
-            <Check className="w-3.5 h-3.5 text-white shrink-0" />
+            <Check className="w-3.5 h-3.5 text-neutral-900 dark:text-white shrink-0" />
           )}
           <span className="truncate">{bannerMessage.text}</span>
           {bannerMessage.actionLabel && bannerMessage.onAction && (
@@ -851,7 +876,7 @@ export default function App() {
                 setBannerMessage(null);
                 action?.();
               }}
-              className="px-2.5 py-1 bg-white text-black font-semibold rounded-md text-[11px] hover:bg-neutral-200 flex items-center gap-1 shrink-0 cursor-pointer"
+              className="px-2.5 py-1 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200 font-semibold rounded-md text-[11px] flex items-center gap-1 shrink-0 cursor-pointer"
             >
               <Share2 className="w-3 h-3" />
               <span>{bannerMessage.actionLabel}</span>
@@ -860,7 +885,7 @@ export default function App() {
           <button
             type="button"
             onClick={() => setBannerMessage(null)}
-            className="text-neutral-400 hover:text-white p-0.5 shrink-0 cursor-pointer"
+            className="text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white p-0.5 shrink-0 cursor-pointer"
             aria-label="Dismiss notification"
           >
             <X className="w-3 h-3" />
@@ -870,9 +895,11 @@ export default function App() {
 
       {/* Primary View Surface */}
       {viewMode === 'dashboard' ? (
-        <div className="h-screen w-screen overflow-y-auto bg-black text-white">
+        <div className="h-screen w-screen overflow-y-auto bg-neutral-50 text-neutral-900 dark:bg-black dark:text-white">
           <Dashboard
             currentPaper={paper}
+            theme={theme}
+            onToggleTheme={toggleTheme}
             onOpenPaper={(selected) => {
               updatePaper(selected);
               setActiveSectionId(selected.sections[0]?.id || 'header');
@@ -915,6 +942,8 @@ export default function App() {
       ) : viewMode === 'auto' ? (
         <AutoBlueprintMode
           currentPaper={paper}
+          theme={theme}
+          onToggleTheme={toggleTheme}
           onSwitchMode={handleSwitchMode}
           onOpenDashboard={() => setViewMode('dashboard')}
           onApplyPaperToEditor={(updatedPaper, meta) => {
@@ -937,6 +966,8 @@ export default function App() {
       ) : viewMode === 'builder' ? (
         <BuilderMode
           currentPaper={paper}
+          theme={theme}
+          onToggleTheme={toggleTheme}
           onAddQuestionsToPaper={handleAddQuestionsFromBank}
           onOpenEditor={() => setViewMode('workspace')}
           onOpenDashboard={() => setViewMode('dashboard')}
@@ -944,10 +975,12 @@ export default function App() {
           onOpenShareModal={() => openShareHub(paper)}
         />
       ) : (
-        <div className="h-screen w-screen overflow-hidden flex flex-col bg-black text-white select-none">
+        <div className="h-screen w-screen overflow-hidden flex flex-col bg-neutral-50 text-neutral-900 dark:bg-black dark:text-white select-none">
           {/* Top Bar with Icon Tools */}
           <HeaderNav
             paper={paper}
+            theme={theme}
+            onToggleTheme={toggleTheme}
             activeMode="editor"
             onSwitchMode={handleSwitchMode}
             activeSectionId={activeSectionId}
@@ -971,13 +1004,13 @@ export default function App() {
           />
 
           {/* Mobile Switcher */}
-          <div className="md:hidden flex border-b border-neutral-800 bg-black px-3 py-1.5 gap-2 no-print shrink-0">
+          <div className="md:hidden flex border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black px-3 py-1.5 gap-2 no-print shrink-0">
             <button
               onClick={() => setMobileViewTab('editor')}
               className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 ${
                 mobileViewTab === 'editor'
-                  ? 'bg-white text-black'
-                  : 'bg-neutral-900 text-neutral-400'
+                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-black'
+                  : 'bg-neutral-100 text-neutral-600 dark:bg-neutral-900 dark:text-neutral-400'
               }`}
             >
               <Edit3 className="w-3.5 h-3.5" />
@@ -987,8 +1020,8 @@ export default function App() {
               onClick={() => setMobileViewTab('preview')}
               className={`flex-1 py-1.5 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 ${
                 mobileViewTab === 'preview'
-                  ? 'bg-white text-black'
-                  : 'bg-neutral-900 text-neutral-400'
+                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-black'
+                  : 'bg-neutral-100 text-neutral-600 dark:bg-neutral-900 dark:text-neutral-400'
               }`}
             >
               <Eye className="w-3.5 h-3.5" />
@@ -1000,7 +1033,7 @@ export default function App() {
           <main className="flex-1 flex overflow-hidden min-h-0">
             {/* Left Column: Editor (Independent Scroll Container) */}
             <div
-              className={`w-full md:w-5/12 lg:w-4/12 h-full overflow-hidden flex flex-col border-r border-neutral-800 bg-black no-print ${
+              className={`w-full md:w-5/12 lg:w-4/12 h-full overflow-hidden flex flex-col border-r border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black no-print ${
                 mobileViewTab === 'preview' ? 'hidden md:flex' : 'flex'
               }`}
             >

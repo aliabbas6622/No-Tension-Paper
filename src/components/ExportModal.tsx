@@ -74,22 +74,22 @@ export const ExportModal: React.FC<ExportModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4">
-      <div className="bg-black border border-neutral-800 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 text-white">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/80 backdrop-blur-xs p-4">
+      <div className="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 text-neutral-900 dark:text-white">
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-800 bg-neutral-950">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950">
           <div className="flex items-center gap-2.5">
-            <Share2 className="w-5 h-5 text-white" />
+            <Share2 className="w-5 h-5 text-neutral-900 dark:text-white" />
             <div>
               <h3 className="font-semibold text-sm">Export & Download Exam Paper</h3>
-              <p className="text-[11px] text-neutral-400">
+              <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
                 Choose your preferred file format for printing, sharing, or editing
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-neutral-400 hover:text-white p-1 rounded-lg hover:bg-neutral-900 transition cursor-pointer"
+            className="text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200/70 dark:text-neutral-400 dark:hover:text-white p-1 rounded-lg dark:hover:bg-neutral-900 transition cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -97,15 +97,15 @@ export const ExportModal: React.FC<ExportModalProps> = ({
 
         {/* Status Banners */}
         {successMessage && (
-          <div className="mx-5 mt-4 p-3 bg-neutral-900 border border-neutral-700 rounded-xl flex items-center gap-2 text-white text-xs font-medium">
-            <Check className="w-4 h-4 text-white shrink-0" />
+          <div className="mx-5 mt-4 p-3 bg-neutral-100 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 rounded-xl flex items-center gap-2 text-neutral-900 dark:text-white text-xs font-medium">
+            <Check className="w-4 h-4 text-neutral-900 dark:text-white shrink-0" />
             <span>{successMessage}</span>
           </div>
         )}
 
         {errorMessage && (
-          <div className="mx-5 mt-4 p-3 bg-neutral-900 border border-neutral-700 rounded-xl flex items-start gap-2 text-white text-xs">
-            <AlertCircle className="w-4 h-4 text-white shrink-0 mt-0.5" />
+          <div className="mx-5 mt-4 p-3 bg-neutral-100 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 rounded-xl flex items-start gap-2 text-neutral-900 dark:text-white text-xs">
+            <AlertCircle className="w-4 h-4 text-neutral-900 dark:text-white shrink-0 mt-0.5" />
             <div>
               <span className="font-semibold">Export Notice: </span>
               <span>{errorMessage}</span>
@@ -116,14 +116,14 @@ export const ExportModal: React.FC<ExportModalProps> = ({
         {/* Export Options Grid */}
         <div className="p-5 space-y-3">
           {/* 1. PDF File Download & Print */}
-          <div className="p-4 rounded-xl border border-neutral-800 bg-neutral-950 space-y-3">
+          <div className="p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 space-y-3">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <div className="font-semibold text-xs text-white flex items-center gap-1.5">
-                  <Printer className="w-4 h-4 text-white" />
+                <div className="font-semibold text-xs text-neutral-900 dark:text-white flex items-center gap-1.5">
+                  <Printer className="w-4 h-4 text-neutral-900 dark:text-white" />
                   <span>PDF Document (.pdf)</span>
                 </div>
-                <p className="text-[11px] text-neutral-400 mt-0.5">
+                <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
                   Exact standard A4 examination layout. Perfect for physical printing and digital distribution.
                 </p>
               </div>
@@ -133,16 +133,16 @@ export const ExportModal: React.FC<ExportModalProps> = ({
               <button
                 onClick={handleDownloadPDF}
                 disabled={isExportingPDF}
-                className="flex-1 py-2 px-3 bg-white text-black font-semibold text-xs rounded-lg hover:bg-neutral-200 disabled:opacity-50 transition flex items-center justify-center gap-1.5 cursor-pointer"
+                className="flex-1 py-2 px-3 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black font-semibold text-xs rounded-lg dark:hover:bg-neutral-200 disabled:opacity-50 transition flex items-center justify-center gap-1.5 cursor-pointer"
               >
                 {isExportingPDF ? (
                   <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-black" />
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-white dark:text-black" />
                     <span>Generating PDF...</span>
                   </>
                 ) : (
                   <>
-                    <FileDown className="w-3.5 h-3.5 text-black" />
+                    <FileDown className="w-3.5 h-3.5 text-white dark:text-black" />
                     <span>Download PDF File</span>
                   </>
                 )}
@@ -150,7 +150,7 @@ export const ExportModal: React.FC<ExportModalProps> = ({
 
               <button
                 onClick={handlePrintSystem}
-                className="py-2 px-3 bg-neutral-900 border border-neutral-700 text-white font-medium text-xs rounded-lg hover:bg-neutral-800 transition flex items-center justify-center gap-1.5 cursor-pointer"
+                className="py-2 px-3 bg-white border border-neutral-300 text-neutral-900 hover:bg-neutral-100 dark:bg-neutral-900 dark:border-neutral-700 dark:text-white font-medium text-xs rounded-lg dark:hover:bg-neutral-800 transition flex items-center justify-center gap-1.5 cursor-pointer"
                 title="Open browser print dialog"
               >
                 <Printer className="w-3.5 h-3.5" />
@@ -160,13 +160,13 @@ export const ExportModal: React.FC<ExportModalProps> = ({
           </div>
 
           {/* 2. Microsoft Word Document (.docx) */}
-          <div className="p-4 rounded-xl border border-neutral-800 bg-neutral-950 space-y-3">
+          <div className="p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 space-y-3">
             <div>
-              <div className="font-semibold text-xs text-white flex items-center gap-1.5">
-                <FileDown className="w-4 h-4 text-white" />
+              <div className="font-semibold text-xs text-neutral-900 dark:text-white flex items-center gap-1.5">
+                <FileDown className="w-4 h-4 text-neutral-900 dark:text-white" />
                 <span>Microsoft Word Document (.docx)</span>
               </div>
-              <p className="text-[11px] text-neutral-400 mt-0.5">
+              <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
                 Editable Word file with headers, 2-column MCQ tables, and question styling.
               </p>
             </div>
@@ -174,16 +174,16 @@ export const ExportModal: React.FC<ExportModalProps> = ({
             <button
               onClick={handleDownloadWord}
               disabled={isExportingWord}
-              className="w-full py-2 px-3 bg-neutral-900 border border-neutral-700 text-white font-semibold text-xs rounded-lg hover:bg-neutral-800 disabled:opacity-50 transition flex items-center justify-center gap-1.5 cursor-pointer"
+              className="w-full py-2 px-3 bg-white border border-neutral-300 text-neutral-900 hover:bg-neutral-100 dark:bg-neutral-900 dark:border-neutral-700 dark:text-white font-semibold text-xs rounded-lg dark:hover:bg-neutral-800 disabled:opacity-50 transition flex items-center justify-center gap-1.5 cursor-pointer"
             >
               {isExportingWord ? (
                 <>
-                  <Loader2 className="w-3.5 h-3.5 animate-spin text-white" />
+                  <Loader2 className="w-3.5 h-3.5 animate-spin text-neutral-900 dark:text-white" />
                   <span>Generating Word File...</span>
                 </>
               ) : (
                 <>
-                  <FileDown className="w-3.5 h-3.5 text-white" />
+                  <FileDown className="w-3.5 h-3.5 text-neutral-900 dark:text-white" />
                   <span>Download Word Document (.docx)</span>
                 </>
               )}
@@ -191,13 +191,13 @@ export const ExportModal: React.FC<ExportModalProps> = ({
           </div>
 
           {/* 3. Google Docs Export */}
-          <div className="p-4 rounded-xl border border-neutral-800 bg-neutral-950 space-y-3">
+          <div className="p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 space-y-3">
             <div>
-              <div className="font-semibold text-xs text-white flex items-center gap-1.5">
-                <FileText className="w-4 h-4 text-white" />
+              <div className="font-semibold text-xs text-neutral-900 dark:text-white flex items-center gap-1.5">
+                <FileText className="w-4 h-4 text-neutral-900 dark:text-white" />
                 <span>Google Docs</span>
               </div>
-              <p className="text-[11px] text-neutral-400 mt-0.5">
+              <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
                 Create an editable Google Document directly in your Google Drive account.
               </p>
             </div>
@@ -207,22 +207,22 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                 onClose();
                 onOpenGoogleDocs();
               }}
-              className="w-full py-2 px-3 bg-neutral-900 border border-neutral-700 text-white font-semibold text-xs rounded-lg hover:bg-neutral-800 transition flex items-center justify-center gap-1.5 cursor-pointer"
+              className="w-full py-2 px-3 bg-white border border-neutral-300 text-neutral-900 hover:bg-neutral-100 dark:bg-neutral-900 dark:border-neutral-700 dark:text-white font-semibold text-xs rounded-lg dark:hover:bg-neutral-800 transition flex items-center justify-center gap-1.5 cursor-pointer"
             >
-              <FileText className="w-3.5 h-3.5 text-white" />
+              <FileText className="w-3.5 h-3.5 text-neutral-900 dark:text-white" />
               <span>Export to Google Docs</span>
             </button>
           </div>
 
           {/* 4. Google Drive Storage & Gmail */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="p-4 rounded-xl border border-neutral-800 bg-neutral-950 space-y-3 flex flex-col justify-between">
+            <div className="p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 space-y-3 flex flex-col justify-between">
               <div>
-                <div className="font-semibold text-xs text-white flex items-center gap-1.5">
-                  <HardDrive className="w-4 h-4 text-white" />
+                <div className="font-semibold text-xs text-neutral-900 dark:text-white flex items-center gap-1.5">
+                  <HardDrive className="w-4 h-4 text-neutral-900 dark:text-white" />
                   <span>Google Drive</span>
                 </div>
-                <p className="text-[11px] text-neutral-400 mt-0.5">
+                <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
                   Save PDF, Word, or JSON papers and open saved files from Drive.
                 </p>
               </div>
@@ -231,20 +231,20 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                   onClose();
                   onOpenGoogleDrive();
                 }}
-                className="w-full py-2 px-3 bg-neutral-900 border border-neutral-700 text-white font-semibold text-xs rounded-lg hover:bg-neutral-800 transition flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full py-2 px-3 bg-white border border-neutral-300 text-neutral-900 hover:bg-neutral-100 dark:bg-neutral-900 dark:border-neutral-700 dark:text-white font-semibold text-xs rounded-lg dark:hover:bg-neutral-800 transition flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <HardDrive className="w-3.5 h-3.5 text-white" />
+                <HardDrive className="w-3.5 h-3.5 text-neutral-900 dark:text-white" />
                 <span>Open Google Drive</span>
               </button>
             </div>
 
-            <div className="p-4 rounded-xl border border-neutral-800 bg-neutral-950 space-y-3 flex flex-col justify-between">
+            <div className="p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 space-y-3 flex flex-col justify-between">
               <div>
-                <div className="font-semibold text-xs text-white flex items-center gap-1.5">
-                  <Mail className="w-4 h-4 text-white" />
+                <div className="font-semibold text-xs text-neutral-900 dark:text-white flex items-center gap-1.5">
+                  <Mail className="w-4 h-4 text-neutral-900 dark:text-white" />
                   <span>Send via Gmail</span>
                 </div>
-                <p className="text-[11px] text-neutral-400 mt-0.5">
+                <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5">
                   Email this exam paper directly with PDF, Word, or JSON attachment.
                 </p>
               </div>
@@ -253,9 +253,9 @@ export const ExportModal: React.FC<ExportModalProps> = ({
                   onClose();
                   onOpenGmail();
                 }}
-                className="w-full py-2 px-3 bg-neutral-900 border border-neutral-700 text-white font-semibold text-xs rounded-lg hover:bg-neutral-800 transition flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full py-2 px-3 bg-white border border-neutral-300 text-neutral-900 hover:bg-neutral-100 dark:bg-neutral-900 dark:border-neutral-700 dark:text-white font-semibold text-xs rounded-lg dark:hover:bg-neutral-800 transition flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <Mail className="w-3.5 h-3.5 text-white" />
+                <Mail className="w-3.5 h-3.5 text-neutral-900 dark:text-white" />
                 <span>Compose Email</span>
               </button>
             </div>
@@ -263,10 +263,10 @@ export const ExportModal: React.FC<ExportModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-3 border-t border-neutral-800 bg-neutral-950 flex justify-end">
+        <div className="px-5 py-3 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-1.5 bg-neutral-900 text-neutral-300 text-xs rounded-lg hover:bg-neutral-800 transition cursor-pointer"
+            className="px-4 py-1.5 bg-neutral-200 hover:bg-neutral-300 text-neutral-900 dark:bg-neutral-900 dark:text-neutral-300 text-xs rounded-lg dark:hover:bg-neutral-800 transition cursor-pointer"
           >
             Close
           </button>

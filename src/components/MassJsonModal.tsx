@@ -280,38 +280,38 @@ export const MassJsonModal: React.FC<MassJsonModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-xs p-4">
-      <div className="bg-black border border-neutral-800 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh] text-white">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/85 backdrop-blur-xs p-4">
+      <div className="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 w-full max-w-2xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[88vh] text-neutral-900 dark:text-white">
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-neutral-800 bg-neutral-950">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-neutral-900 border border-neutral-800 flex items-center justify-center text-white">
+            <div className="w-8 h-8 rounded-lg bg-neutral-100 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-800 flex items-center justify-center text-neutral-900 dark:text-white">
               <Code2 className="w-4 h-4" />
             </div>
             <div>
               <h3 className="font-semibold text-sm">Bulk Questions via JSON</h3>
-              <p className="text-[11px] text-neutral-400">
+              <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
                 Mass add or export questions for {section.name}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-neutral-400 hover:text-white p-1 rounded-lg hover:bg-neutral-900 transition cursor-pointer"
+            className="text-neutral-500 hover:text-neutral-900 hover:bg-neutral-200/70 dark:text-neutral-400 dark:hover:text-white p-1 rounded-lg dark:hover:bg-neutral-900 transition cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Tab Switcher */}
-        <div className="px-5 pt-3 flex items-center justify-between border-b border-neutral-800 pb-2.5 bg-black">
+        <div className="px-5 pt-3 flex items-center justify-between border-b border-neutral-200 dark:border-neutral-800 pb-2.5 bg-white dark:bg-black">
           <div className="flex items-center gap-1.5">
             <button
               onClick={() => setActiveTab('import')}
               className={`px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
                 activeTab === 'import'
-                  ? 'bg-white text-black font-semibold'
-                  : 'text-neutral-400 hover:text-white hover:bg-neutral-900'
+                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-black font-semibold'
+                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-900'
               }`}
             >
               Import JSON
@@ -320,8 +320,8 @@ export const MassJsonModal: React.FC<MassJsonModalProps> = ({
               onClick={() => setActiveTab('export')}
               className={`px-3 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
                 activeTab === 'export'
-                  ? 'bg-white text-black font-semibold'
-                  : 'text-neutral-400 hover:text-white hover:bg-neutral-900'
+                  ? 'bg-neutral-900 text-white dark:bg-white dark:text-black font-semibold'
+                  : 'text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-900'
               }`}
             >
               Export Current Questions ({section.questions.length})
@@ -330,13 +330,13 @@ export const MassJsonModal: React.FC<MassJsonModalProps> = ({
 
           {activeTab === 'import' && (
             <div className="flex items-center gap-2 text-xs">
-              <span className="text-[11px] text-neutral-400">Mode:</span>
+              <span className="text-[11px] text-neutral-500 dark:text-neutral-400">Mode:</span>
               <button
                 onClick={() => setImportMode('append')}
                 className={`px-2 py-0.5 rounded text-[11px] font-medium transition cursor-pointer ${
                   importMode === 'append'
-                    ? 'bg-neutral-800 text-white border border-neutral-700'
-                    : 'text-neutral-500 hover:text-neutral-300'
+                    ? 'bg-neutral-200 text-neutral-900 border border-neutral-300 dark:bg-neutral-800 dark:text-white dark:border-neutral-700'
+                    : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-300'
                 }`}
               >
                 Append to Existing
@@ -345,8 +345,8 @@ export const MassJsonModal: React.FC<MassJsonModalProps> = ({
                 onClick={() => setImportMode('replace')}
                 className={`px-2 py-0.5 rounded text-[11px] font-medium transition cursor-pointer ${
                   importMode === 'replace'
-                    ? 'bg-neutral-800 text-white border border-neutral-700'
-                    : 'text-neutral-500 hover:text-neutral-300'
+                    ? 'bg-neutral-200 text-neutral-900 border border-neutral-300 dark:bg-neutral-800 dark:text-white dark:border-neutral-700'
+                    : 'text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-300'
                 }`}
               >
                 Replace All
@@ -360,28 +360,28 @@ export const MassJsonModal: React.FC<MassJsonModalProps> = ({
           {activeTab === 'import' ? (
             <div className="space-y-4">
               {/* Reference Sample Format Box (Requested: "first give them json format to copy and return same type") */}
-              <div className="rounded-xl border border-neutral-800 bg-neutral-950 overflow-hidden">
-                <div className="px-4 py-2 bg-neutral-900 border-b border-neutral-800 flex items-center justify-between text-xs">
-                  <span className="font-semibold text-neutral-300 text-[11px]">
+              <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 overflow-hidden">
+                <div className="px-4 py-2 bg-neutral-100 dark:bg-neutral-900 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between text-xs">
+                  <span className="font-semibold text-neutral-700 dark:text-neutral-300 text-[11px]">
                     Standard JSON Format (MCQs, Short &amp; Long)
                   </span>
                   <div className="flex items-center gap-1.5">
                     <button
                       onClick={handlePasteSampleIntoInput}
-                      className="px-2 py-0.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-300 rounded text-[10px] transition cursor-pointer"
+                      className="px-2 py-0.5 bg-white hover:bg-neutral-200 text-neutral-800 border border-neutral-300 dark:border-transparent dark:bg-neutral-800 dark:hover:bg-neutral-700 dark:text-neutral-300 rounded text-[10px] transition cursor-pointer"
                     >
                       Fill Example
                     </button>
                     <button
                       onClick={handleCopySample}
-                      className="px-2 py-0.5 bg-white text-black font-semibold rounded text-[10px] hover:bg-neutral-200 transition flex items-center gap-1 cursor-pointer"
+                      className="px-2 py-0.5 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black font-semibold rounded text-[10px] dark:hover:bg-neutral-200 transition flex items-center gap-1 cursor-pointer"
                     >
-                      {copiedSample ? <Check className="w-3 h-3 text-black" /> : <Copy className="w-3 h-3 text-black" />}
+                      {copiedSample ? <Check className="w-3 h-3 text-white dark:text-black" /> : <Copy className="w-3 h-3 text-white dark:text-black" />}
                       <span>{copiedSample ? 'Copied' : 'Copy Sample Format'}</span>
                     </button>
                   </div>
                 </div>
-                <pre className="p-3 text-[11px] font-mono text-neutral-300 max-h-36 overflow-y-auto bg-black/60 leading-relaxed selection:bg-neutral-700">
+                <pre className="p-3 text-[11px] font-mono text-neutral-800 dark:text-neutral-300 max-h-36 overflow-y-auto bg-neutral-50 dark:bg-black/60 leading-relaxed selection:bg-neutral-300 dark:selection:bg-neutral-700">
                   {SAMPLE_QUESTIONS_JSON}
                 </pre>
               </div>
@@ -389,11 +389,11 @@ export const MassJsonModal: React.FC<MassJsonModalProps> = ({
               {/* Paste JSON Textarea */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between text-[11px]">
-                  <label className="font-medium text-neutral-300">
+                  <label className="font-medium text-neutral-700 dark:text-neutral-300">
                     Paste Your JSON Questions Here
                   </label>
                   {parsedQuestions && (
-                    <span className="text-white font-medium flex items-center gap-1">
+                    <span className="text-neutral-900 dark:text-white font-medium flex items-center gap-1">
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       <span>{parsedQuestions.length} questions parsed</span>
                     </span>
@@ -404,42 +404,42 @@ export const MassJsonModal: React.FC<MassJsonModalProps> = ({
                   value={jsonInput}
                   onChange={handleInputChange}
                   placeholder={`[\n  {\n    "number": "i.",\n    "type": "mcq",\n    "text": "Your question...",\n    "marks": 1,\n    "options": [\n      { "label": "(a)", "text": "Option A" },\n      { "label": "(b)", "text": "Option B" }\n    ]\n  }\n]`}
-                  className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-3 font-mono text-xs text-white placeholder-neutral-600 focus:outline-hidden focus:border-white"
+                  className="w-full bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-800 rounded-xl p-3 font-mono text-xs text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-600 focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
                 />
               </div>
 
               {/* Validation Status */}
               {validationError && (
-                <div className="p-3 bg-neutral-950 border border-neutral-700 rounded-xl flex items-start gap-2.5 text-xs text-neutral-200">
-                  <AlertCircle className="w-4 h-4 text-white shrink-0 mt-0.5" />
+                <div className="p-3 bg-neutral-100 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-700 rounded-xl flex items-start gap-2.5 text-xs text-neutral-800 dark:text-neutral-200">
+                  <AlertCircle className="w-4 h-4 text-neutral-900 dark:text-white shrink-0 mt-0.5" />
                   <div>
-                    <span className="font-semibold text-white">Syntax / Format Issue: </span>
-                    <span className="text-neutral-400">{validationError}</span>
+                    <span className="font-semibold text-neutral-900 dark:text-white">Syntax / Format Issue: </span>
+                    <span className="text-neutral-600 dark:text-neutral-400">{validationError}</span>
                   </div>
                 </div>
               )}
 
               {/* Parsed Preview Badges */}
               {parsedQuestions && (
-                <div className="p-3 bg-neutral-950 border border-neutral-800 rounded-xl space-y-2 text-xs">
-                  <div className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider">
+                <div className="p-3 bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl space-y-2 text-xs">
+                  <div className="text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
                     Questions Preview to Import ({parsedQuestions.length})
                   </div>
                   <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                     {parsedQuestions.map((pq, idx) => (
                       <div
                         key={idx}
-                        className="flex items-baseline justify-between gap-2 p-1.5 bg-black rounded border border-neutral-850 text-[11px]"
+                        className="flex items-baseline justify-between gap-2 p-1.5 bg-white dark:bg-black rounded border border-neutral-200 dark:border-neutral-800 text-[11px]"
                       >
                         <div className="truncate flex-1">
-                          <span className="font-bold text-white mr-1.5">{pq.number}</span>
-                          <span className="text-neutral-300">{pq.text}</span>
+                          <span className="font-bold text-neutral-900 dark:text-white mr-1.5">{pq.number}</span>
+                          <span className="text-neutral-700 dark:text-neutral-300">{pq.text}</span>
                         </div>
                         <div className="flex items-center gap-1.5 shrink-0 font-mono text-[10px]">
-                          <span className="px-1.5 py-0.2 rounded bg-neutral-900 text-neutral-400 uppercase">
+                          <span className="px-1.5 py-0.2 rounded bg-neutral-100 dark:bg-neutral-900 text-neutral-600 dark:text-neutral-400 uppercase">
                             {pq.type}
                           </span>
-                          <span className="text-neutral-400">{pq.marks}M</span>
+                          <span className="text-neutral-600 dark:text-neutral-400">{pq.marks}M</span>
                         </div>
                       </div>
                     ))}
@@ -451,28 +451,28 @@ export const MassJsonModal: React.FC<MassJsonModalProps> = ({
             /* Export Tab */
             <div className="space-y-3">
               <div className="flex items-center justify-between text-xs">
-                <span className="text-neutral-400">
+                <span className="text-neutral-600 dark:text-neutral-400">
                   Current section questions formatted in the exact JSON schema:
                 </span>
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleCopyExport}
-                    className="px-3 py-1 bg-white text-black font-semibold text-xs rounded-lg hover:bg-neutral-200 transition flex items-center gap-1.5 cursor-pointer"
+                    className="px-3 py-1 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black font-semibold text-xs rounded-lg dark:hover:bg-neutral-200 transition flex items-center gap-1.5 cursor-pointer"
                   >
-                    {copiedExport ? <Check className="w-3.5 h-3.5 text-black" /> : <Copy className="w-3.5 h-3.5 text-black" />}
+                    {copiedExport ? <Check className="w-3.5 h-3.5 text-white dark:text-black" /> : <Copy className="w-3.5 h-3.5 text-white dark:text-black" />}
                     <span>{copiedExport ? 'Copied' : 'Copy JSON'}</span>
                   </button>
                   <button
                     onClick={handleDownloadExportJson}
-                    className="px-3 py-1 bg-neutral-900 border border-neutral-700 text-white font-medium text-xs rounded-lg hover:bg-neutral-800 transition flex items-center gap-1.5 cursor-pointer"
+                    className="px-3 py-1 bg-neutral-100 border border-neutral-300 text-neutral-900 hover:bg-neutral-200 dark:bg-neutral-900 dark:border-neutral-700 dark:text-white font-medium text-xs rounded-lg dark:hover:bg-neutral-800 transition flex items-center gap-1.5 cursor-pointer"
                   >
-                    <FileDown className="w-3.5 h-3.5 text-white" />
+                    <FileDown className="w-3.5 h-3.5 text-neutral-900 dark:text-white" />
                     <span>Download .json</span>
                   </button>
                 </div>
               </div>
 
-              <pre className="p-3.5 bg-neutral-950 border border-neutral-800 rounded-xl font-mono text-xs text-neutral-200 max-h-96 overflow-y-auto leading-relaxed">
+              <pre className="p-3.5 bg-neutral-50 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-xl font-mono text-xs text-neutral-800 dark:text-neutral-200 max-h-96 overflow-y-auto leading-relaxed">
                 {exportJsonString}
               </pre>
             </div>
@@ -480,10 +480,10 @@ export const MassJsonModal: React.FC<MassJsonModalProps> = ({
         </div>
 
         {/* Modal Footer */}
-        <div className="px-5 py-3 border-t border-neutral-800 bg-neutral-950 flex items-center justify-between">
+        <div className="px-5 py-3 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 flex items-center justify-between">
           <button
             onClick={onClose}
-            className="px-4 py-1.5 bg-neutral-900 text-neutral-300 text-xs rounded-lg hover:bg-neutral-800 transition cursor-pointer"
+            className="px-4 py-1.5 bg-neutral-200 hover:bg-neutral-300 text-neutral-900 dark:bg-neutral-900 dark:text-neutral-300 text-xs rounded-lg dark:hover:bg-neutral-800 transition cursor-pointer"
           >
             Cancel
           </button>
@@ -492,9 +492,9 @@ export const MassJsonModal: React.FC<MassJsonModalProps> = ({
             <button
               onClick={handleExecuteImport}
               disabled={!parsedQuestions || parsedQuestions.length === 0}
-              className="px-5 py-1.5 bg-white text-black font-semibold text-xs rounded-lg hover:bg-neutral-200 disabled:opacity-30 transition flex items-center gap-1.5 cursor-pointer"
+              className="px-5 py-1.5 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black font-semibold text-xs rounded-lg dark:hover:bg-neutral-200 disabled:opacity-30 transition flex items-center gap-1.5 cursor-pointer"
             >
-              <PlusCircle className="w-3.5 h-3.5 text-black" />
+              <PlusCircle className="w-3.5 h-3.5 text-white dark:text-black" />
               <span>
                 {importMode === 'append' ? 'Append' : 'Replace with'}{' '}
                 {parsedQuestions ? `${parsedQuestions.length} Questions` : 'Questions'}

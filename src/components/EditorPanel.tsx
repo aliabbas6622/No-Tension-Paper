@@ -111,22 +111,22 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
   if (activeSectionId === 'header' || !activeSection) {
     const { header } = paper;
     return (
-      <div className="h-full overflow-y-auto p-4 sm:p-5 space-y-4 bg-black text-white">
-        <div className="flex items-center justify-between pb-2 border-b border-neutral-800">
+      <div className="h-full overflow-y-auto p-4 sm:p-5 space-y-4 bg-white text-neutral-900 dark:bg-black dark:text-white">
+        <div className="flex items-center justify-between pb-2 border-b border-neutral-200 dark:border-neutral-800">
           <div>
-            <h2 className="text-xs font-bold uppercase tracking-wider text-white">
+            <h2 className="text-xs font-bold uppercase tracking-wider text-neutral-900 dark:text-white">
               Exam Header & Metadata
             </h2>
-            <p className="text-[11px] text-neutral-400">
+            <p className="text-[11px] text-neutral-500 dark:text-neutral-400">
               Formatted intermediate exam title block
             </p>
           </div>
         </div>
 
         {/* Header Fields in compact monochrome layout */}
-        <div className="space-y-3 bg-neutral-950 p-4 rounded-xl border border-neutral-800">
+        <div className="space-y-3 bg-neutral-50 dark:bg-neutral-950 p-4 rounded-xl border border-neutral-200 dark:border-neutral-800">
           <div>
-            <label className="block text-[11px] font-medium text-neutral-400 mb-1">
+            <label className="block text-[11px] font-medium text-neutral-600 dark:text-neutral-400 mb-1">
               Examination Title (Line 1)
             </label>
             <input
@@ -134,13 +134,13 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
               value={header.examinationTitle}
               onChange={(e) => onUpdateHeader({ examinationTitle: e.target.value })}
               placeholder="INTERMEDIATE EXAMINATION 2026-27"
-              className="w-full bg-black border border-neutral-800 rounded-lg px-3 py-1.5 text-xs font-semibold text-white focus:outline-hidden focus:border-white"
+              className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-800 rounded-lg px-3 py-1.5 text-xs font-semibold text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div>
-              <label className="block text-[11px] font-medium text-neutral-400 mb-1">
+              <label className="block text-[11px] font-medium text-neutral-600 dark:text-neutral-400 mb-1">
                 Month & Session (Line 2)
               </label>
               <input
@@ -148,11 +148,11 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                 value={header.examinationMonth}
                 onChange={(e) => onUpdateHeader({ examinationMonth: e.target.value })}
                 placeholder="EXAMINATION MONTH: OCT-25"
-                className="w-full bg-black border border-neutral-800 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-hidden focus:border-white"
+                className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-800 rounded-lg px-3 py-1.5 text-xs text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
               />
             </div>
             <div>
-              <label className="block text-[11px] font-medium text-neutral-400 mb-1">
+              <label className="block text-[11px] font-medium text-neutral-600 dark:text-neutral-400 mb-1">
                 Group (Line 3)
               </label>
               <input
@@ -160,13 +160,13 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                 value={header.groupName}
                 onChange={(e) => onUpdateHeader({ groupName: e.target.value })}
                 placeholder="COMPUTER SCIENCE GROUP"
-                className="w-full bg-black border border-neutral-800 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-hidden focus:border-white"
+                className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-800 rounded-lg px-3 py-1.5 text-xs text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-[11px] font-medium text-neutral-400 mb-1">
+            <label className="block text-[11px] font-medium text-neutral-600 dark:text-neutral-400 mb-1">
               Subject Title (Line 4)
             </label>
             <input
@@ -174,58 +174,58 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
               value={header.subjectTitle}
               onChange={(e) => onUpdateHeader({ subjectTitle: e.target.value })}
               placeholder="SUBJECT: COMPUTER PAPER II"
-              className="w-full bg-black border border-neutral-800 rounded-lg px-3 py-1.5 text-xs font-bold text-white focus:outline-hidden focus:border-white"
+              className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-800 rounded-lg px-3 py-1.5 text-xs font-bold text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
             />
           </div>
         </div>
 
         {/* Metadata Row: Date, Duration, Max Marks */}
-        <div className="bg-neutral-950 p-4 rounded-xl border border-neutral-800 space-y-2.5">
-          <div className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider">
+        <div className="bg-neutral-50 dark:bg-neutral-950 p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 space-y-2.5">
+          <div className="text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
             Metadata Details
           </div>
           <div className="grid grid-cols-3 gap-2">
             <div>
-              <label className="block text-[10px] text-neutral-400 mb-1">Date</label>
+              <label className="block text-[10px] text-neutral-600 dark:text-neutral-400 mb-1">Date</label>
               <input
                 type="text"
                 value={header.date}
                 onChange={(e) => onUpdateHeader({ date: e.target.value })}
                 placeholder="12-10-2025"
-                className="w-full bg-black border border-neutral-800 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-hidden"
+                className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-800 rounded-lg px-2 py-1.5 text-xs text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
               />
             </div>
             <div>
-              <label className="block text-[10px] text-neutral-400 mb-1">Duration</label>
+              <label className="block text-[10px] text-neutral-600 dark:text-neutral-400 mb-1">Duration</label>
               <input
                 type="text"
                 value={header.duration}
                 onChange={(e) => onUpdateHeader({ duration: e.target.value })}
                 placeholder="2 Hour"
-                className="w-full bg-black border border-neutral-800 rounded-lg px-2 py-1.5 text-xs text-white focus:outline-hidden"
+                className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-800 rounded-lg px-2 py-1.5 text-xs text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
               />
             </div>
             <div>
-              <label className="block text-[10px] text-neutral-400 mb-1">Max Marks</label>
+              <label className="block text-[10px] text-neutral-600 dark:text-neutral-400 mb-1">Max Marks</label>
               <input
                 type="text"
                 value={header.maxMarks}
                 onChange={(e) => onUpdateHeader({ maxMarks: e.target.value })}
                 placeholder="50"
-                className="w-full bg-black border border-neutral-800 rounded-lg px-2 py-1.5 text-xs font-bold text-white focus:outline-hidden"
+                className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-800 rounded-lg px-2 py-1.5 text-xs font-bold text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
               />
             </div>
           </div>
         </div>
 
         {/* Optional Institution, Paper Code & General Instructions */}
-        <div className="bg-neutral-950 p-4 rounded-xl border border-neutral-800 space-y-3">
-          <div className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider">
+        <div className="bg-neutral-50 dark:bg-neutral-950 p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 space-y-3">
+          <div className="text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
             Optional Details &amp; Instructions
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <div className="sm:col-span-2">
-              <label className="block text-[10px] text-neutral-400 mb-1">
+              <label className="block text-[10px] text-neutral-600 dark:text-neutral-400 mb-1">
                 Board / Institution Name
               </label>
               <input
@@ -233,23 +233,23 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                 value={header.institutionName || ''}
                 onChange={(e) => onUpdateHeader({ institutionName: e.target.value })}
                 placeholder="e.g. Board of Intermediate and Secondary Education"
-                className="w-full bg-black border border-neutral-800 rounded-lg px-3 py-1.5 text-xs text-white focus:outline-hidden"
+                className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-800 rounded-lg px-3 py-1.5 text-xs text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
               />
             </div>
             <div>
-              <label className="block text-[10px] text-neutral-400 mb-1">Paper Code</label>
+              <label className="block text-[10px] text-neutral-600 dark:text-neutral-400 mb-1">Paper Code</label>
               <input
                 type="text"
                 value={header.paperCode || ''}
                 onChange={(e) => onUpdateHeader({ paperCode: e.target.value })}
                 placeholder="e.g. CS-201"
-                className="w-full bg-black border border-neutral-800 rounded-lg px-2.5 py-1.5 text-xs text-white focus:outline-hidden"
+                className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-800 rounded-lg px-2.5 py-1.5 text-xs text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-[10px] text-neutral-400 mb-1">
+            <label className="block text-[10px] text-neutral-600 dark:text-neutral-400 mb-1">
               General Instructions (one per line)
             </label>
             <textarea
@@ -264,7 +264,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                 })
               }
               placeholder="Attempt all sections carefully."
-              className="w-full bg-black border border-neutral-800 rounded-lg p-2 text-xs text-neutral-200 focus:outline-hidden focus:border-white"
+              className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-800 rounded-lg p-2 text-xs text-neutral-800 dark:text-neutral-200 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
             />
           </div>
         </div>
@@ -274,18 +274,18 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
 
   // Section Editor View
   return (
-    <div className="h-full overflow-y-auto p-4 sm:p-5 space-y-4 bg-black text-white">
+    <div className="h-full overflow-y-auto p-4 sm:p-5 space-y-4 bg-white text-neutral-900 dark:bg-black dark:text-white">
       {/* Section Settings Header */}
-      <div className="bg-neutral-950 p-3.5 rounded-xl border border-neutral-800 space-y-3">
+      <div className="bg-neutral-50 dark:bg-neutral-950 p-3.5 rounded-xl border border-neutral-200 dark:border-neutral-800 space-y-3">
         <div className="flex items-center justify-between">
-          <div className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider">
+          <div className="text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
             Section Info
           </div>
           <div className="flex items-center gap-3">
             {/* Mass JSON Trigger in header */}
             <button
               onClick={onOpenMassJson}
-              className="text-[11px] text-neutral-300 hover:text-white flex items-center gap-1 transition cursor-pointer"
+              className="text-[11px] text-neutral-600 hover:text-neutral-900 dark:text-neutral-300 dark:hover:text-white flex items-center gap-1 transition cursor-pointer"
               title="Bulk import or export questions as JSON"
             >
               <Code2 className="w-3.5 h-3.5" />
@@ -299,7 +299,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                     onDeleteSection(activeSection.id);
                   }
                 }}
-                className="text-[11px] text-neutral-400 hover:text-white flex items-center gap-1 transition cursor-pointer"
+                className="text-[11px] text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white flex items-center gap-1 transition cursor-pointer"
               >
                 <Trash2 className="w-3 h-3" />
                 <span>Delete Section</span>
@@ -310,39 +310,39 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
           <div>
-            <label className="block text-[10px] text-neutral-400 mb-1">Title</label>
+            <label className="block text-[10px] text-neutral-600 dark:text-neutral-400 mb-1">Title</label>
             <input
               type="text"
               value={activeSection.name}
               onChange={(e) => onUpdateSection(activeSection.id, { name: e.target.value })}
               placeholder='SECTION "A"'
-              className="w-full bg-black border border-neutral-800 rounded-lg px-2.5 py-1 text-xs font-semibold text-white focus:outline-hidden"
+              className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-800 rounded-lg px-2.5 py-1 text-xs font-semibold text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
             />
           </div>
           <div>
-            <label className="block text-[10px] text-neutral-400 mb-1">Subtitle</label>
+            <label className="block text-[10px] text-neutral-600 dark:text-neutral-400 mb-1">Subtitle</label>
             <input
               type="text"
               value={activeSection.subtitle}
               onChange={(e) => onUpdateSection(activeSection.id, { subtitle: e.target.value })}
               placeholder="(MULTIPLE CHOICE QUESTIONS)"
-              className="w-full bg-black border border-neutral-800 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-hidden"
+              className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-800 rounded-lg px-2.5 py-1 text-xs text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
             />
           </div>
           <div>
-            <label className="block text-[10px] text-neutral-400 mb-1">Marks Badge</label>
+            <label className="block text-[10px] text-neutral-600 dark:text-neutral-400 mb-1">Marks Badge</label>
             <input
               type="text"
               value={activeSection.marksBadge}
               onChange={(e) => onUpdateSection(activeSection.id, { marksBadge: e.target.value })}
               placeholder="10 Marks"
-              className="w-full bg-black border border-neutral-800 rounded-lg px-2.5 py-1 text-xs font-bold text-white focus:outline-hidden"
+              className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-800 rounded-lg px-2.5 py-1 text-xs font-bold text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-[10px] text-neutral-400 mb-1">
+          <label className="block text-[10px] text-neutral-600 dark:text-neutral-400 mb-1">
             Section Instruction / Note
           </label>
           <input
@@ -350,15 +350,15 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
             value={activeSection.instruction}
             onChange={(e) => onUpdateSection(activeSection.id, { instruction: e.target.value })}
             placeholder="Q1 Choose the best answer for each from the given options"
-            className="w-full bg-black border border-neutral-800 rounded-lg px-2.5 py-1 text-xs text-neutral-300 focus:outline-hidden"
+            className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-800 rounded-lg px-2.5 py-1 text-xs text-neutral-700 dark:text-neutral-300 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
           />
         </div>
       </div>
 
       {/* Questions Bar with Low Density Controls */}
-      <div className="flex items-center justify-between gap-2 pt-1 border-b border-neutral-800 pb-2">
+      <div className="flex items-center justify-between gap-2 pt-1 border-b border-neutral-200 dark:border-neutral-800 pb-2">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-white">
+          <span className="text-xs font-bold uppercase tracking-wider text-neutral-900 dark:text-white">
             Questions ({activeSection.questions.length})
           </span>
           <span className="text-[10px] text-neutral-500 hidden sm:inline">
@@ -368,18 +368,18 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
 
         <div className="flex items-center gap-2">
           {/* Renumber utilities */}
-          <div className="flex items-center bg-neutral-950 border border-neutral-800 rounded-md p-0.5 text-[10px]">
+          <div className="flex items-center bg-neutral-100 dark:bg-neutral-950 border border-neutral-200 dark:border-neutral-800 rounded-md p-0.5 text-[10px]">
             <button
               onClick={() => onRenumberQuestions(activeSection.id, 'roman')}
-              className="px-1.5 py-0.5 text-neutral-400 hover:text-white rounded transition"
+              className="px-1.5 py-0.5 text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white rounded transition cursor-pointer"
               title="Renumber as i., ii., iii."
             >
               i, ii
             </button>
-            <span className="text-neutral-700">|</span>
+            <span className="text-neutral-300 dark:text-neutral-700">|</span>
             <button
               onClick={() => onRenumberQuestions(activeSection.id, 'decimal')}
-              className="px-1.5 py-0.5 text-neutral-400 hover:text-white rounded transition"
+              className="px-1.5 py-0.5 text-neutral-600 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white rounded transition cursor-pointer"
               title="Renumber as 1., 2., 3."
             >
               1, 2
@@ -389,7 +389,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
           {/* Expand/Collapse All */}
           <button
             onClick={Object.keys(expandedQuestionIds).length > 0 ? collapseAll : expandAll}
-            className="text-[11px] text-neutral-400 hover:text-white transition px-2 py-0.5 rounded hover:bg-neutral-900 cursor-pointer"
+            className="text-[11px] text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-900 transition px-2 py-0.5 rounded cursor-pointer"
           >
             {Object.keys(expandedQuestionIds).length > 0 ? 'Collapse All' : 'Expand All'}
           </button>
@@ -411,10 +411,10 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
               onDrop={(e) => handleDrop(e, index)}
               className={`rounded-xl border transition-all duration-100 ${
                 isDragging
-                  ? 'opacity-30 border-white bg-neutral-900'
+                  ? 'opacity-30 border-neutral-900 bg-neutral-100 dark:border-white dark:bg-neutral-900'
                   : isDragOver
-                  ? 'border-white bg-neutral-900'
-                  : 'border-neutral-800 bg-neutral-950 hover:border-neutral-700'
+                  ? 'border-neutral-900 bg-neutral-100 dark:border-white dark:bg-neutral-900'
+                  : 'border-neutral-200 bg-neutral-50 hover:border-neutral-300 dark:border-neutral-800 dark:bg-neutral-950 dark:hover:border-neutral-700'
               }`}
             >
               {/* Question Row (Compact Summary) */}
@@ -424,7 +424,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                   draggable
                   onDragStart={(e) => handleDragStart(e, index)}
                   onDragEnd={handleDragEnd}
-                  className="cursor-grab active:cursor-grabbing p-1 text-neutral-500 hover:text-white rounded transition select-none"
+                  className="cursor-grab active:cursor-grabbing p-1 text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-white rounded transition select-none"
                   title="Drag and drop to rearrange"
                 >
                   <GripVertical className="w-3.5 h-3.5" />
@@ -433,7 +433,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                 {/* Expand / Collapse Chevron */}
                 <button
                   onClick={() => toggleExpand(q.id)}
-                  className="p-1 text-neutral-400 hover:text-white transition cursor-pointer"
+                  className="p-1 text-neutral-500 hover:text-neutral-900 dark:text-neutral-400 dark:hover:text-white transition cursor-pointer"
                   title={isExpanded ? 'Collapse' : 'Expand question'}
                 >
                   {isExpanded ? (
@@ -450,32 +450,32 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                   onChange={(e) =>
                     onUpdateQuestion(activeSection.id, q.id, { number: e.target.value })
                   }
-                  className="w-8 text-center bg-black border border-neutral-800 rounded py-0.5 text-xs font-bold text-white focus:outline-hidden"
+                  className="w-8 text-center bg-white dark:bg-black border border-neutral-300 dark:border-neutral-800 rounded py-0.5 text-xs font-bold text-neutral-900 dark:text-white focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
                 />
 
                 {/* Question Summary Text (Click to expand) */}
                 <div
                   onClick={() => toggleExpand(q.id)}
-                  className="flex-1 min-w-0 text-xs text-white truncate cursor-pointer hover:text-neutral-300 transition"
+                  className="flex-1 min-w-0 text-xs text-neutral-900 dark:text-white truncate cursor-pointer hover:text-neutral-600 dark:hover:text-neutral-300 transition"
                   title="Click to expand/edit question"
                 >
                   {q.text || 'Empty question prompt...'}
                 </div>
 
                 {/* Marks tag */}
-                <span className="text-[10px] text-neutral-400 font-mono px-1.5 py-0.5 rounded bg-black border border-neutral-800 shrink-0">
+                <span className="text-[10px] text-neutral-600 dark:text-neutral-400 font-mono px-1.5 py-0.5 rounded bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 shrink-0">
                   {q.marks || 1} M
                 </span>
 
                 {/* Question Type tag */}
-                <span className="text-[9px] uppercase tracking-wider text-neutral-400 px-1.5 py-0.5 rounded bg-neutral-900 shrink-0">
+                <span className="text-[9px] uppercase tracking-wider text-neutral-600 dark:text-neutral-400 px-1.5 py-0.5 rounded bg-neutral-200/80 dark:bg-neutral-900 shrink-0">
                   {q.type}
                 </span>
 
                 {/* Answer Key Badge if present */}
                 {q.answerKey && (
                   <span
-                    className="text-[9px] text-white px-1.5 py-0.5 rounded bg-neutral-900 border border-neutral-700 shrink-0 font-mono truncate max-w-[90px]"
+                    className="text-[9px] text-neutral-900 dark:text-white px-1.5 py-0.5 rounded bg-neutral-200/70 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 shrink-0 font-mono truncate max-w-[90px]"
                     title={`Answer Key: ${q.answerKey}`}
                   >
                     Key: {q.answerKey}
@@ -487,7 +487,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                   <button
                     disabled={index === 0}
                     onClick={() => onReorderQuestions(activeSection.id, index, index - 1)}
-                    className="p-1 text-neutral-500 hover:text-white disabled:opacity-20 transition"
+                    className="p-1 text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-white disabled:opacity-20 transition cursor-pointer"
                     title="Move Up"
                   >
                     <ChevronUp className="w-3 h-3" />
@@ -495,7 +495,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                   <button
                     disabled={index === activeSection.questions.length - 1}
                     onClick={() => onReorderQuestions(activeSection.id, index, index + 1)}
-                    className="p-1 text-neutral-500 hover:text-white disabled:opacity-20 transition"
+                    className="p-1 text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-white disabled:opacity-20 transition cursor-pointer"
                     title="Move Down"
                   >
                     <ChevronDown className="w-3 h-3" />
@@ -505,7 +505,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                 {/* Duplicate */}
                 <button
                   onClick={() => onDuplicateQuestion(activeSection.id, q.id)}
-                  className="p-1 text-neutral-500 hover:text-white transition"
+                  className="p-1 text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-white transition cursor-pointer"
                   title="Duplicate question"
                 >
                   <Copy className="w-3.5 h-3.5" />
@@ -514,7 +514,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                 {/* Delete */}
                 <button
                   onClick={() => onDeleteQuestion(activeSection.id, q.id)}
-                  className="p-1 text-neutral-500 hover:text-white transition"
+                  className="p-1 text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-white transition cursor-pointer"
                   title="Delete question"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -523,9 +523,9 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
 
               {/* Expanded Question Form */}
               {isExpanded && (
-                <div className="p-3.5 border-t border-neutral-850 bg-black space-y-3 rounded-b-xl text-xs">
+                <div className="p-3.5 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black space-y-3 rounded-b-xl text-xs">
                   <div>
-                    <label className="block text-[10px] text-neutral-400 mb-1">
+                    <label className="block text-[10px] text-neutral-600 dark:text-neutral-400 mb-1">
                       Full Question Text
                     </label>
                     <textarea
@@ -535,13 +535,13 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                         onUpdateQuestion(activeSection.id, q.id, { text: e.target.value })
                       }
                       placeholder="Enter question text..."
-                      className="w-full bg-neutral-950 border border-neutral-800 rounded-lg p-2 text-xs text-white focus:outline-hidden focus:border-white"
+                      className="w-full bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-800 rounded-lg p-2 text-xs text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
                     />
                   </div>
 
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     <div>
-                      <label className="block text-[10px] text-neutral-400 mb-1">Marks</label>
+                      <label className="block text-[10px] text-neutral-600 dark:text-neutral-400 mb-1">Marks</label>
                       <input
                         type="number"
                         min="1"
@@ -565,11 +565,11 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                             onUpdateQuestion(activeSection.id, q.id, { marks: 1 });
                           }
                         }}
-                        className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-hidden"
+                        className="w-full bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-800 rounded-lg px-2.5 py-1 text-xs text-neutral-900 dark:text-white focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
                       />
                     </div>
                     <div>
-                      <label className="block text-[10px] text-neutral-400 mb-1">Type</label>
+                      <label className="block text-[10px] text-neutral-600 dark:text-neutral-400 mb-1">Type</label>
                       <select
                         value={q.type}
                         onChange={(e) => {
@@ -586,7 +586,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                           }
                           onUpdateQuestion(activeSection.id, q.id, updates);
                         }}
-                        className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-hidden"
+                        className="w-full bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-800 rounded-lg px-2.5 py-1 text-xs text-neutral-900 dark:text-white focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
                       >
                         <option value="mcq">MCQ</option>
                         <option value="short">Short Answer</option>
@@ -595,7 +595,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                     </div>
                     {q.type === 'mcq' && (
                       <div>
-                        <label className="block text-[10px] text-neutral-400 mb-1">
+                        <label className="block text-[10px] text-neutral-600 dark:text-neutral-400 mb-1">
                           MCQ Columns
                         </label>
                         <select
@@ -605,7 +605,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                               optionColumns: Number(e.target.value) as 2 | 4,
                             })
                           }
-                          className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-hidden"
+                          className="w-full bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-800 rounded-lg px-2.5 py-1 text-xs text-neutral-900 dark:text-white focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
                         >
                           <option value="2">2 Columns (Board Style)</option>
                           <option value="4">4 Columns</option>
@@ -616,8 +616,8 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
 
                   {/* MCQ Options Editor */}
                   {q.type === 'mcq' && q.options && (
-                    <div className="space-y-1.5 pt-1 border-t border-neutral-850">
-                      <div className="text-[10px] font-semibold text-neutral-400">
+                    <div className="space-y-1.5 pt-1 border-t border-neutral-200 dark:border-neutral-800">
+                      <div className="text-[10px] font-semibold text-neutral-600 dark:text-neutral-400">
                         Options (a, b, c, d)
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -631,7 +631,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                                 newOptions[optIdx] = { ...opt, label: e.target.value };
                                 onUpdateQuestion(activeSection.id, q.id, { options: newOptions });
                               }}
-                              className="w-8 text-center bg-neutral-950 border border-neutral-800 rounded py-1 text-xs font-semibold text-white focus:outline-hidden"
+                              className="w-8 text-center bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-800 rounded py-1 text-xs font-semibold text-neutral-900 dark:text-white focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
                             />
                             <input
                               type="text"
@@ -642,7 +642,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                                 onUpdateQuestion(activeSection.id, q.id, { options: newOptions });
                               }}
                               placeholder={`Option ${opt.label}`}
-                              className="flex-1 bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1 text-xs text-white focus:outline-hidden"
+                              className="flex-1 bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-800 rounded px-2.5 py-1 text-xs text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
                             />
                           </div>
                         ))}
@@ -651,8 +651,8 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                   )}
 
                   {/* Answer Key Input */}
-                  <div className="pt-2 border-t border-neutral-850">
-                    <label className="block text-[10px] text-neutral-400 mb-1">
+                  <div className="pt-2 border-t border-neutral-200 dark:border-neutral-800">
+                    <label className="block text-[10px] text-neutral-600 dark:text-neutral-400 mb-1">
                       Answer Key / Model Solution
                     </label>
                     <input
@@ -662,7 +662,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                         onUpdateQuestion(activeSection.id, q.id, { answerKey: e.target.value })
                       }
                       placeholder="e.g. (b) Only two values"
-                      className="w-full bg-neutral-950 border border-neutral-800 rounded px-2.5 py-1 text-xs text-white focus:outline-hidden"
+                      className="w-full bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-800 rounded px-2.5 py-1 text-xs text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
                     />
                   </div>
                 </div>
@@ -677,23 +677,23 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
         <div className="flex gap-2">
           <button
             onClick={() => onAddQuestion(activeSection.id, 'mcq')}
-            className="flex-1 py-2 px-3 bg-white text-black font-semibold text-xs rounded-lg hover:bg-neutral-200 transition flex items-center justify-center gap-1.5 cursor-pointer"
+            className="flex-1 py-2 px-3 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black font-semibold text-xs rounded-lg dark:hover:bg-neutral-200 transition flex items-center justify-center gap-1.5 cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5 text-black" />
+            <Plus className="w-3.5 h-3.5 text-white dark:text-black" />
             <span>Add MCQ</span>
           </button>
           <button
             onClick={() => onAddQuestion(activeSection.id, 'short')}
-            className="flex-1 py-2 px-3 bg-neutral-900 border border-neutral-800 text-white font-medium text-xs rounded-lg hover:bg-neutral-850 transition flex items-center justify-center gap-1.5 cursor-pointer"
+            className="flex-1 py-2 px-3 bg-neutral-100 border border-neutral-300 text-neutral-900 hover:bg-neutral-200 dark:bg-neutral-900 dark:border-neutral-800 dark:text-white font-medium text-xs rounded-lg dark:hover:bg-neutral-800 transition flex items-center justify-center gap-1.5 cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5 text-neutral-400" />
+            <Plus className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
             <span>Add Short</span>
           </button>
           <button
             onClick={() => onAddQuestion(activeSection.id, 'detailed')}
-            className="flex-1 py-2 px-3 bg-neutral-900 border border-neutral-800 text-white font-medium text-xs rounded-lg hover:bg-neutral-850 transition flex items-center justify-center gap-1.5 cursor-pointer"
+            className="flex-1 py-2 px-3 bg-neutral-100 border border-neutral-300 text-neutral-900 hover:bg-neutral-200 dark:bg-neutral-900 dark:border-neutral-800 dark:text-white font-medium text-xs rounded-lg dark:hover:bg-neutral-800 transition flex items-center justify-center gap-1.5 cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5 text-neutral-400" />
+            <Plus className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
             <span>Add Detailed</span>
           </button>
         </div>
@@ -701,10 +701,10 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
         {/* Mass JSON Question Button */}
         <button
           onClick={onOpenMassJson}
-          className="w-full py-2 px-3 bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-white font-medium text-xs rounded-lg transition flex items-center justify-center gap-2 cursor-pointer"
+          className="w-full py-2 px-3 bg-neutral-50 border border-neutral-300 hover:border-neutral-400 text-neutral-900 dark:bg-neutral-950 dark:border-neutral-800 dark:hover:border-neutral-700 dark:text-white font-medium text-xs rounded-lg transition flex items-center justify-center gap-2 cursor-pointer"
           title="Import or export multiple questions via JSON"
         >
-          <Code2 className="w-3.5 h-3.5 text-neutral-400" />
+          <Code2 className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
           <span>Mass Add / Export Questions via JSON</span>
         </button>
       </div>
