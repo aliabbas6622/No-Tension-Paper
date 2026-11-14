@@ -148,16 +148,20 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
     [banks, activeBankId]
   );
 
+  const rawBankQuestions = useMemo(
+    () => (activeBank ? buildBankQuestions(activeBank.units) : []),
+    [activeBank]
+  );
+
   const allBankQuestions = useMemo(() => {
-    if (!activeBank) return [];
-    const raw = buildBankQuestions(activeBank.units);
+    const enabledOnly = rawBankQuestions.filter((bq) => !bq.isFillInTheBlank);
     if (!patternSeed || patternSeed.excludedQuestionTexts.length === 0) {
-      return raw;
+      return enabledOnly;
     }
-    return raw.filter(
+    return enabledOnly.filter(
       (bq) => !isSimilarToPastQuestion(bq.question.text, patternSeed.excludedQuestionTexts)
     );
-  }, [activeBank, patternSeed]);
+  }, [rawBankQuestions, patternSeed]);
 
   // Initialize chapter selection + equal weights whenever bank changes
   useEffect(() => {
@@ -211,6 +215,13 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
     });
     return totals;
   }, [selectedChapters]);
+
+  const blanksCountInSelectedChapters = useMemo(() => {
+    const selectedSet = new Set(selectedChapters.map((c) => c.unitIndex));
+    return rawBankQuestions.filter(
+      (q) => q.isFillInTheBlank && selectedSet.has(q.unitIndex)
+    ).length;
+  }, [rawBankQuestions, selectedChapters]);
 
   const totalWeightSum = useMemo(
     () => selectedChapters.reduce((sum, c) => sum + Math.max(0, c.weight), 0),
@@ -869,6 +880,19 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
                       </div>
                     );
                   })}
+                  <div className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-neutral-50/70 dark:bg-black/40 opacity-65">
+                    <div className="min-w-0 space-y-0.5">
+                      <div className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 flex items-center gap-2">
+                        <span className="line-through">Fill in the Blanks</span>
+                        <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded border border-dashed border-neutral-300 dark:border-neutral-700 text-neutral-500 dark:text-neutral-400">
+                          Disabled (Not in Past Paper)
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-neutral-500 dark:text-neutral-500 font-mono tabular-nums">
+                        In selected chapters: {blanksCountInSelectedChapters} · Excluded from paper generation for now
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
 

@@ -150,11 +150,11 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
     }
   }, [preferSyncFromPaper, hasAutoSynced, allQuestions.length, inPaperKeys]);
 
-  // One entry per curriculum unit ("chapter"), with its question counts.
+  // One entry per curriculum unit ("chapter"), with its enabled question counts (Blanks excluded while disabled).
   const chapters = useMemo(() => {
     if (!activeBank) return [];
     return activeBank.units.map((unit, index) => {
-      const questions = allQuestions.filter((q) => q.unitIndex === index);
+      const questions = allQuestions.filter((q) => q.unitIndex === index && !q.isFillInTheBlank);
       const counts: Record<QuestionKind, number> = { mcq: 0, short: 0, detailed: 0 };
       questions.forEach((q) => {
         counts[q.kind] += 1;
@@ -173,6 +173,8 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
     const needle = search.trim().toLowerCase();
 
     return allQuestions.filter((bq) => {
+      // Fill in the Blanks are disabled for now (not in past paper)
+      if (bq.isFillInTheBlank) return false;
       if (
         patternSeed &&
         excludeSeedPastQs &&
@@ -196,12 +198,22 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
 
       return haystack.includes(needle);
     });
-  }, [allQuestions, activeChapter, kindFilter, search]);
+  }, [allQuestions, activeChapter, kindFilter, search, patternSeed, excludeSeedPastQs]);
 
   const chapterKindCounts = useMemo(() => {
-    const counts: Record<'all' | QuestionKind, number> = { all: 0, mcq: 0, short: 0, detailed: 0 };
+    const counts: Record<'all' | QuestionKind | 'blanks', number> = {
+      all: 0,
+      mcq: 0,
+      short: 0,
+      detailed: 0,
+      blanks: 0,
+    };
     allQuestions.forEach((q) => {
       if (activeChapter !== ALL_CHAPTERS && q.unitIndex !== activeChapter) return;
+      if (q.isFillInTheBlank) {
+        counts.blanks += 1;
+        return;
+      }
       counts.all += 1;
       counts[q.kind] += 1;
     });
@@ -583,10 +595,11 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
                   />
                 </div>
 
-                <div className="flex items-center gap-1 shrink-0">
+                <div className="flex items-center gap-1 shrink-0 flex-wrap">
                   {(['all', 'mcq', 'short', 'detailed'] as const).map((kind) => (
                     <button
                       key={kind}
+                      type="button"
                       onClick={() => setKindFilter(kind)}
                       className={`px-2 py-1 rounded-md text-[11px] font-medium transition cursor-pointer ${
                         kindFilter === kind
@@ -598,6 +611,19 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
                       <span className="ml-1 font-mono opacity-60">{chapterKindCounts[kind]}</span>
                     </button>
                   ))}
+                  <button
+                    type="button"
+                    disabled
+                    aria-disabled="true"
+                    title="Fill in the Blanks are disabled for now because they were not in the past paper"
+                    className="px-2 py-1 rounded-md text-[11px] font-medium border border-dashed border-neutral-300 bg-neutral-100 text-neutral-400 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-600 cursor-not-allowed flex items-center gap-1"
+                  >
+                    <span className="line-through">Blanks</span>
+                    <span className="font-mono opacity-75">{chapterKindCounts.blanks}</span>
+                    <span className="text-[9px] uppercase tracking-wider px-1 rounded bg-neutral-200/80 text-neutral-500 dark:bg-neutral-900 dark:text-neutral-500">
+                      Off
+                    </span>
+                  </button>
                 </div>
               </div>
             </div>

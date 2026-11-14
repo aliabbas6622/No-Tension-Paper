@@ -289,9 +289,7 @@ export async function executeSelectQuestions(body: SelectQuestionsRequestBody) {
   const rawCandidates = Array.isArray(body.candidates) ? body.candidates : [];
 
   const excludeBlanks =
-    body.excludeFillInBlanks !== undefined
-      ? body.excludeFillInBlanks
-      : shouldExcludeBlanksFromPrompt(body.focusPrompt);
+    body.excludeFillInBlanks !== false || shouldExcludeBlanksFromPrompt(body.focusPrompt);
 
   const candidates = excludeBlanks
     ? rawCandidates.filter((c) => !isBlankQuestionCandidate(c))
@@ -694,7 +692,7 @@ export async function executeRefinePaper(body: RefinePaperRequestBody) {
   const instruction = (body.instruction || '').trim();
   const currentSections = Array.isArray(body.sections) ? body.sections : [];
   const rawCandidates = Array.isArray(body.candidates) ? body.candidates : [];
-  const excludeBlanks = shouldExcludeBlanksFromPrompt(instruction);
+  const excludeBlanks = true;
   const candidates = excludeBlanks
     ? rawCandidates.filter((c) => !isBlankQuestionCandidate(c))
     : rawCandidates;

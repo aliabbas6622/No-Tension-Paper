@@ -88,7 +88,8 @@ export const PastPaperPatternModal: React.FC<PastPaperPatternModalProps> = ({
   const [manualChapterFilter, setManualChapterFilter] = useState<number>(-1);
   const [manualSearch, setManualSearch] = useState('');
   const [excludePastQuestions, setExcludePastQuestions] = useState(true);
-  const [excludeFillInBlanks, setExcludeFillInBlanks] = useState(true);
+  // Fill in the Blanks are disabled for now because they were not included in past papers
+  const excludeFillInBlanks = true;
 
   useEffect(() => {
     if (!isOpen || !pastPaper) return;
@@ -160,6 +161,11 @@ export const PastPaperPatternModal: React.FC<PastPaperPatternModalProps> = ({
   const pastTexts = useMemo(
     () => (pastPaper ? extractPastPaperQuestionTexts(pastPaper.paper) : []),
     [pastPaper]
+  );
+
+  const blanksCountInBank = useMemo(
+    () => allBankQuestions.filter((bq) => bq.isFillInTheBlank).length,
+    [allBankQuestions]
   );
 
   const eligibleBankQuestions = useMemo(() => {
@@ -656,14 +662,14 @@ export const PastPaperPatternModal: React.FC<PastPaperPatternModalProps> = ({
                       <div className="flex items-center gap-3">
                         <button
                           type="button"
-                          onClick={() => setExcludeFillInBlanks((v) => !v)}
-                          className={`px-2 py-0.5 rounded border text-[10px] font-medium cursor-pointer transition ${
-                            excludeFillInBlanks
-                              ? 'bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-black dark:border-white'
-                              : 'bg-white text-neutral-600 border-neutral-300 dark:bg-neutral-950 dark:text-neutral-400 dark:border-neutral-700'
-                          }`}
+                          disabled
+                          aria-disabled="true"
+                          title="Fill in the Blanks are disabled for now because they were not in the past paper"
+                          className="px-2 py-0.5 rounded border border-dashed text-[10px] font-medium bg-neutral-100 text-neutral-400 border-neutral-300 dark:bg-neutral-950 dark:text-neutral-600 dark:border-neutral-800 cursor-not-allowed flex items-center gap-1"
                         >
-                          {excludeFillInBlanks ? 'Excluding Fill-in-Blanks' : 'Including Fill-in-Blanks'}
+                          <span className="line-through">Blanks</span>
+                          <span className="font-mono">{blanksCountInBank}</span>
+                          <span>· Disabled (not in past paper)</span>
                         </button>
                         <button
                           type="button"
@@ -981,17 +987,6 @@ export const PastPaperPatternModal: React.FC<PastPaperPatternModalProps> = ({
                         </button>
                         <button
                           type="button"
-                          onClick={() => setExcludeFillInBlanks((v) => !v)}
-                          className={`px-2.5 py-1.5 rounded-lg border text-[11px] font-medium cursor-pointer transition ${
-                            excludeFillInBlanks
-                              ? 'bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-black dark:border-white'
-                              : 'bg-white text-neutral-700 border-neutral-300 dark:bg-neutral-900 dark:text-neutral-300 dark:border-neutral-700'
-                          }`}
-                        >
-                          {excludeFillInBlanks ? 'No Blanks' : 'With Blanks'}
-                        </button>
-                        <button
-                          type="button"
                           onClick={() => setExcludePastQuestions((v) => !v)}
                           className={`px-2.5 py-1.5 rounded-lg border text-[11px] font-medium cursor-pointer transition ${
                             excludePastQuestions
@@ -1010,6 +1005,60 @@ export const PastPaperPatternModal: React.FC<PastPaperPatternModalProps> = ({
                           <span>{showAnswers ? 'Hide Keys' : 'Show Keys'}</span>
                         </button>
                       </div>
+                    </div>
+
+                    {/* Type Filter Tabs (MCQs, Short, Detailed + Disabled Blanks) */}
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {pastPaper.sectionPatterns.map((sp, idx) => {
+                        const avail = eligibleBankQuestions.filter(
+                          (bq) =>
+                            bq.kind === sp.kind &&
+                            (manualChapterFilter === -1 || bq.unitIndex === manualChapterFilter)
+                        ).length;
+                        const active = manualSectionIdx === idx;
+                        return (
+                          <button
+                            key={sp.name}
+                            type="button"
+                            onClick={() => setManualSectionIdx(idx)}
+                            className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer flex items-center gap-1.5 ${
+                              active
+                                ? 'bg-neutral-900 text-white dark:bg-white dark:text-black'
+                                : 'bg-white text-neutral-600 hover:text-neutral-900 border border-neutral-200 dark:bg-neutral-950 dark:text-neutral-400 dark:hover:text-white dark:border-neutral-800'
+                            }`}
+                          >
+                            <span>
+                              {sp.kind === 'mcq'
+                                ? 'MCQs'
+                                : sp.kind === 'short'
+                                ? 'Short'
+                                : 'Detailed'}
+                            </span>
+                            <span className="font-mono opacity-70">{avail}</span>
+                          </button>
+                        );
+                      })}
+                      <button
+                        type="button"
+                        disabled
+                        aria-disabled="true"
+                        title="Fill in the Blanks are disabled for now because they were not in the past paper"
+                        className="px-2.5 py-1 rounded-md text-[11px] font-medium border border-dashed border-neutral-300 bg-neutral-100 text-neutral-400 dark:border-neutral-800 dark:bg-neutral-950 dark:text-neutral-600 cursor-not-allowed flex items-center gap-1.5"
+                      >
+                        <span className="line-through">Blanks</span>
+                        <span className="font-mono opacity-75">
+                          {
+                            allBankQuestions.filter(
+                              (bq) =>
+                                bq.isFillInTheBlank &&
+                                (manualChapterFilter === -1 || bq.unitIndex === manualChapterFilter)
+                            ).length
+                          }
+                        </span>
+                        <span className="text-[9px] uppercase tracking-wider px-1 rounded bg-neutral-200/80 text-neutral-500 dark:bg-neutral-900 dark:text-neutral-500">
+                          Off
+                        </span>
+                      </button>
                     </div>
 
                     {/* Chapter filter + Search */}
