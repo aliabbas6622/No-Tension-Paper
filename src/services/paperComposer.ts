@@ -191,16 +191,21 @@ function sectionTotalMarks(section: ExamSection): number {
   return section.questions.reduce((acc, q) => acc + (q.marks || 0), 0);
 }
 
+export function refreshSectionMarksBadge(section: ExamSection): ExamSection {
+  const badge = (section.marksBadge || '').trim();
+  if (!badge || /^\d+\s*marks?$/i.test(badge)) {
+    return { ...section, marksBadge: `${sectionTotalMarks(section)} Marks` };
+  }
+  return section;
+}
+
 /**
  * Keep the "10 Marks" badge in step with the questions actually present, but
  * only when it follows that numeric pattern — a hand-written badge is a
  * deliberate note and is left untouched.
  */
 function refreshMarksBadge(section: ExamSection) {
-  const badge = (section.marksBadge || '').trim();
-  if (!badge || /^\d+\s*marks?$/i.test(badge)) {
-    section.marksBadge = `${sectionTotalMarks(section)} Marks`;
-  }
+  section.marksBadge = refreshSectionMarksBadge(section).marksBadge;
 }
 
 const SECTION_LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
@@ -260,8 +265,11 @@ export function mergeQuestionsIntoPaper(paper: ExamPaper, incoming: Question[]):
       sections.push(target);
     }
 
+    const existingQuestions = target.questions;
+    questions.forEach((question, index) => {
+      question.number = nextQuestionNumber(existingQuestions, index);
+    });
     target.questions.push(...questions);
-    renumber(target.questions);
     refreshMarksBadge(target);
   });
 
@@ -283,6 +291,41 @@ function formatPatternNum(
     'xi.', 'xii.', 'xiii.', 'xiv.', 'xv.', 'xvi.', 'xvii.', 'xviii.', 'xix.', 'xx.',
   ];
   return roman[idx] || `${idx + 1}.`;
+}
+
+function romanNumeralValue(value: string): number {
+  const numeralValues: Record<string, number> = { i: 1, v: 5, x: 10, l: 50, c: 100, d: 500, m: 1000 };
+  let total = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    const current = numeralValues[value[index].toLowerCase()];
+    const next = numeralValues[value[index + 1]?.toLowerCase()] || 0;
+    total += current < next ? -current : current;
+  }
+  return total;
+}
+
+export function nextQuestionNumber(questions: Question[], offset = 0): string {
+  const lastNumber = questions[questions.length - 1]?.number.trim() || '';
+  const numeric = lastNumber.match(/^(.*?)(\d+)([.)]?)$/);
+  if (numeric) {
+    return `${numeric[1]}${Number(numeric[2]) + offset + 1}${numeric[3]}`;
+  }
+
+  const roman = lastNumber.match(/^([ivxlcdm]+)\.$/i);
+  if (roman) {
+    const next = formatPatternNum(romanNumeralValue(roman[1]) + offset);
+    return roman[1] === roman[1].toUpperCase() ? next.toUpperCase() : next;
+  }
+
+  const alpha = lastNumber.match(/^([a-z])([.)]?)$/i);
+  if (alpha) {
+    const next = alpha[1].toLowerCase().charCodeAt(0) + offset + 1;
+    if (next <= 'z'.charCodeAt(0)) {
+      return `${String.fromCharCode(next)}${alpha[2]}`;
+    }
+  }
+
+  return formatPatternNum(questions.length + offset);
 }
 
 /**

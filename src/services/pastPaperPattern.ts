@@ -6,7 +6,13 @@ import {
   PastPaperSectionPattern,
   Question,
 } from '../types/exam';
-import { BankQuestion, QuestionKind, buildBankQuestions } from './paperComposer';
+import {
+  BankQuestion,
+  QuestionKind,
+  buildBankQuestions,
+  nextQuestionNumber,
+  refreshSectionMarksBadge,
+} from './paperComposer';
 import { QuestionBank } from './questionBank';
 
 export type PatternGenerationEngine = 'bank' | 'ai-db' | 'ai' | 'manual';
@@ -880,11 +886,16 @@ export async function refinePaperWithAI(params: {
       rawSec.name.toUpperCase().includes('C');
 
     const questions: Question[] = (rawSec.questions || []).map((rq, qIdx) => {
+      const previousQuestionById = rq.id ? existingQById.get(rq.id) : undefined;
+      const previousQuestionAtPosition = existingSec?.questions[qIdx];
+      const existingQuestions = existingSec?.questions || [];
       const bankMatch = rq.bankKey ? bankByKey.get(rq.bankKey) : undefined;
-      const numStr = formatQuestionNumber(
-        qIdx,
-        isSectionCFrom3 ? 'section-c-from-3' : 'roman'
-      );
+      const numStr =
+        previousQuestionAtPosition?.number ||
+        previousQuestionById?.number ||
+        (existingQuestions.length > 0 && qIdx >= existingQuestions.length
+          ? nextQuestionNumber(existingQuestions, qIdx - existingQuestions.length)
+          : formatQuestionNumber(qIdx, isSectionCFrom3 ? 'section-c-from-3' : 'roman'));
 
       if (bankMatch) {
         const cloned = JSON.parse(JSON.stringify(bankMatch.question)) as Question;
@@ -904,7 +915,7 @@ export async function refinePaperWithAI(params: {
         };
       }
 
-      const prevQ = rq.id ? existingQById.get(rq.id) : undefined;
+      const prevQ = previousQuestionById || previousQuestionAtPosition;
       const fallbackKind: QuestionKind =
         prevQ?.type === 'mcq' || prevQ?.type === 'short' || prevQ?.type === 'detailed'
           ? prevQ.type
@@ -914,55 +925,82 @@ export async function refinePaperWithAI(params: {
           ? rq.type
           : fallbackKind;
 
+      const text = String(rq.text || prevQ?.text || '').trim();
+      const returnedOptions = Array.isArray(rq.options) ? rq.options : [];
+      const hasFourOptions =
+        returnedOptions.length >= 4 &&
+        returnedOptions
+          .slice(0, 4)
+          .every((option) => typeof option === 'string' && option.trim().length > 0);
+      const canReuseOptions =
+        prevQ?.type === 'mcq' &&
+        normalizeText(text) === normalizeText(prevQ.text) &&
+        (prevQ.options?.length || 0) >= 4;
+      if (qType === 'mcq' && !hasFourOptions && !canReuseOptions) {
+        throw new Error(
+          `AI did not return four answer options for question ${numStr}. Your paper was not modified.`
+        );
+      }
+
       const options =
         qType === 'mcq'
-          ? Array.isArray(rq.options) && rq.options.length > 0
-            ? rq.options.slice(0, 4).map((optText, optIdx) => ({
+          ? hasFourOptions
+            ? returnedOptions.slice(0, 4).map((optText, optIdx) => ({
                 id: `opt-ai-ref-${ts}-${secIdx}-${qIdx}-${optIdx}`,
                 label: labels[optIdx] || `(${String.fromCharCode(97 + optIdx)})`,
                 text: String(optText).replace(/^\([a-dA-D]\)\s*/, '').trim(),
               }))
             : prevQ?.options
           : undefined;
+      const answerKey =
+        rq.answerKey !== undefined
+          ? String(rq.answerKey).trim()
+          : prevQ?.type === qType
+            ? prevQ.answerKey
+            : undefined;
 
       return {
         id: prevQ?.id || `q-ai-ref-${ts}-${secIdx}-${qIdx}-${Math.random().toString(36).substring(2, 5)}`,
         number: numStr,
         type: qType,
-        text: String(rq.text || prevQ?.text || '').trim(),
+        text,
         marks: rq.marks ?? prevQ?.marks ?? existingSec?.questions[0]?.marks ?? 1,
         ...(options ? { options, optionColumns: prevQ?.optionColumns || 2 } : {}),
-        ...(rq.answerKey || prevQ?.answerKey
-          ? { answerKey: String(rq.answerKey || prevQ?.answerKey || '').trim() }
-          : {}),
+        ...(answerKey !== undefined ? { answerKey } : {}),
       };
     });
 
     const computedMarks = questions.reduce((sum, q) => sum + (q.marks || 1), 0);
-    const keepExistingBadge =
-      existingSec &&
-      existingSec.questions.length === questions.length &&
-      existingSec.marksBadge;
-
-    return {
+    return refreshSectionMarksBadge({
       id: existingSec?.id || rawSec.id || `sec-ai-ref-${ts}-${secIdx}`,
       name: rawSec.name || existingSec?.name || `SECTION ${secIdx + 1}`,
       subtitle: rawSec.subtitle ?? existingSec?.subtitle ?? '',
-      marksBadge: keepExistingBadge ? existingSec.marksBadge : `${computedMarks} Marks`,
+      marksBadge: existingSec?.marksBadge || `${computedMarks} Marks`,
       instruction: rawSec.instruction ?? existingSec?.instruction ?? '',
       questions,
-    };
+    });
   });
 
   const totalComputedMarks = nextSections.reduce(
-    (sum, sec) => sum + sec.questions.reduce((qs, q) => qs + (q.marks || 1), 0),
+    (sum, sec) => sum + sec.questions.reduce((qs, q) => qs + (q.marks ?? 1), 0),
     0
   );
 
   // Preserve pattern maxMarks if section counts didn't shrink/grow total
   const sameCounts =
     nextSections.length === paper.sections.length &&
-    nextSections.every((s, idx) => s.questions.length === paper.sections[idx]?.questions.length);
+    nextSections.every(
+      (section) =>
+        section.questions.length ===
+        paper.sections.find((existing) => existing.id === section.id)?.questions.length
+    );
+  const previousTotalMarks = paper.sections.reduce(
+    (sum, section) =>
+      sum +
+      section.questions.reduce((total, question) => total + (question.marks ?? 1), 0),
+    0
+  );
+  const keepCustomMaxMarks = sameCounts && Number(paper.header.maxMarks) !== previousTotalMarks;
 
   return {
     updatedPaper: {
@@ -970,7 +1008,7 @@ export async function refinePaperWithAI(params: {
       sections: nextSections,
       header: {
         ...paper.header,
-        maxMarks: sameCounts ? paper.header.maxMarks : String(totalComputedMarks),
+        maxMarks: keepCustomMaxMarks ? paper.header.maxMarks : String(totalComputedMarks),
       },
       updatedAt: new Date().toISOString(),
     },

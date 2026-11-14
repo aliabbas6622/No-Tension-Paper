@@ -195,7 +195,8 @@ let hydrogenBusyUntil = 0;
 
 /**
  * Retries transient 503/429 Gemini errors and falls back from gemini-4-hydrogen
- * to gemini-3.1-flash-lite with a 45s cooldown when hydrogen is experiencing high demand.
+ * to gemini-3.5-flash-lite, then gemini-3.1-flash-lite, with a 45s cooldown
+ * when hydrogen is experiencing high demand.
  */
 async function generateContentWithRetry(
   ai: GoogleGenAI,
@@ -203,8 +204,8 @@ async function generateContentWithRetry(
 ) {
   const hydrogenBusy = Date.now() < hydrogenBusyUntil;
   const modelsToTry = hydrogenBusy
-    ? ['gemini-3.1-flash-lite', 'gemini-4-hydrogen']
-    : ['gemini-4-hydrogen', 'gemini-3.1-flash-lite', 'gemini-3.1-flash-lite'];
+    ? ['gemini-3.5-flash-lite', 'gemini-3.1-flash-lite', 'gemini-4-hydrogen']
+    : ['gemini-4-hydrogen', 'gemini-3.5-flash-lite', 'gemini-3.1-flash-lite'];
   let lastError: unknown;
 
   for (let attempt = 0; attempt < modelsToTry.length; attempt += 1) {

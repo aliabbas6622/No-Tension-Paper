@@ -15,7 +15,9 @@ import {
   ChevronRight,
   ChevronUp,
   Code2,
+  BookOpen,
 } from 'lucide-react';
+import { QuestionBankReplaceModal } from './QuestionBankReplaceModal';
 
 interface EditorPanelProps {
   paper: ExamPaper;
@@ -30,6 +32,7 @@ interface EditorPanelProps {
   onDeleteQuestion: (sectionId: string, questionId: string) => void;
   onDuplicateQuestion: (sectionId: string, questionId: string) => void;
   onRenumberQuestions: (sectionId: string, style: 'roman' | 'decimal' | 'alpha') => void;
+  excludedQuestionTexts?: string[];
   onOpenMassJson: () => void;
 }
 
@@ -46,11 +49,13 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
   onDeleteQuestion,
   onDuplicateQuestion,
   onRenumberQuestions,
+  excludedQuestionTexts = [],
   onOpenMassJson,
 }) => {
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [expandedQuestionIds, setExpandedQuestionIds] = useState<Record<string, boolean>>({});
+  const [questionToReplace, setQuestionToReplace] = useState<Question | null>(null);
 
   const activeSection = paper.sections.find((s) => s.id === activeSectionId);
 
@@ -504,6 +509,14 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
 
                 {/* Duplicate */}
                 <button
+                  onClick={() => setQuestionToReplace(q)}
+                  className="p-1 text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-white transition cursor-pointer"
+                  title="Replace from question bank"
+                  aria-label={`Replace question ${q.number} from question bank`}
+                >
+                  <BookOpen className="w-3.5 h-3.5" />
+                </button>
+                <button
                   onClick={() => onDuplicateQuestion(activeSection.id, q.id)}
                   className="p-1 text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-white transition cursor-pointer"
                   title="Duplicate question"
@@ -708,6 +721,17 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
           <span>Mass Add / Export Questions via JSON</span>
         </button>
       </div>
+      {questionToReplace && (
+        <QuestionBankReplaceModal
+          paper={paper}
+          question={questionToReplace}
+          excludedQuestionTexts={excludedQuestionTexts}
+          onClose={() => setQuestionToReplace(null)}
+          onReplace={(replacement) =>
+            onUpdateQuestion(activeSection.id, questionToReplace.id, replacement)
+          }
+        />
+      )}
     </div>
   );
 };

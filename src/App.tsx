@@ -41,7 +41,12 @@ import { PastPaperPatternModal } from './components/PastPaperPatternModal';
 import { AIPaperRefinerModal } from './components/AIPaperRefinerModal';
 import { AppMode } from './components/ModeSwitcher';
 import { AppTheme } from './components/ThemeToggleButton';
-import { mergeQuestionsIntoPaper, replaceQuestionsInPaper } from './services/paperComposer';
+import {
+  mergeQuestionsIntoPaper,
+  nextQuestionNumber,
+  refreshSectionMarksBadge,
+  replaceQuestionsInPaper,
+} from './services/paperComposer';
 import { syncBundledQuestionBanks } from './services/questionBank';
 import { exportPaperToWord } from './services/wordExport';
 import { downloadPaperAsPDF, printPaperDirect } from './services/pdfExport';
@@ -57,6 +62,10 @@ interface BannerNotification {
   type: 'success' | 'loading' | 'error';
   actionLabel?: string;
   onAction?: () => void;
+}
+
+function createLocalId(prefix: string): string {
+  return `${prefix}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
 }
 
 export default function App() {
@@ -402,7 +411,7 @@ export default function App() {
       id: 'section-' + now,
       name: `SECTION "${nextLetter}"`,
       subtitle: '(ADDITIONAL QUESTIONS)',
-      marksBadge: '10 Marks',
+      marksBadge: '5 Marks',
       instruction: 'Note: Attempt all questions from this section.',
       questions: [
         {
@@ -449,30 +458,11 @@ export default function App() {
     const targetSection = paper.sections.find((s) => s.id === sectionId);
     if (!targetSection) return;
 
-    const romanNumerals = [
-      'i.',
-      'ii.',
-      'iii.',
-      'iv.',
-      'v.',
-      'vi.',
-      'vii.',
-      'viii.',
-      'ix.',
-      'x.',
-      'xi.',
-      'xii.',
-      'xiii.',
-      'xiv.',
-      'xv.',
-    ];
-    const nextNumber =
-      romanNumerals[targetSection.questions.length] ||
-      `${targetSection.questions.length + 1}.`;
+    const nextNumber = nextQuestionNumber(targetSection.questions);
 
-    const ts = Date.now();
+    const ts = createLocalId('q');
     const newQuestion: Question = {
-      id: 'q-' + ts,
+      id: ts,
       number: nextNumber,
       type,
       text:
@@ -497,10 +487,10 @@ export default function App() {
 
     const updatedSections = paper.sections.map((sec) => {
       if (sec.id !== sectionId) return sec;
-      return {
+      return refreshSectionMarksBadge({
         ...sec,
         questions: [...sec.questions, newQuestion],
-      };
+      });
     });
 
     updatePaper({
@@ -522,15 +512,31 @@ export default function App() {
 
     const targetSection = paper.sections.find((s) => s.id === currentSectionId);
     if (!targetSection) return;
+    const importBatchId = createLocalId('import');
+    const uniqueImportedQuestions = importedQuestions.map((question, index) => ({
+      ...question,
+      id: `${importBatchId}-${index}`,
+      ...(mode === 'append'
+        ? { number: nextQuestionNumber(targetSection.questions, index) }
+        : {}),
+      ...(question.options
+        ? {
+            options: question.options.map((option, optionIndex) => ({
+              ...option,
+              id: `${importBatchId}-${index}-option-${optionIndex}`,
+            })),
+          }
+        : {}),
+    }));
 
     const updatedSections = paper.sections.map((sec) => {
       if (sec.id !== currentSectionId) return sec;
       const combined =
-        mode === 'append' ? [...sec.questions, ...importedQuestions] : importedQuestions;
-      return {
+        mode === 'append' ? [...sec.questions, ...uniqueImportedQuestions] : uniqueImportedQuestions;
+      return refreshSectionMarksBadge({
         ...sec,
         questions: combined,
-      };
+      });
     });
 
     updatePaper({
@@ -555,7 +561,7 @@ export default function App() {
       const questions = sec.questions.map((q) =>
         q.id === questionId ? { ...q, ...updates } : q
       );
-      return { ...sec, questions };
+      return refreshSectionMarksBadge({ ...sec, questions });
     });
 
     updatePaper({
@@ -569,10 +575,10 @@ export default function App() {
   const handleDeleteQuestion = (sectionId: string, questionId: string) => {
     const updatedSections = paper.sections.map((sec) => {
       if (sec.id !== sectionId) return sec;
-      return {
+      return refreshSectionMarksBadge({
         ...sec,
         questions: sec.questions.filter((q) => q.id !== questionId),
-      };
+      });
     });
 
     updatePaper({
@@ -591,7 +597,7 @@ export default function App() {
     if (qIndex < 0) return;
     const source = targetSection.questions[qIndex];
 
-    const ts = Date.now();
+    const ts = createLocalId('duplicate');
     const cloned = JSON.parse(JSON.stringify(source)) as Question;
     const isLast = qIndex === targetSection.questions.length - 1;
     const cleanNum = isLast
@@ -600,7 +606,7 @@ export default function App() {
 
     const duplicate: Question = {
       ...cloned,
-      id: `q-dup-${ts}`,
+      id: ts,
       number: cleanNum,
       ...(cloned.options
         ? {
@@ -616,7 +622,9 @@ export default function App() {
     newQuestions.splice(qIndex + 1, 0, duplicate);
 
     const updatedSections = paper.sections.map((sec) =>
-      sec.id === sectionId ? { ...sec, questions: newQuestions } : sec
+      sec.id === sectionId
+        ? refreshSectionMarksBadge({ ...sec, questions: newQuestions })
+        : sec
     );
 
     updatePaper({
@@ -1124,6 +1132,7 @@ export default function App() {
                 onDeleteQuestion={handleDeleteQuestion}
                 onDuplicateQuestion={handleDuplicateQuestion}
                 onRenumberQuestions={handleRenumberQuestions}
+                excludedQuestionTexts={activePatternSeed?.excludedQuestionTexts || []}
                 onOpenMassJson={() => setIsMassJsonModalOpen(true)}
               />
             </div>
