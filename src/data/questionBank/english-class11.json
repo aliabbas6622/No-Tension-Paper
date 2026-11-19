@@ -1,0 +1,601 @@
+{
+  "curriculum_answers": [
+    {
+      "unit": "Prose 1: Democratic Citizenship",
+      "pages": ["Unit 1"],
+      "sections": [
+        {
+          "type": "Multiple Choice Questions (MCQs)",
+          "questions": [
+            {
+              "question_number": "1",
+              "question": "Quaid-e-Azam delivered his historic address to the First Constituent Assembly of Pakistan on:",
+              "options": ["(a) 14 August 1947", "(b) 11 August 1947", "(c) 23 March 1940", "(d) 15 August 1947"],
+              "answer": "(b) 11 August 1947"
+            },
+            {
+              "question_number": "2",
+              "question": "According to Quaid-e-Azam, the first and foremost duty of a government is to maintain:",
+              "options": ["(a) Foreign trade only", "(b) Law and order", "(c) Military expansion", "(d) Industrial subsidies"],
+              "answer": "(b) Law and order"
+            },
+            {
+              "question_number": "3",
+              "question": "In 'Democratic Citizenship', what did Quaid-e-Azam describe as a 'poison' that must be put down with an iron hand?",
+              "options": ["(a) Bribery and corruption", "(b) Inflation", "(c) Population growth", "(d) Urban migration"],
+              "answer": "(a) Bribery and corruption"
+            },
+            {
+              "question_number": "4",
+              "question": "Which social evil did Quaid-e-Azam say was inherited and had to be crushed immediately alongside nepotism?",
+              "options": ["(a) Illiteracy", "(b) Black-marketing", "(c) Provincial isolation", "(d) Tax evasion"],
+              "answer": "(b) Black-marketing"
+            }
+          ]
+        },
+        {
+          "type": "Short Answer Questions (Prose)",
+          "subsection": "Sub-Section I (Prose)",
+          "questions": [
+            {
+              "question_number": "1",
+              "question": "Why did Quaid-e-Azam call August 1947 an unprecedented cyclonic revolution in his address?",
+              "answer": "Because the peaceful constitutional division of British India into two independent sovereign dominions on such a massive scale was unprecedented in world history."
+            },
+            {
+              "question_number": "2",
+              "question": "What vision of religious freedom and equal citizenship did Quaid-e-Azam outline before the Constituent Assembly?",
+              "answer": "He declared that citizens are free to go to their mosques, temples, or any place of worship, and that in political terms all are equal citizens of one State regardless of religion, caste, or creed."
+            },
+            {
+              "question_number": "3",
+              "question": "Why does Quaid-e-Azam describe black-marketing as a crime worse than ordinary offenses?",
+              "answer": "Because black-marketers artificially hoard essential commodities, inflate prices, and exploit millions of ordinary citizens while sabotaging national economic stability."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit": "Prose 2: Preservation of Nature & Managing Change",
+      "pages": ["Unit 2", "Unit 3"],
+      "sections": [
+        {
+          "type": "Multiple Choice Questions (MCQs)",
+          "questions": [
+            {
+              "question_number": "1",
+              "question": "Which natural ecosystem acts as a critical nursery for coastal marine life along Sindh's coastline?",
+              "options": ["(a) Alpine meadows", "(b) Mangrove forests", "(c) Desert dunes", "(d) Boreal taiga"],
+              "answer": "(b) Mangrove forests"
+            },
+            {
+              "question_number": "2",
+              "question": "In the lesson 'Managing Change', what is considered the wisest human response when unavoidable change arrives?",
+              "options": ["(a) Stubborn resistance", "(b) Rigid denial", "(c) Adaptability and foresight", "(d) Complete isolation"],
+              "answer": "(c) Adaptability and foresight"
+            },
+            {
+              "question_number": "3",
+              "question": "Uncontrolled deforestation primarily accelerates:",
+              "options": ["(a) Soil erosion and climate imbalance", "(b) Glacial thickening", "(c) Ocean salinity reduction", "(d) Mineral formation"],
+              "answer": "(a) Soil erosion and climate imbalance"
+            },
+            {
+              "question_number": "4",
+              "question": "Which attitude causes anxiety when people refuse to let go of outdated habits or old routines?",
+              "options": ["(a) Fear of the unknown", "(b) Scientific curiosity", "(c) Civic awareness", "(d) Digital literacy"],
+              "answer": "(a) Fear of the unknown"
+            }
+          ]
+        },
+        {
+          "type": "Short Answer Questions (Prose)",
+          "subsection": "Sub-Section I (Prose)",
+          "questions": [
+            {
+              "question_number": "1",
+              "question": "How do mangrove ecosystems protect coastal communities from extreme weather and environmental damage?",
+              "answer": "Mangrove roots stabilize coastal soil, absorb storm surge energy, prevent erosion, filter pollutants, and shelter breeding fish and shrimp vital to local livelihoods."
+            },
+            {
+              "question_number": "2",
+              "question": "What practical steps can students and young citizens take to support the preservation of nature?",
+              "answer": "They can plant native trees, reduce single-use plastics, conserve water and electricity, spread ecological awareness, and join local clean-up drives."
+            },
+            {
+              "question_number": "3",
+              "question": "Why is recognizing early signs of change important in personal and professional growth?",
+              "answer": "Noticing small shifts early helps individuals upgrade their skills, plan transitions calmly, and seize new opportunities instead of being caught unprepared."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit": "Prose 3: Technology Smart, Civic Sense & Respecting Others",
+      "pages": ["Unit 4", "Unit 5", "Unit 6"],
+      "sections": [
+        {
+          "type": "Multiple Choice Questions (MCQs)",
+          "questions": [
+            {
+              "question_number": "1",
+              "question": "Being 'tech-savvy' wisely means using digital devices primarily to:",
+              "options": ["(a) Spread unverified rumors", "(b) Enhance learning, productivity, and safety", "(c) Replace all sleep hours", "(d) Ignore privacy settings"],
+              "answer": "(b) Enhance learning, productivity, and safety"
+            },
+            {
+              "question_number": "2",
+              "question": "Standing patiently in queues and keeping public places clean reflects strong:",
+              "options": ["(a) Civic sense", "(b) Social apathy", "(c) Bureaucracy", "(d) Materialism"],
+              "answer": "(a) Civic sense"
+            },
+            {
+              "question_number": "3",
+              "question": "What distinguishes genuine self-respect from arrogance?",
+              "options": ["(a) Boasting about status", "(b) Valuing one's own dignity while honoring others", "(c) Refusing constructive criticism", "(d) Dismissing diverse opinions"],
+              "answer": "(b) Valuing one's own dignity while honoring others"
+            },
+            {
+              "question_number": "4",
+              "question": "Before sharing an alarming post online, a responsible digital citizen should first:",
+              "options": ["(a) Forward it immediately", "(b) Verify the credibility of the source", "(c) Add dramatic captions", "(d) Tag all contacts"],
+              "answer": "(b) Verify the credibility of the source"
+            }
+          ]
+        },
+        {
+          "type": "Short Answer Questions (Prose)",
+          "subsection": "Sub-Section I (Prose)",
+          "questions": [
+            {
+              "question_number": "1",
+              "question": "What risks arise when students become overly dependent on smartphones without practicing digital discipline?",
+              "answer": "Excessive screen time weakens concentration, disrupts sleep, spreads misinformation, invites cyber privacy risks, and reduces meaningful face-to-face communication."
+            },
+            {
+              "question_number": "2",
+              "question": "How does everyday civic sense improve public safety and community harmony?",
+              "answer": "Respecting traffic rules, maintaining cleanliness, conserving shared utilities, and queueing courteously create orderly, safe, and respectful neighborhoods."
+            },
+            {
+              "question_number": "3",
+              "question": "Explain how empathy contributes to respecting self and others in a multicultural society.",
+              "answer": "Empathy lets individuals understand differing perspectives without prejudice, promoting peaceful dialogue, mutual dignity, and cooperation across backgrounds."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit": "Prose 4: Self-Grooming, Historical Places, Career & Work Ethics",
+      "pages": ["Unit 7", "Unit 8", "Unit 9", "Unit 10"],
+      "sections": [
+        {
+          "type": "Multiple Choice Questions (MCQs)",
+          "questions": [
+            {
+              "question_number": "1",
+              "question": "Personal self-grooming includes clean appearance, polite speech, and:",
+              "options": ["(a) Punctual, dignified conduct", "(b) Expensive designer brands", "(c) Loud boasting", "(d) Avoiding teamwork"],
+              "answer": "(a) Punctual, dignified conduct"
+            },
+            {
+              "question_number": "2",
+              "question": "Mohenjo-daro and Makli Necropolis are renowned in Sindh as sites of immense:",
+              "options": ["(a) Petrochemical refining", "(b) Historical and cultural heritage", "(c) Alpine tourism", "(d) Hydroelectric power"],
+              "answer": "(b) Historical and cultural heritage"
+            },
+            {
+              "question_number": "3",
+              "question": "When choosing a career, the healthiest foundation combines personal aptitude and interest with:",
+              "options": ["(a) Blind imitation of friends", "(b) Realistic assessment of skills and scope", "(c) Short-term rumors", "(d) Avoiding all guidance"],
+              "answer": "(b) Realistic assessment of skills and scope"
+            },
+            {
+              "question_number": "4",
+              "question": "Positive work ethics are best demonstrated by:",
+              "options": ["(a) Integrity, punctuality, and accountability", "(b) Shifting blame onto colleagues", "(c) Cutting corners on quality", "(d) Chronic absenteeism"],
+              "answer": "(a) Integrity, punctuality, and accountability"
+            }
+          ]
+        },
+        {
+          "type": "Short Answer Questions (Prose)",
+          "subsection": "Sub-Section I (Prose)",
+          "questions": [
+            {
+              "question_number": "1",
+              "question": "Why should students explore their own aptitude and strengths before selecting a career path?",
+              "answer": "Aligning career choices with genuine aptitude and interest fosters long-term motivation, competence, and job satisfaction rather than regret from peer pressure."
+            },
+            {
+              "question_number": "2",
+              "question": "Why is preserving historical monuments essential for future generations?",
+              "answer": "Historical monuments preserve collective memory, artistic heritage, architectural ingenuity, and cultural identity while educating youth and supporting tourism."
+            },
+            {
+              "question_number": "3",
+              "question": "What qualities define strong work ethics in any profession?",
+              "answer": "Honesty, punctuality, diligence, teamwork, respect for deadlines, and taking full ownership of one's responsibilities define strong work ethics."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit": "Poetry 1: The Character of a Happy Life, Don't Quit & Ozymandias",
+      "pages": ["Poem 1", "Poem 2", "Poem 3"],
+      "sections": [
+        {
+          "type": "Multiple Choice Questions (MCQs)",
+          "questions": [
+            {
+              "question_number": "1",
+              "question": "In Sir Henry Wotton's poem, what serves as a happy man's strongest armor?",
+              "options": ["(a) Golden shield", "(b) Honest thought", "(c) Royal decree", "(d) Armed guards"],
+              "answer": "(b) Honest thought"
+            },
+            {
+              "question_number": "2",
+              "question": "The poem 'Don't Quit' compares success to the:",
+              "options": ["(a) Rising sea tide", "(b) Silver tint of the clouds of doubt", "(c) Whispering wind", "(d) Desert mirage"],
+              "answer": "(b) Silver tint of the clouds of doubt"
+            },
+            {
+              "question_number": "3",
+              "question": "Who sculpted the shattered statue described in P.B. Shelley's sonnet 'Ozymandias'?",
+              "options": ["(a) An unknown ancient sculptor who read the king's passions well", "(b) The traveler from an antique land", "(c) Shelley himself", "(d) A Roman senator"],
+              "answer": "(a) An unknown ancient sculptor who read the king's passions well"
+            },
+            {
+              "question_number": "4",
+              "question": "Which poetic device dominates 'Look on my Works, ye Mighty, and despair!' standing beside a ruined statue in an empty desert?",
+              "options": ["(a) Situational irony", "(b) Onomatopoeia", "(c) Oxymoron", "(d) Pun"],
+              "answer": "(a) Situational irony"
+            }
+          ]
+        },
+        {
+          "type": "Short Answer Questions (Poem)",
+          "subsection": "Sub-Section II (Poem)",
+          "questions": [
+            {
+              "question_number": "1",
+              "question": "Why does Sir Henry Wotton describe the happy man as 'Lord of himself, though not of lands'?",
+              "answer": "He means a virtuous person possesses complete mastery over his passions and conscience; even without material estates, inner freedom makes him spiritually rich."
+            },
+            {
+              "question_number": "2",
+              "question": "How does Edgar Guest encourage readers to handle setbacks and financial pressure in 'Don't Quit'?",
+              "answer": "He reminds readers that life takes surprising twists and that victory is often nearest when challenges look darkest, urging them to rest if needed but never give up."
+            },
+            {
+              "question_number": "3",
+              "question": "What central lesson about human pride and political power emerges from Shelley's 'Ozymandias'?",
+              "answer": "Shelley shows that political tyranny and boastful empires crumble under time, while only artistic insight and the eternal landscape endure."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit": "Poetry 2: Good Timber, Lucy Gray, Abbot of Canterbury & Surr Khahori",
+      "pages": ["Poem 4", "Poem 5", "Poem 6", "Poem 7"],
+      "sections": [
+        {
+          "type": "Multiple Choice Questions (MCQs)",
+          "questions": [
+            {
+              "question_number": "1",
+              "question": "In 'Good Timber', trees that grow strong and tall must endure:",
+              "options": ["(a) Calm shelter in a valley", "(b) Sun and cold, rain and snow", "(c) Constant shade", "(d) Indoor warmth"],
+              "answer": "(b) Sun and cold, rain and snow"
+            },
+            {
+              "question_number": "2",
+              "question": "Why did Lucy Gray set off toward town with a lantern in the afternoon?",
+              "options": ["(a) To light her mother home through the snow", "(b) To deliver mail", "(c) To visit a fair", "(d) To fetch firewood"],
+              "answer": "(a) To light her mother home through the snow"
+            },
+            {
+              "question_number": "3",
+              "question": "In 'The Abbot of Canterbury', who cleverly answered King John's three impossible riddles in the Abbot's place?",
+              "options": ["(a) A university scholar", "(b) The Abbot's humble shepherd", "(c) A royal minister", "(d) A merchant from Oxford"],
+              "answer": "(b) The Abbot's humble shepherd"
+            },
+            {
+              "question_number": "4",
+              "question": "Shah Abdul Latif Bhittai's 'Surr Khahori' celebrates spiritual seekers who:",
+              "options": ["(a) Seek easy luxury at royal courts", "(b) Wander tirelessly through barren mountains in devotion", "(c) Boast about their wealth", "(d) Fear hardship and solitude"],
+              "answer": "(b) Wander tirelessly through barren mountains in devotion"
+            }
+          ]
+        },
+        {
+          "type": "Short Answer Questions (Poem)",
+          "subsection": "Sub-Section II (Poem)",
+          "questions": [
+            {
+              "question_number": "1",
+              "question": "What parallel does Douglas Malloch draw between forest trees and human character in 'Good Timber'?",
+              "answer": "Just as trees toughened by fierce storms yield strong timber, human beings develop resilience, depth, and nobility only by confronting adversity rather than living sheltered lives."
+            },
+            {
+              "question_number": "2",
+              "question": "Explain why people in the countryside still believe Lucy Gray is alive despite her disappearance in the snow.",
+              "answer": "Her footprints mysteriously stopped midway across a wooden plank bridge, and locals imagine her sweet singing echoing softly over the wild moors in the wind."
+            },
+            {
+              "question_number": "3",
+              "question": "What humorous answer did the shepherd give when King John asked him to estimate the King's worth in pence?",
+              "answer": "He playfully reasoned that since Christ was sold for thirty pence, the King could not reasonably be valued above twenty-nine pence—one penny less."
+            },
+            {
+              "question_number": "4",
+              "question": "How are the ascetic traits of true 'Khahoris' depicted in Shah Abdul Latif Bhittai's poetry?",
+              "answer": "They endure torn sandals, meagre sustenance, rugged peaks, and silence with joyful persistence, valuing inner truth over earthly comfort."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit": "One-Act Play: A Visit to a Small Planet (Gore Vidal)",
+      "pages": ["Play 1"],
+      "sections": [
+        {
+          "type": "Multiple Choice Questions (MCQs)",
+          "questions": [
+            {
+              "question_number": "1",
+              "question": "Where does Kreton's flying saucer land at the beginning of 'A Visit to a Small Planet'?",
+              "options": ["(a) On the White House lawn", "(b) In Roger Spelding's rose garden in Virginia", "(c) At Cape Canaveral", "(d) In Central Park"],
+              "answer": "(b) In Roger Spelding's rose garden in Virginia"
+            },
+            {
+              "question_number": "2",
+              "question": "Why does Kreton visit Earth according to his conversation with the Spelding family?",
+              "options": ["(a) Earth is his academic hobby and he wants to observe the Civil War", "(b) He plans to mine gold", "(c) He is escaping space police", "(d) He wants to open a TV station"],
+              "answer": "(a) Earth is his academic hobby and he wants to observe the Civil War"
+            },
+            {
+              "question_number": "3",
+              "question": "What ability allows Kreton to frustrate General Powers during interrogation?",
+              "options": ["(a) Reading minds and erecting an invisible protective wall around his ship", "(b) Turning invisible permanently", "(c) Firing laser cannons", "(d) Flying faster than sound on foot"],
+              "answer": "(a) Reading minds and erecting an invisible protective wall around his ship"
+            }
+          ]
+        },
+        {
+          "type": "Short Answer Questions (Play / Poem Sub-Section)",
+          "subsection": "Sub-Section II (Poem)",
+          "questions": [
+            {
+              "question_number": "1",
+              "question": "Contrast Roger Spelding's initial televised skepticism with his reaction once Kreton lands in his garden.",
+              "answer": "Before the landing, Spelding confidently dismisses UFO sightings on air as illusions, yet when Kreton steps out in his rose garden he panics over his family and reputation."
+            },
+            {
+              "question_number": "2",
+              "question": "Why does Kreton find human emotions—especially love and conflict—so fascinating?",
+              "answer": "People of Kreton's advanced civilization have outgrown primitive violence and intense romantic passion, so humanity's chaotic feelings amuse and intrigue him."
+            },
+            {
+              "question_number": "3",
+              "question": "What satirical message does Gore Vidal convey through General Powers' militaristic attitude?",
+              "answer": "Vidal satirizes Cold War paranoia and military arrogance, showing how obsessed commanders mistake harmless curiosity for hostile threats yet remain powerless before superior intellect."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit": "Grammar 1: Active/Passive Voice & Direct/Indirect Narration",
+      "pages": ["Grammar A"],
+      "sections": [
+        {
+          "type": "Multiple Choice Questions (MCQs)",
+          "questions": [
+            {
+              "question_number": "1",
+              "question": "Choose the correct passive voice: 'They will announce the scholarship results tomorrow.'",
+              "options": [
+                "(a) The scholarship results are announced tomorrow.",
+                "(b) The scholarship results will be announced tomorrow.",
+                "(c) The scholarship results were announced tomorrow.",
+                "(d) The scholarship results had been announced tomorrow."
+              ],
+              "answer": "(b) The scholarship results will be announced tomorrow."
+            },
+            {
+              "question_number": "2",
+              "question": "Select the correct indirect speech: She said to her brother, 'Please lend me your dictionary.'",
+              "options": [
+                "(a) She asked her brother that lend her his dictionary.",
+                "(b) She requested her brother to lend her his dictionary.",
+                "(c) She ordered her brother to lend me his dictionary.",
+                "(d) She said her brother please lend her dictionary."
+              ],
+              "answer": "(b) She requested her brother to lend her his dictionary."
+            },
+            {
+              "question_number": "3",
+              "question": "Identify the sentence in active voice:",
+              "options": [
+                "(a) The essay was revised by the student.",
+                "(b) A fierce storm uprooted several old trees.",
+                "(c) The gates were locked before sunset.",
+                "(d) Fresh tickets are being printed now."
+              ],
+              "answer": "(b) A fierce storm uprooted several old trees."
+            }
+          ]
+        },
+        {
+          "type": "Short Answer Questions (Grammar)",
+          "subsection": "Sub-Section III (Grammar)",
+          "questions": [
+            {
+              "question_number": "1",
+              "question": "Change the voice of the following sentences: (a) Someone has stolen my bicycle from the college stand. (b) Let the morning bell be rung on time.",
+              "answer": "(a) My bicycle has been stolen from the college stand. (b) Ring the morning bell on time."
+            },
+            {
+              "question_number": "2",
+              "question": "Change the voice of the following sentences: (a) Did the committee approve the annual budget? (b) The science teacher is explaining the experiment clearly.",
+              "answer": "(a) Was the annual budget approved by the committee? (b) The experiment is being explained clearly by the science teacher."
+            },
+            {
+              "question_number": "3",
+              "question": "Change into indirect narration: (a) The coach said to the players, 'Never lose heart in tough matches.' (b) Sara said, 'Alas! We missed the early train.'",
+              "answer": "(a) The coach advised the players never to lose heart in tough matches. (b) Sara exclaimed with sorrow that they had missed the early train."
+            },
+            {
+              "question_number": "4",
+              "question": "Change into indirect narration: (a) The librarian asked me, 'Which reference book are you looking for?' (b) He said to his friend, 'May you achieve every success!'",
+              "answer": "(a) The librarian asked me which reference book I was looking for. (b) He prayed for his friend that he might achieve every success."
+            },
+            {
+              "question_number": "5",
+              "question": "Change the voice of the following: (a) Keep your valuables in the locker. (b) Why did you neglect your revision schedule?",
+              "answer": "(a) Let your valuables be kept in the locker. (b) Why was your revision schedule neglected by you?"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit": "Grammar 2: Prepositions, Idioms & Sentence Transformation",
+      "pages": ["Grammar B"],
+      "sections": [
+        {
+          "type": "Multiple Choice Questions (MCQs)",
+          "questions": [
+            {
+              "question_number": "1",
+              "question": "Choose the correct preposition: 'He abstains ___ all unhealthy habits.'",
+              "options": ["(a) from", "(b) of", "(c) with", "(d) at"],
+              "answer": "(a) from"
+            },
+            {
+              "question_number": "2",
+              "question": "Which option correctly uses the conditional clause? 'If it rains heavily, we ___ the outdoor match.'",
+              "options": ["(a) cancelled", "(b) will postpone", "(c) would postponed", "(d) had postpone"],
+              "answer": "(b) will postpone"
+            },
+            {
+              "question_number": "3",
+              "question": "The prefix 'un-' added to 'predictable' forms an adjective meaning:",
+              "options": ["(a) Easily forecasted", "(b) Impossible to foresee accurately", "(c) Repeated often", "(d) Carefully planned"],
+              "answer": "(b) Impossible to foresee accurately"
+            },
+            {
+              "question_number": "4",
+              "question": "Identify the correct synonym for 'diligent':",
+              "options": ["(a) Careless", "(b) Hardworking", "(c) Hesitant", "(d) Arrogant"],
+              "answer": "(b) Hardworking"
+            }
+          ]
+        },
+        {
+          "type": "Short Answer Questions (Grammar)",
+          "subsection": "Sub-Section III (Grammar)",
+          "questions": [
+            {
+              "question_number": "1",
+              "question": "Insert suitable prepositions: (a) She is confident ___ winning the debate trophy. (b) The train arrived ___ the platform exactly ___ midnight. (c) Hard work is the key ___ lasting success.",
+              "answer": "(a) of (b) at, at (c) to"
+            },
+            {
+              "question_number": "2",
+              "question": "Use any FOUR of the following idioms in meaningful sentences: (a) at the eleventh hour (b) a blessing in disguise (c) call it a day (d) look up to (e) carry out.",
+              "answer": "(a) He submitted his project at the eleventh hour. (b) Missing the delayed flight proved a blessing in disguise. (c) After six hours of revision, we decided to call it a day. (d) Students look up to dedicated mentors. (e) Volunteers carried out the relief work."
+            },
+            {
+              "question_number": "3",
+              "question": "Do as directed: (a) No sooner did the bell ring than students rushed out. (Use 'As soon as') (b) He is very proud; he will not apologize. (Combine using 'too...to') (c) What a breathtaking sunset this is! (Change into assertive)",
+              "answer": "(a) As soon as the bell rang, students rushed out. (b) He is too proud to apologize. (c) This is a very breathtaking sunset."
+            },
+            {
+              "question_number": "4",
+              "question": "Correct the following sentences (Spot the error): (a) Neither of the two brothers were present. (b) She prefers tea than coffee. (c) I have visited Lahore last winter. (d) Each of the girls were given a prize.",
+              "answer": "(a) Neither of the two brothers was present. (b) She prefers tea to coffee. (c) I visited Lahore last winter. (d) Each of the girls was given a prize."
+            },
+            {
+              "question_number": "5",
+              "question": "Use the correct form of the verbs in brackets: (a) If she ___ (study) consistently, she will top the board. (b) By next June, they ___ (complete) the new laboratory. (c) Water ___ (boil) at 100 degrees Celsius.",
+              "answer": "(a) studies (b) will have completed (c) boils"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit": "Composition: Essays, Formal Writing & Precis Passages (Section C)",
+      "pages": ["Composition"],
+      "sections": [
+        {
+          "type": "Detailed Answer Questions (Composition & Extended Writing)",
+          "questions": [
+            {
+              "question_number": "1",
+              "marks": 15,
+              "question": "Read the following passage carefully and answer the questions given below (including a precis of one-third length with a suitable title):\n\"True education is not merely the memorization of isolated facts for passing examinations; rather, it is the steady awakening of curiosity, moral judgment, and civic empathy. When young minds learn to question respectfully, verify claims before accepting them, and apply knowledge to solve real community problems, classrooms transform into nurseries of thoughtful citizenship. Societies that invest equally in technical skill and ethical character build nations capable of adapting wisely to rapid technological change.\"\n(a) Suggest a suitable title and make a precis of about one-third of the passage. (b) What distinguishes genuine education from mere memorization? (c) How do classrooms become nurseries of thoughtful citizenship? (d) Give meanings of: 'awakening', 'verify', 'transform'.",
+              "answer": "Suggested Title: The Purpose of True Education. Precis: Genuine education goes beyond rote memorization; it cultivates curiosity, ethics, and civic responsibility so youth can verify truth, address social issues, and adapt wisely to modern change. Meanings: awakening (arousing), verify (confirm truth), transform (change completely)."
+            },
+            {
+              "question_number": "2",
+              "marks": 10,
+              "question": "Write a formal application to the Principal of your college requesting the upgradation of computer lab terminals and extended library reading hours before the annual board examinations.",
+              "answer": "Include formal sender address/date, To: The Principal, respectful salutation, concise explanation of exam preparation needs, polite request for updated PCs and extended hours, and formal closing ('Yours obediently, XYZ')."
+            },
+            {
+              "question_number": "3",
+              "marks": 15,
+              "question": "Write a comprehensive, well-structured essay (250–300 words) on any ONE of the following topics:\n(a) Artificial Intelligence and the Future of Education\n(b) Rising Urban Traffic and Civic Solutions\n(c) The Value of Reading Books in the Digital Era\n(d) Energy Conservation for Sustainable Development",
+              "answer": "Structured essay featuring clear thesis statement in introduction, 2-3 coherent supporting paragraphs with examples, and a balanced concluding synthesis."
+            },
+            {
+              "question_number": "4",
+              "marks": 15,
+              "question": "Read the passage below, write a precis of about one-third length with an apt title, and answer the questions:\n\"Water scarcity has emerged as one of the defining challenges of the twenty-first century. Rapid population growth, inefficient flood-irrigation methods, and unchecked industrial waste place severe pressure on rivers and underground aquifers. Yet practical remedies remain within reach: lining water canals, adopting drip irrigation, harvesting rainwater, and repairing urban distribution leaks can conserve millions of gallons annually without halting agricultural progress.\"\n(a) Make a precis and suggest a title. (b) List two primary causes of water scarcity mentioned in the passage. (c) Name three conservation solutions suggested by the author.",
+              "answer": "Title: Tackling Modern Water Scarcity. Precis: Population growth, wasteful irrigation, and pollution strain freshwater reserves, yet lining canals, drip irrigation, rainwater harvesting, and leak repairs can save vast quantities sustainably. Causes: population growth, flood irrigation, industrial waste. Solutions: drip irrigation, canal lining, rainwater harvesting."
+            },
+            {
+              "question_number": "5",
+              "marks": 10,
+              "question": "Write a formal report to the Editor of a leading daily newspaper highlighting the lack of public parks and safe pedestrian footpaths in your city neighborhood, along with practical remedies.",
+              "answer": "Formal letter/report to The Editor with clear subject line, factual description of urban neglect, impact on youth and senior citizens, actionable municipal recommendations, and courteous sign-off."
+            },
+            {
+              "question_number": "6",
+              "marks": 15,
+              "question": "Write a comprehensive essay on any ONE of the following topics:\n(a) Youth Entrepreneurship and Economic Self-Reliance\n(b) Sportsmanship and Mental Resilience\n(c) Climate Change and Flood Preparedness in Pakistan\n(d) Merits and Demerits of Social Media",
+              "answer": "Well-organized composition with clear topic sentences, formal vocabulary, logical transitions, and error-free grammar."
+            },
+            {
+              "question_number": "7",
+              "marks": 10,
+              "question": "Write a job application along with a concise Curriculum Vitae (CV) in response to an advertisement for the post of 'Junior Content & Editorial Assistant' at an educational publishing house.",
+              "answer": "Cover letter stating qualifications and enthusiasm followed by a neatly structured CV (Objective, Education, Skills, Extracurriculars, References)."
+            },
+            {
+              "question_number": "8",
+              "marks": 15,
+              "question": "Write a detailed character sketch and critical appreciation of Kreton from Gore Vidal's play 'A Visit to a Small Planet', explaining how he highlights human flaws.",
+              "answer": "Discuss Kreton's curiosity, polite detachment, superior powers, fascination with human history, and how his dialogue exposes human prejudice, militarism, and emotional volatility."
+            },
+            {
+              "question_number": "9",
+              "marks": 10,
+              "question": "Draft an official report on your college's Annual Science & Literary Exhibition for submission to the Magazine Committee, detailing exhibits, student participation, and guest remarks.",
+              "answer": "Include title, To/From/Date header, concise event overview, highlights of stalls and debates, guest appreciation, and concluding recommendation."
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

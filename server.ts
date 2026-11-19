@@ -8,7 +8,7 @@ import {
   executeGenerateFromPattern,
   executeRefinePaper,
   executeSelectQuestions,
-} from './lib/aiHandlers';
+} from './api/ai/_handlers.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

@@ -113,16 +113,28 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
       const loaded = await loadQuestionBanks();
       if (!mounted) return;
       setBanks(loaded);
+      const subjectTitle = (currentPaper.header.subjectTitle || currentPaper.title || '').toLowerCase();
+      const cleanPaperSub = subjectTitle
+        .replace(/^subject:\s*/i, '')
+        .replace(/\(.*?\)/g, '')
+        .trim();
       const preferredBankId = patternSeed?.questionBankId && loaded.some((b) => b.id === patternSeed.questionBankId)
         ? patternSeed.questionBankId
         : '';
-      setActiveBankId((prev) => preferredBankId || prev || loaded[0]?.id || '');
+      const matchedFromPaper = loaded.find(
+        (b) =>
+          subjectTitle.includes(b.subjectName.toLowerCase()) ||
+          b.subjectName.toLowerCase().includes(subjectTitle) ||
+          (b.category && subjectTitle.includes(b.category.toLowerCase())) ||
+          (cleanPaperSub.length >= 3 && b.subjectName.toLowerCase().includes(cleanPaperSub))
+      );
+      setActiveBankId((prev) => preferredBankId || prev || matchedFromPaper?.id || loaded[0]?.id || '');
       setIsLoadingBanks(false);
     })();
     return () => {
       mounted = false;
     };
-  }, [patternSeed]);
+  }, [patternSeed, currentPaper.header.subjectTitle, currentPaper.title]);
 
   useEffect(() => {
     if (!patternSeed) return;
@@ -503,10 +515,14 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
           return {
             ...sec,
             marksBadge: matched.marksBadge,
-            questions:
-              matched.numberingStyle === 'section-c-from-3'
-                ? sec.questions.map((q, idx) => ({ ...q, number: `${idx + 3}.` }))
-                : sec.questions,
+            questions: sec.questions.map((q, idx) => ({
+              ...q,
+              number:
+                matched.numberingStyle === 'section-c-from-3'
+                  ? `${idx + 3}.`
+                  : q.number,
+              marks: matched.marksPerQuestionList?.[idx] ?? q.marks,
+            })),
           };
         }),
       };
@@ -1273,6 +1289,14 @@ export const AutoBlueprintMode: React.FC<AutoBlueprintModeProps> = ({
 
                                   <div className="pl-4 flex flex-wrap items-center gap-2 text-[11px] text-neutral-500">
                                     <span>{item.bankQuestion.unitName}</span>
+                                    {item.bankQuestion.subsection && (
+                                      <>
+                                        <span aria-hidden="true">·</span>
+                                        <span className="px-1.5 py-0.2 rounded border border-neutral-200 bg-neutral-100 text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300 font-medium">
+                                          {item.bankQuestion.subsection}
+                                        </span>
+                                      </>
+                                    )}
                                     <span aria-hidden="true">·</span>
                                     <span className="font-mono tabular-nums">
                                       {item.marks} Marks

@@ -4,6 +4,7 @@ import {
   PastPaperPatternSeed,
   PastPaperRecord,
   PastPaperSectionPattern,
+  PastPaperSubsectionPattern,
   Question,
 } from '../types/exam';
 import {
@@ -198,6 +199,22 @@ export function findMatchingBankForPastPaper(
   return byCategory || banks[0];
 }
 
+export function matchesSubsectionPattern(
+  candidate: { subsection?: string; sectionType?: string; unitName?: string },
+  sub: PastPaperSubsectionPattern
+): boolean {
+  const targetTitle = sub.title.trim().toLowerCase();
+  const candSub = (candidate.subsection || '').trim().toLowerCase();
+  if (candSub && candSub === targetTitle) return true;
+
+  const hints =
+    sub.matchHints && sub.matchHints.length > 0
+      ? sub.matchHints.map((h) => h.toLowerCase())
+      : [targetTitle];
+  const combined = `${candSub} ${candidate.sectionType || ''} ${candidate.unitName || ''}`.toLowerCase();
+  return hints.some((hint) => combined.includes(hint));
+}
+
 export function buildPatternSeedFromPastPaper(pastPaper: PastPaperRecord): PastPaperPatternSeed {
   return {
     pastPaperId: pastPaper.id,
@@ -207,15 +224,52 @@ export function buildPatternSeedFromPastPaper(pastPaper: PastPaperRecord): PastP
     classGrade: pastPaper.classGrade,
     boardOrGroup: pastPaper.boardOrGroup,
     questionBankId: pastPaper.questionBankId,
-    sectionPatterns: pastPaper.sectionPatterns.map((sp) => ({ ...sp })),
+    sectionPatterns: pastPaper.sectionPatterns.map((sp) => ({
+      ...sp,
+      ...(sp.marksPerQuestionList ? { marksPerQuestionList: [...sp.marksPerQuestionList] } : {}),
+      ...(sp.subsectionPatterns
+        ? { subsectionPatterns: sp.subsectionPatterns.map((sub) => ({ ...sub })) }
+        : {}),
+    })),
     excludedQuestionTexts: extractPastPaperQuestionTexts(pastPaper.paper),
     sourcePaperHeader: { ...pastPaper.paper.header },
   };
 }
 
 /**
+ * Picks questions from a pool for a section that may specify per-question marks
+ * (e.g. English Section C: [15, 10, 15]), prioritizing items whose native bank marks match.
+ */
+function pickForSectionSlots(
+  pool: BankQuestion[],
+  questionCount: number,
+  marksPerQuestionList?: number[]
+): BankQuestion[] {
+  if (!marksPerQuestionList || marksPerQuestionList.length === 0) {
+    return pickBalancedAcrossChapters(pool, questionCount);
+  }
+  const remaining = [...pool];
+  const chosen: BankQuestion[] = [];
+  for (let i = 0; i < questionCount; i += 1) {
+    const targetMarks = marksPerQuestionList[i];
+    const matching =
+      targetMarks !== undefined
+        ? remaining.filter((bq) => bq.question.marks === targetMarks)
+        : [];
+    const pickPool = matching.length > 0 ? matching : remaining;
+    if (pickPool.length === 0) break;
+    const [picked] = pickBalancedAcrossChapters(pickPool, 1);
+    if (!picked) break;
+    chosen.push(picked);
+    const idxInRemaining = remaining.findIndex((r) => r.key === picked.key);
+    if (idxInRemaining >= 0) remaining.splice(idxInRemaining, 1);
+  }
+  return chosen;
+}
+
+/**
  * Generates a brand-new ExamPaper following the EXACT section structure,
- * question counts, attempt counts, marks per question, and instructions of the
+ * question counts, sub-sections, attempt counts, marks per question, and instructions of the
  * selected Past Paper, populated with DIFFERENT questions from the Question Bank.
  */
 export function generatePaperFromPastPatternWeighted(params: {
@@ -240,38 +294,89 @@ export function generatePaperFromPastPatternWeighted(params: {
   const ts = Date.now();
 
   const newSections: ExamSection[] = pastPaper.sectionPatterns.map((pattern, secIdx) => {
-    const freshPool = eligibleQuestions.filter(
-      (bq) => bq.kind === pattern.kind && !usedKeys.has(bq.key)
-    );
-    const chosen = pickBalancedAcrossChapters(freshPool, pattern.questionCount);
-    chosen.forEach((item) => usedKeys.add(item.key));
+    const chosenWithMeta: Array<{
+      item: BankQuestion;
+      subsection?: string;
+      subsectionInstruction?: string;
+      slotMarks?: number;
+    }> = [];
 
-    if (chosen.length < pattern.questionCount) {
+    if (pattern.subsectionPatterns && pattern.subsectionPatterns.length > 0) {
+      pattern.subsectionPatterns.forEach((sub) => {
+        const subPool = eligibleQuestions.filter(
+          (bq) =>
+            bq.kind === pattern.kind &&
+            !usedKeys.has(bq.key) &&
+            matchesSubsectionPattern(bq, sub)
+        );
+        const picked = pickBalancedAcrossChapters(subPool, sub.questionCount);
+        picked.forEach((item) => {
+          usedKeys.add(item.key);
+          chosenWithMeta.push({
+            item,
+            subsection: sub.title,
+            subsectionInstruction: sub.instruction,
+            slotMarks: sub.marksPerQuestion,
+          });
+        });
+      });
+    } else {
+      const freshPool = eligibleQuestions.filter(
+        (bq) => bq.kind === pattern.kind && !usedKeys.has(bq.key)
+      );
+      const chosen = pickForSectionSlots(
+        freshPool,
+        pattern.questionCount,
+        pattern.marksPerQuestionList
+      );
+      chosen.forEach((item) => {
+        usedKeys.add(item.key);
+        chosenWithMeta.push({ item });
+      });
+    }
+
+    if (chosenWithMeta.length < pattern.questionCount) {
       shortfalls.push({
         sectionName: pattern.name,
         kind: pattern.kind,
         requested: pattern.questionCount,
-        filled: chosen.length,
+        filled: chosenWithMeta.length,
       });
     }
 
-    const questions: Question[] = chosen.map((item, qIdx) => {
-      const cloned = JSON.parse(JSON.stringify(item.question)) as Question;
-      return {
-        ...cloned,
-        id: `q-pp-gen-${ts}-${secIdx}-${qIdx}-${Math.random().toString(36).substring(2, 6)}`,
-        number: formatQuestionNumber(qIdx, pattern.numberingStyle),
-        marks: pattern.marksPerQuestion,
-        ...(cloned.options
-          ? {
-              options: cloned.options.map((opt, optIdx) => ({
-                ...opt,
-                id: `opt-pp-gen-${ts}-${secIdx}-${qIdx}-${optIdx}`,
-              })),
-            }
-          : {}),
-      };
-    });
+    const questions: Question[] = chosenWithMeta.map(
+      ({ item, subsection, subsectionInstruction, slotMarks }, qIdx) => {
+        const cloned = JSON.parse(JSON.stringify(item.question)) as Question;
+        return {
+          ...cloned,
+          id: `q-pp-gen-${ts}-${secIdx}-${qIdx}-${Math.random().toString(36).substring(2, 6)}`,
+          number: formatQuestionNumber(qIdx, pattern.numberingStyle),
+          marks:
+            pattern.marksPerQuestionList?.[qIdx] ??
+            slotMarks ??
+            pattern.marksPerQuestion,
+          ...(subsection || cloned.subsection
+            ? { subsection: subsection || cloned.subsection }
+            : {}),
+          ...(subsectionInstruction || cloned.subsectionInstruction
+            ? { subsectionInstruction: subsectionInstruction || cloned.subsectionInstruction }
+            : {}),
+          ...(cloned.options
+            ? {
+                options: cloned.options.map((opt, optIdx) => ({
+                  ...opt,
+                  id: `opt-pp-gen-${ts}-${secIdx}-${qIdx}-${optIdx}`,
+                })),
+              }
+            : {}),
+        };
+      }
+    );
+
+    const patternSubsections =
+      pattern.subsectionPatterns && pattern.subsectionPatterns.length > 0
+        ? pattern.subsectionPatterns.map((sub) => sub.title)
+        : undefined;
 
     return {
       id: `sec-pp-${secIdx}-${ts}`,
@@ -279,6 +384,7 @@ export function generatePaperFromPastPatternWeighted(params: {
       subtitle: pattern.subtitle,
       marksBadge: pattern.marksBadge,
       instruction: pattern.instruction,
+      ...(patternSubsections ? { subsections: patternSubsections } : {}),
       questions,
     };
   });
@@ -334,7 +440,17 @@ export async function generatePaperFromPastPatternAI(params: {
         questionCount: sp.questionCount,
         attemptCount: sp.attemptCount,
         marksPerQuestion: sp.marksPerQuestion,
+        ...(sp.marksPerQuestionList ? { marksPerQuestionList: sp.marksPerQuestionList } : {}),
         totalSectionMarks: sp.totalSectionMarks,
+        ...(sp.subsectionPatterns
+          ? {
+              subsectionPatterns: sp.subsectionPatterns.map((sub) => ({
+                title: sub.title,
+                questionCount: sub.questionCount,
+                marksPerQuestion: sub.marksPerQuestion,
+              })),
+            }
+          : {}),
       })),
     }),
   });
@@ -346,6 +462,7 @@ export async function generatePaperFromPastPatternAI(params: {
       kind: QuestionKind;
       questions: Array<{
         text: string;
+        subsection?: string;
         options?: string[];
         answerKey?: string;
       }>;
@@ -374,6 +491,16 @@ export async function generatePaperFromPastPatternAI(params: {
       });
     }
 
+    // Build sequential fallback subsection labels if AI omitted them on any item
+    const fallbackSubsectionAt: string[] = [];
+    if (pattern.subsectionPatterns && pattern.subsectionPatterns.length > 0) {
+      pattern.subsectionPatterns.forEach((sub) => {
+        for (let c = 0; c < sub.questionCount; c += 1) {
+          fallbackSubsectionAt.push(sub.title);
+        }
+      });
+    }
+
     const labels = ['(a)', '(b)', '(c)', '(d)'];
     const questions: Question[] = sliced.map((rq, qIdx) => {
       const options =
@@ -385,16 +512,27 @@ export async function generatePaperFromPastPatternAI(params: {
             }))
           : undefined;
 
+      const resolvedSubsection =
+        (typeof rq.subsection === 'string' && rq.subsection.trim()) ||
+        fallbackSubsectionAt[qIdx] ||
+        undefined;
+
       return {
         id: `q-ai-pp-${ts}-${secIdx}-${qIdx}`,
         number: formatQuestionNumber(qIdx, pattern.numberingStyle),
         type: pattern.kind,
+        ...(resolvedSubsection ? { subsection: resolvedSubsection } : {}),
         text: String(rq.text || '').trim(),
-        marks: pattern.marksPerQuestion,
+        marks: pattern.marksPerQuestionList?.[qIdx] ?? pattern.marksPerQuestion,
         ...(options ? { options, optionColumns: 2 as const } : {}),
         ...(rq.answerKey ? { answerKey: String(rq.answerKey).trim() } : {}),
       };
     });
+
+    const patternSubsections =
+      pattern.subsectionPatterns && pattern.subsectionPatterns.length > 0
+        ? pattern.subsectionPatterns.map((sub) => sub.title)
+        : undefined;
 
     return {
       id: `sec-ai-pp-${secIdx}-${ts}`,
@@ -402,6 +540,7 @@ export async function generatePaperFromPastPatternAI(params: {
       subtitle: pattern.subtitle,
       marksBadge: pattern.marksBadge,
       instruction: pattern.instruction,
+      ...(patternSubsections ? { subsections: patternSubsections } : {}),
       questions,
     };
   });
@@ -431,7 +570,7 @@ export async function generatePaperFromPastPatternAI(params: {
 
 /**
  * Replaces a single question in a pattern-generated paper with another non-overlapping
- * question of the same kind from the Question Bank.
+ * question of the same kind (and sub-section if applicable) from the Question Bank.
  */
 export function swapSingleQuestionFromBank(params: {
   paper: ExamPaper;
@@ -453,18 +592,41 @@ export function swapSingleQuestionFromBank(params: {
   const currentPaperTexts = extractPastPaperQuestionTexts(paper);
   const combinedAvoid = [...pastTexts, ...currentPaperTexts];
 
-  const pool = allBankQuestions.filter(
+  const targetSubPattern = targetQ.subsection
+    ? targetPattern.subsectionPatterns?.find(
+        (sub) => sub.title.toLowerCase() === targetQ.subsection?.toLowerCase()
+      ) || { title: targetQ.subsection, questionCount: 1 }
+    : undefined;
+
+  let pool = allBankQuestions.filter(
     (bq) =>
       !bq.isFillInTheBlank &&
       bq.kind === targetPattern.kind &&
-      !isSimilarToPastQuestion(bq.question.text, combinedAvoid)
+      !isSimilarToPastQuestion(bq.question.text, combinedAvoid) &&
+      (!targetSubPattern || matchesSubsectionPattern(bq, targetSubPattern))
   );
+
+  if (pool.length === 0 && targetSubPattern) {
+    // Only fall back to same kind if zero sub-section matches exist anywhere
+    pool = allBankQuestions.filter(
+      (bq) =>
+        !bq.isFillInTheBlank &&
+        bq.kind === targetPattern.kind &&
+        !isSimilarToPastQuestion(bq.question.text, combinedAvoid)
+    );
+  }
 
   if (pool.length === 0) {
     return { updatedPaper: paper, swapped: false };
   }
 
-  const pick = pool[Math.floor(Math.random() * pool.length)];
+  const marksMatchedPool =
+    targetQ.marks !== undefined
+      ? pool.filter((bq) => bq.question.marks === targetQ.marks)
+      : [];
+  const finalPool = marksMatchedPool.length > 0 ? marksMatchedPool : pool;
+
+  const pick = finalPool[Math.floor(Math.random() * finalPool.length)];
   const ts = Date.now();
   const cloned = JSON.parse(JSON.stringify(pick.question)) as Question;
   const replacement: Question = {
@@ -472,6 +634,10 @@ export function swapSingleQuestionFromBank(params: {
     id: `q-pp-swap-${ts}-${Math.random().toString(36).substring(2, 6)}`,
     number: targetQ.number,
     marks: targetQ.marks ?? targetPattern.marksPerQuestion,
+    ...(targetQ.subsection ? { subsection: targetQ.subsection } : {}),
+    ...(targetQ.subsectionInstruction
+      ? { subsectionInstruction: targetQ.subsectionInstruction }
+      : {}),
     ...(cloned.options
       ? {
           options: cloned.options.map((opt, idx) => ({
@@ -560,6 +726,15 @@ export async function selectFromDatabaseForPatternAI(params: {
       sections: pastPaper.sectionPatterns.map((sp) => ({
         kind: sp.kind,
         count: sp.questionCount,
+        ...(sp.marksPerQuestionList ? { marksPerQuestionList: sp.marksPerQuestionList } : {}),
+        ...(sp.subsectionPatterns
+          ? {
+              subsectionPatterns: sp.subsectionPatterns.map((sub) => ({
+                title: sub.title,
+                count: sub.questionCount,
+              })),
+            }
+          : {}),
       })),
       chapters: activeUnits.map((u) => ({
         unitIndex: u.unitIndex,
@@ -571,13 +746,14 @@ export async function selectFromDatabaseForPatternAI(params: {
         unitIndex: c.unitIndex,
         unitName: c.unitName,
         sectionType: c.sectionType,
+        ...(c.subsection ? { subsection: c.subsection } : {}),
         kind: c.kind,
         text: c.question.text,
         optionsPreview: c.question.options?.map((o) => `${o.label} ${o.text}`),
       })),
       focusPrompt:
         focusPrompt?.trim() ||
-        `Select a balanced set matching the ${pastPaper.year} ${pastPaper.subject} board paper pattern across chapters without repeats.`,
+        `Select a balanced set matching the ${pastPaper.year} ${pastPaper.subject} board paper pattern across chapters and sub-sections without repeats.`,
     }),
   });
 
@@ -601,9 +777,11 @@ export async function selectFromDatabaseForPatternAI(params: {
     detailed: [],
   };
 
+  const usedKeys = new Set<string>();
   (data.selections || []).forEach((sel) => {
     const bq = candidateMap.get(sel.key);
-    if (!bq) return;
+    if (!bq || usedKeys.has(bq.key)) return;
+    usedKeys.add(bq.key);
     pickedByKind[bq.kind].push({ bq, tag: sel.tag, reason: sel.reason });
   });
 
@@ -612,19 +790,72 @@ export async function selectFromDatabaseForPatternAI(params: {
   const questionMetaById: Record<string, { unitName?: string; tag?: string; reason?: string }> = {};
 
   const newSections: ExamSection[] = pastPaper.sectionPatterns.map((pattern, secIdx) => {
-    const pool = pickedByKind[pattern.kind] || [];
-    const chosen = pool.splice(0, pattern.questionCount);
+    const kindPool = pickedByKind[pattern.kind] || [];
+    const finalItems: Array<{
+      bq: BankQuestion;
+      tag?: string;
+      reason?: string;
+      subsection?: string;
+      subsectionInstruction?: string;
+      slotMarks?: number;
+    }> = [];
 
-    if (chosen.length < pattern.questionCount) {
+    if (pattern.subsectionPatterns && pattern.subsectionPatterns.length > 0) {
+      pattern.subsectionPatterns.forEach((sub) => {
+        // First consume matching AI picks
+        let countForSub = 0;
+        for (let i = 0; i < kindPool.length && countForSub < sub.questionCount; ) {
+          if (matchesSubsectionPattern(kindPool[i].bq, sub)) {
+            const [taken] = kindPool.splice(i, 1);
+            finalItems.push({
+              ...taken,
+              subsection: sub.title,
+              subsectionInstruction: sub.instruction,
+              slotMarks: sub.marksPerQuestion,
+            });
+            countForSub += 1;
+          } else {
+            i += 1;
+          }
+        }
+        // Top up from unused eligible bank items in this sub-section if AI picked unbalanced proportions
+        if (countForSub < sub.questionCount) {
+          const unusedSubPool = eligible.filter(
+            (bq) =>
+              bq.kind === pattern.kind &&
+              !usedKeys.has(bq.key) &&
+              matchesSubsectionPattern(bq, sub)
+          );
+          const extra = pickBalancedAcrossChapters(unusedSubPool, sub.questionCount - countForSub);
+          extra.forEach((bq) => {
+            usedKeys.add(bq.key);
+            finalItems.push({
+              bq,
+              tag: 'Sub-Section Fill',
+              reason: `Balanced for ${sub.title}.`,
+              subsection: sub.title,
+              subsectionInstruction: sub.instruction,
+              slotMarks: sub.marksPerQuestion,
+            });
+            countForSub += 1;
+          });
+        }
+      });
+    } else {
+      const chosen = kindPool.splice(0, pattern.questionCount);
+      chosen.forEach((item) => finalItems.push(item));
+    }
+
+    if (finalItems.length < pattern.questionCount) {
       shortfalls.push({
         sectionName: pattern.name,
         kind: pattern.kind,
         requested: pattern.questionCount,
-        filled: chosen.length,
+        filled: finalItems.length,
       });
     }
 
-    const questions: Question[] = chosen.map((item, qIdx) => {
+    const questions: Question[] = finalItems.map((item, qIdx) => {
       const cloned = JSON.parse(JSON.stringify(item.bq.question)) as Question;
       const qId = `q-aidb-${ts}-${secIdx}-${qIdx}-${Math.random().toString(36).substring(2, 6)}`;
       questionMetaById[qId] = {
@@ -636,7 +867,16 @@ export async function selectFromDatabaseForPatternAI(params: {
         ...cloned,
         id: qId,
         number: formatQuestionNumber(qIdx, pattern.numberingStyle),
-        marks: pattern.marksPerQuestion,
+        marks:
+          pattern.marksPerQuestionList?.[qIdx] ??
+          item.slotMarks ??
+          pattern.marksPerQuestion,
+        ...(item.subsection || cloned.subsection
+          ? { subsection: item.subsection || cloned.subsection }
+          : {}),
+        ...(item.subsectionInstruction || cloned.subsectionInstruction
+          ? { subsectionInstruction: item.subsectionInstruction || cloned.subsectionInstruction }
+          : {}),
         ...(cloned.options
           ? {
               options: cloned.options.map((opt, optIdx) => ({
@@ -648,12 +888,18 @@ export async function selectFromDatabaseForPatternAI(params: {
       };
     });
 
+    const patternSubsections =
+      pattern.subsectionPatterns && pattern.subsectionPatterns.length > 0
+        ? pattern.subsectionPatterns.map((sub) => sub.title)
+        : undefined;
+
     return {
       id: `sec-pp-${secIdx}-${ts}`,
       name: pattern.name,
       subtitle: pattern.subtitle,
       marksBadge: pattern.marksBadge,
       instruction: pattern.instruction,
+      ...(patternSubsections ? { subsections: patternSubsections } : {}),
       questions,
     };
   });
@@ -704,39 +950,87 @@ export function buildPaperFromManualPatternSelection(params: {
 
   const newSections: ExamSection[] = pastPaper.sectionPatterns.map((pattern, secIdx) => {
     const pool = remainingByKind[pattern.kind];
-    const chosen = pool.splice(0, pattern.questionCount);
+    let chosenWithSub: Array<{
+      bq: BankQuestion;
+      subsection?: string;
+      subsectionInstruction?: string;
+      slotMarks?: number;
+    }> = [];
 
-    if (chosen.length < pattern.questionCount) {
+    if (pattern.subsectionPatterns && pattern.subsectionPatterns.length > 0) {
+      pattern.subsectionPatterns.forEach((sub) => {
+        let takenForSub = 0;
+        for (let i = 0; i < pool.length && takenForSub < sub.questionCount; ) {
+          if (matchesSubsectionPattern(pool[i], sub)) {
+            const [picked] = pool.splice(i, 1);
+            chosenWithSub.push({
+              bq: picked,
+              subsection: sub.title,
+              subsectionInstruction: sub.instruction,
+              slotMarks: sub.marksPerQuestion,
+            });
+            takenForSub += 1;
+          } else {
+            i += 1;
+          }
+        }
+      });
+      // Append any remaining manually checked items of this kind if space remains
+      while (chosenWithSub.length < pattern.questionCount && pool.length > 0) {
+        const picked = pool.shift()!;
+        chosenWithSub.push({ bq: picked });
+      }
+    } else {
+      chosenWithSub = pool.splice(0, pattern.questionCount).map((bq) => ({ bq }));
+    }
+
+    if (chosenWithSub.length < pattern.questionCount) {
       shortfalls.push({
         sectionName: pattern.name,
         kind: pattern.kind,
         requested: pattern.questionCount,
-        filled: chosen.length,
+        filled: chosenWithSub.length,
       });
     }
 
-    const questions: Question[] = chosen.map((bq, qIdx) => {
-      const cloned = JSON.parse(JSON.stringify(bq.question)) as Question;
-      const qId = `q-manual-${ts}-${secIdx}-${qIdx}-${Math.random().toString(36).substring(2, 6)}`;
-      questionMetaById[qId] = {
-        unitName: bq.unitName,
-        tag: 'Selected Manually',
-      };
-      return {
-        ...cloned,
-        id: qId,
-        number: formatQuestionNumber(qIdx, pattern.numberingStyle),
-        marks: pattern.marksPerQuestion,
-        ...(cloned.options
-          ? {
-              options: cloned.options.map((opt, optIdx) => ({
-                ...opt,
-                id: `opt-manual-${ts}-${secIdx}-${qIdx}-${optIdx}`,
-              })),
-            }
-          : {}),
-      };
-    });
+    const questions: Question[] = chosenWithSub.map(
+      ({ bq, subsection, subsectionInstruction, slotMarks }, qIdx) => {
+        const cloned = JSON.parse(JSON.stringify(bq.question)) as Question;
+        const qId = `q-manual-${ts}-${secIdx}-${qIdx}-${Math.random().toString(36).substring(2, 6)}`;
+        questionMetaById[qId] = {
+          unitName: bq.unitName,
+          tag: 'Selected Manually',
+        };
+        return {
+          ...cloned,
+          id: qId,
+          number: formatQuestionNumber(qIdx, pattern.numberingStyle),
+          marks:
+            pattern.marksPerQuestionList?.[qIdx] ??
+            slotMarks ??
+            pattern.marksPerQuestion,
+          ...(subsection || cloned.subsection
+            ? { subsection: subsection || cloned.subsection }
+            : {}),
+          ...(subsectionInstruction || cloned.subsectionInstruction
+            ? { subsectionInstruction: subsectionInstruction || cloned.subsectionInstruction }
+            : {}),
+          ...(cloned.options
+            ? {
+                options: cloned.options.map((opt, optIdx) => ({
+                  ...opt,
+                  id: `opt-manual-${ts}-${secIdx}-${qIdx}-${optIdx}`,
+                })),
+              }
+            : {}),
+        };
+      }
+    );
+
+    const patternSubsections =
+      pattern.subsectionPatterns && pattern.subsectionPatterns.length > 0
+        ? pattern.subsectionPatterns.map((sub) => sub.title)
+        : undefined;
 
     return {
       id: `sec-pp-manual-${secIdx}-${ts}`,
@@ -744,6 +1038,7 @@ export function buildPaperFromManualPatternSelection(params: {
       subtitle: pattern.subtitle,
       marksBadge: pattern.marksBadge,
       instruction: pattern.instruction,
+      ...(patternSubsections ? { subsections: patternSubsections } : {}),
       questions,
     };
   });
@@ -824,6 +1119,7 @@ export async function refinePaperWithAI(params: {
           id: q.id,
           number: q.number,
           type: q.type,
+          ...(q.subsection ? { subsection: q.subsection } : {}),
           text: q.text,
           marks: q.marks,
           options: q.options,
@@ -835,6 +1131,7 @@ export async function refinePaperWithAI(params: {
         unitIndex: c.unitIndex,
         unitName: c.unitName,
         sectionType: c.sectionType,
+        ...(c.subsection ? { subsection: c.subsection } : {}),
         kind: c.kind,
         text: c.question.text,
         optionsPreview: c.question.options?.map((o) => `${o.label} ${o.text}`),
@@ -854,6 +1151,7 @@ export async function refinePaperWithAI(params: {
         id?: string;
         bankKey?: string;
         type: string;
+        subsection?: string;
         text: string;
         marks?: number;
         options?: string[];
@@ -899,11 +1197,22 @@ export async function refinePaperWithAI(params: {
 
       if (bankMatch) {
         const cloned = JSON.parse(JSON.stringify(bankMatch.question)) as Question;
+        const resolvedSub =
+          rq.subsection?.trim() ||
+          cloned.subsection ||
+          previousQuestionAtPosition?.subsection ||
+          previousQuestionById?.subsection;
         return {
           ...cloned,
           id: `q-ai-ref-${ts}-${secIdx}-${qIdx}-${Math.random().toString(36).substring(2, 5)}`,
           number: numStr,
-          marks: rq.marks ?? cloned.marks ?? existingSec?.questions[0]?.marks ?? 1,
+          marks:
+            rq.marks ??
+            previousQuestionAtPosition?.marks ??
+            cloned.marks ??
+            existingSec?.questions[0]?.marks ??
+            1,
+          ...(resolvedSub ? { subsection: resolvedSub } : {}),
           ...(cloned.options
             ? {
                 options: cloned.options.map((opt, optIdx) => ({
@@ -958,11 +1267,16 @@ export async function refinePaperWithAI(params: {
           : prevQ?.type === qType
             ? prevQ.answerKey
             : undefined;
+      const resolvedSub = rq.subsection?.trim() || prevQ?.subsection;
 
       return {
         id: prevQ?.id || `q-ai-ref-${ts}-${secIdx}-${qIdx}-${Math.random().toString(36).substring(2, 5)}`,
         number: numStr,
         type: qType,
+        ...(resolvedSub ? { subsection: resolvedSub } : {}),
+        ...(prevQ?.subsectionInstruction
+          ? { subsectionInstruction: prevQ.subsectionInstruction }
+          : {}),
         text,
         marks: rq.marks ?? prevQ?.marks ?? existingSec?.questions[0]?.marks ?? 1,
         ...(options ? { options, optionColumns: prevQ?.optionColumns || 2 } : {}),

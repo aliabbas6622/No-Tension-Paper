@@ -333,24 +333,51 @@ export const PastPapersView: React.FC<PastPapersViewProps> = ({
 
                 {/* Section Pattern Strip */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-2 border-t border-neutral-200 dark:border-neutral-900">
-                  {pp.sectionPatterns.map((sp) => (
-                    <div
-                      key={sp.name}
-                      className="p-3 rounded-xl border border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-black space-y-0.5"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-bold">{sp.name}</span>
-                        <span className="text-[11px] font-mono font-semibold text-neutral-700 dark:text-neutral-300">
-                          {sp.marksBadge}
-                        </span>
+                  {pp.sectionPatterns.map((sp) => {
+                    const hasMixedMarks =
+                      sp.marksPerQuestionList &&
+                      sp.marksPerQuestionList.length > 0 &&
+                      new Set(sp.marksPerQuestionList).size > 1;
+                    const marksText = hasMixedMarks
+                      ? `${sp.marksPerQuestionList!.join('/')}m`
+                      : `${sp.marksPerQuestion}m each`;
+
+                    return (
+                      <div
+                        key={sp.name}
+                        className="p-3 rounded-xl border border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-black space-y-1"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs font-bold">{sp.name}</span>
+                          <span className="text-[11px] font-mono font-semibold text-neutral-700 dark:text-neutral-300">
+                            {sp.marksBadge}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-neutral-600 dark:text-neutral-400">
+                          {sp.questionCount} {sp.kind.toUpperCase()}s • Attempt{' '}
+                          {sp.attemptCount === sp.questionCount ? 'all' : `any ${sp.attemptCount}`} (
+                          {marksText})
+                        </div>
+                        {sp.subsectionPatterns && sp.subsectionPatterns.length > 0 && (
+                          <div className="flex flex-wrap gap-1 pt-1">
+                            {sp.subsectionPatterns.map((sub) => {
+                              const shortTitle = sub.title
+                                .replace(/^Sub-Section\s+[IVX]+\s*\(/i, '')
+                                .replace(/\)$/, '');
+                              return (
+                                <span
+                                  key={sub.title}
+                                  className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white border border-neutral-200 text-neutral-700 dark:bg-neutral-900 dark:border-neutral-800 dark:text-neutral-300"
+                                >
+                                  {shortTitle}: {sub.questionCount}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
-                      <div className="text-[11px] text-neutral-600 dark:text-neutral-400">
-                        {sp.questionCount} {sp.kind.toUpperCase()}s • Attempt{' '}
-                        {sp.attemptCount === sp.questionCount ? 'all' : `any ${sp.attemptCount}`} (
-                        {sp.marksPerQuestion}m each)
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))}

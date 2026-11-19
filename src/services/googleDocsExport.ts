@@ -87,7 +87,16 @@ export async function exportPaperToGoogleDocs(
       bodyText += `${section.instruction}\n\n`;
     }
 
+    let prevSub = '';
     section.questions.forEach((q) => {
+      const currSub = (q.subsection || '').trim();
+      if (currSub && currSub !== prevSub) {
+        bodyText += `${currSub.toUpperCase()}\n`;
+        if (q.subsectionInstruction) {
+          bodyText += `${q.subsectionInstruction}\n`;
+        }
+        prevSub = currSub;
+      }
       const showMarks =
         settings.showQuestionMarks !== false && q.marks && q.type !== 'mcq';
       bodyText += `${q.number} ${q.text} ${showMarks ? `(${q.marks} Marks)` : ''}\n`;

@@ -152,24 +152,51 @@ export const PastPaperViewerModal: React.FC<PastPaperViewerModalProps> = ({
             <div className="space-y-6">
               {/* Pattern Breakdown Strip */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                {pastPaper.sectionPatterns.map((sp) => (
-                  <div
-                    key={sp.name}
-                    className="p-3 rounded-xl border border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-black space-y-1"
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-xs font-bold">{sp.name}</span>
-                      <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-neutral-900 text-white dark:bg-white dark:text-black">
-                        {sp.marksBadge}
-                      </span>
+                {pastPaper.sectionPatterns.map((sp) => {
+                  const hasMixedMarks =
+                    sp.marksPerQuestionList &&
+                    sp.marksPerQuestionList.length > 0 &&
+                    new Set(sp.marksPerQuestionList).size > 1;
+                  const marksText = hasMixedMarks
+                    ? `${sp.marksPerQuestionList!.join('/')}m`
+                    : `${sp.marksPerQuestion}m each`;
+
+                  return (
+                    <div
+                      key={sp.name}
+                      className="p-3 rounded-xl border border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-black space-y-1"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-xs font-bold">{sp.name}</span>
+                        <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-neutral-900 text-white dark:bg-white dark:text-black">
+                          {sp.marksBadge}
+                        </span>
+                      </div>
+                      <div className="text-[11px] text-neutral-600 dark:text-neutral-400">
+                        {sp.questionCount} questions • Attempt{' '}
+                        {sp.attemptCount === sp.questionCount ? 'all' : `any ${sp.attemptCount}`} (
+                        {marksText})
+                      </div>
+                      {sp.subsectionPatterns && sp.subsectionPatterns.length > 0 && (
+                        <div className="flex flex-wrap gap-1 pt-0.5">
+                          {sp.subsectionPatterns.map((sub) => {
+                            const shortTitle = sub.title
+                              .replace(/^Sub-Section\s+[IVX]+\s*\(/i, '')
+                              .replace(/\)$/, '');
+                            return (
+                              <span
+                                key={sub.title}
+                                className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white border border-neutral-200 text-neutral-700 dark:bg-neutral-900 dark:border-neutral-800 dark:text-neutral-300"
+                              >
+                                {shortTitle}: {sub.questionCount}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      )}
                     </div>
-                    <div className="text-[11px] text-neutral-600 dark:text-neutral-400">
-                      {sp.questionCount} questions • Attempt{' '}
-                      {sp.attemptCount === sp.questionCount ? 'all' : `any ${sp.attemptCount}`} (
-                      {sp.marksPerQuestion}m each)
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* All Paper Sections */}
@@ -195,41 +222,62 @@ export const PastPaperViewerModal: React.FC<PastPaperViewerModalProps> = ({
                   </div>
 
                   <div className="divide-y divide-neutral-200 dark:divide-neutral-800">
-                    {section.questions.map((q) => (
-                      <div key={q.id} className="p-3.5 space-y-2">
-                        <div className="flex items-start justify-between gap-3 text-xs leading-relaxed">
-                          <div>
-                            <span className="font-bold mr-1.5">{q.number}</span>
-                            <span>{q.text}</span>
-                          </div>
-                          {q.marks && (
-                            <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 shrink-0">
-                              [{q.marks}m]
-                            </span>
-                          )}
-                        </div>
+                    {section.questions.map((q, qIdx) => {
+                      const prevSub =
+                        qIdx > 0 ? (section.questions[qIdx - 1].subsection || '').trim() : '';
+                      const currSub = (q.subsection || '').trim();
+                      const showSubHeading = Boolean(currSub) && currSub !== prevSub;
 
-                        {q.options && q.options.length > 0 && (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pl-5 text-[11px] text-neutral-700 dark:text-neutral-300">
-                            {q.options.map((opt) => (
-                              <div key={opt.id}>
-                                <span className="font-semibold mr-1">{opt.label}</span>
-                                <span>{opt.text}</span>
+                      return (
+                        <React.Fragment key={q.id}>
+                          {showSubHeading && (
+                            <div className="px-3.5 py-2 bg-neutral-100/80 dark:bg-neutral-900/70">
+                              <div className="text-[11px] font-bold uppercase tracking-wide text-neutral-900 dark:text-white">
+                                {currSub}
                               </div>
-                            ))}
-                          </div>
-                        )}
+                              {q.subsectionInstruction && (
+                                <div className="text-[10px] text-neutral-600 dark:text-neutral-400">
+                                  {q.subsectionInstruction}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          <div className="p-3.5 space-y-2">
+                            <div className="flex items-start justify-between gap-3 text-xs leading-relaxed">
+                              <div>
+                                <span className="font-bold mr-1.5">{q.number}</span>
+                                <span>{q.text}</span>
+                              </div>
+                              {q.marks && (
+                                <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400 shrink-0">
+                                  [{q.marks}m]
+                                </span>
+                              )}
+                            </div>
 
-                        {showAnswers && q.answerKey && (
-                          <div className="ml-5 px-2.5 py-1.5 rounded-lg bg-neutral-100 border border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800 text-[11px] text-neutral-700 dark:text-neutral-300">
-                            <span className="font-semibold text-neutral-900 dark:text-white mr-1">
-                              Answer:
-                            </span>
-                            {q.answerKey}
+                            {q.options && q.options.length > 0 && (
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pl-5 text-[11px] text-neutral-700 dark:text-neutral-300">
+                                {q.options.map((opt) => (
+                                  <div key={opt.id}>
+                                    <span className="font-semibold mr-1">{opt.label}</span>
+                                    <span>{opt.text}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            {showAnswers && q.answerKey && (
+                              <div className="ml-5 px-2.5 py-1.5 rounded-lg bg-neutral-100 border border-neutral-200 dark:bg-neutral-900 dark:border-neutral-800 text-[11px] text-neutral-700 dark:text-neutral-300">
+                                <span className="font-semibold text-neutral-900 dark:text-white mr-1">
+                                  Answer:
+                                </span>
+                                {q.answerKey}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                    ))}
+                        </React.Fragment>
+                      );
+                    })}
                   </div>
                 </div>
               ))}

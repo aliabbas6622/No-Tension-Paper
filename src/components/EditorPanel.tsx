@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
 import {
+  ENGLISH_SECTION_B_SUBSECTIONS,
   ExamPaper,
   ExamHeader,
   ExamSection,
+  HeaderElementStyles,
   Question,
   QuestionType,
+  TextFontKey,
 } from '../types/exam';
 import {
   GripVertical,
@@ -16,7 +19,10 @@ import {
   ChevronUp,
   Code2,
   BookOpen,
+  SplitSquareVertical,
+  X,
 } from 'lucide-react';
+import { FONT_OPTIONS } from '../services/paperStyles';
 import { QuestionBankReplaceModal } from './QuestionBankReplaceModal';
 
 interface EditorPanelProps {
@@ -27,7 +33,7 @@ interface EditorPanelProps {
   onUpdateSection: (sectionId: string, updated: Partial<ExamSection>) => void;
   onDeleteSection: (sectionId: string) => void;
   onReorderQuestions: (sectionId: string, fromIndex: number, toIndex: number) => void;
-  onAddQuestion: (sectionId: string, type: QuestionType) => void;
+  onAddQuestion: (sectionId: string, type: QuestionType, subsection?: string) => void;
   onUpdateQuestion: (sectionId: string, questionId: string, updated: Partial<Question>) => void;
   onDeleteQuestion: (sectionId: string, questionId: string) => void;
   onDuplicateQuestion: (sectionId: string, questionId: string) => void;
@@ -56,8 +62,15 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [expandedQuestionIds, setExpandedQuestionIds] = useState<Record<string, boolean>>({});
   const [questionToReplace, setQuestionToReplace] = useState<Question | null>(null);
+  const [newSubsectionInput, setNewSubsectionInput] = useState('');
 
   const activeSection = paper.sections.find((s) => s.id === activeSectionId);
+
+  const formatShortSubLabel = (label: string): string => {
+    const parenMatch = label.match(/\(([^)]+)\)\s*$/);
+    if (parenMatch) return parenMatch[1];
+    return label.replace(/^Sub-Section\s+[IVX]+\s*/i, '').trim() || label;
+  };
 
   const toggleExpand = (id: string) => {
     setExpandedQuestionIds((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -273,6 +286,66 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
             />
           </div>
         </div>
+
+        {/* Per-Heading Fonts */}
+        <div className="bg-neutral-50 dark:bg-neutral-950 p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 space-y-2.5">
+          <div className="flex items-center justify-between gap-2">
+            <div className="text-[10px] font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
+              Fonts for Each Heading
+            </div>
+            <span className="text-[10px] text-neutral-500">
+              Or click any text on Preview
+            </span>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {(
+              [
+                { key: 'examinationTitle', label: 'Examination Title' },
+                { key: 'examinationMonth', label: 'Month & Session' },
+                { key: 'groupName', label: 'Group Name' },
+                { key: 'subjectTitle', label: 'Subject Title' },
+                { key: 'institutionName', label: 'Board / Institution' },
+                { key: 'paperCode', label: 'Paper Code' },
+              ] as Array<{ key: keyof HeaderElementStyles; label: string }>
+            ).map((item) => {
+              const currentFont = header.styles?.[item.key]?.fontFamily || '';
+              return (
+                <div key={item.key}>
+                  <label className="block text-[10px] text-neutral-600 dark:text-neutral-400 mb-1">
+                    {item.label}
+                  </label>
+                  <select
+                    value={currentFont}
+                    onChange={(e) => {
+                      const nextFont = e.target.value
+                        ? (e.target.value as TextFontKey)
+                        : undefined;
+                      const prevStyles = header.styles || {};
+                      const prevEntry = prevStyles[item.key] || {};
+                      onUpdateHeader({
+                        styles: {
+                          ...prevStyles,
+                          [item.key]: {
+                            ...prevEntry,
+                            fontFamily: nextFont,
+                          },
+                        },
+                      });
+                    }}
+                    className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-800 rounded-lg px-2 py-1.5 text-[11px] text-neutral-900 dark:text-white focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
+                  >
+                    <option value="">Default Heading Font</option>
+                    {FONT_OPTIONS.map((f) => (
+                      <option key={f.key} value={f.key}>
+                        {f.shortLabel}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
     );
   }
@@ -358,6 +431,189 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
             className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-800 rounded-lg px-2.5 py-1 text-xs text-neutral-700 dark:text-neutral-300 placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
           />
         </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 border-t border-neutral-200 dark:border-neutral-800">
+          <div>
+            <label className="block text-[10px] text-neutral-600 dark:text-neutral-400 mb-1">
+              Section Heading Font
+            </label>
+            <select
+              value={activeSection.styles?.title?.fontFamily || ''}
+              onChange={(e) => {
+                const fontFamily = e.target.value
+                  ? (e.target.value as TextFontKey)
+                  : undefined;
+                const prevStyles = activeSection.styles || {};
+                onUpdateSection(activeSection.id, {
+                  styles: {
+                    ...prevStyles,
+                    title: { ...(prevStyles.title || {}), fontFamily },
+                    subtitle: { ...(prevStyles.subtitle || {}), fontFamily },
+                    subsectionHeading: {
+                      ...(prevStyles.subsectionHeading || {}),
+                      fontFamily,
+                    },
+                  },
+                });
+              }}
+              className="w-full bg-white dark:bg-black border border-neutral-300 dark:border-neutral-800 rounded-lg px-2 py-1 text-[11px] text-neutral-900 dark:text-white focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
+            >
+              <option value="">Default Heading Font</option>
+              {FONT_OPTIONS.map((f) => (
+                <option key={f.key} value={f.key}>
+                  {f.shortLabel}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="flex items-end">
+            <label className="w-full flex items-center justify-between gap-2 bg-white dark:bg-black border border-neutral-300 dark:border-neutral-800 rounded-lg px-2.5 py-1 text-[11px] cursor-pointer">
+              <span className="text-neutral-700 dark:text-neutral-300 font-medium truncate">
+                Start on new page
+              </span>
+              <input
+                type="checkbox"
+                checked={
+                  typeof activeSection.startOnNewPage === 'boolean'
+                    ? activeSection.startOnNewPage
+                    : paper.settings?.newPagePerSection === true
+                }
+                disabled={paper.sections[0]?.id === activeSection.id}
+                onChange={(e) =>
+                  onUpdateSection(activeSection.id, {
+                    startOnNewPage: e.target.checked,
+                  })
+                }
+                title={
+                  paper.sections[0]?.id === activeSection.id
+                    ? 'First section always starts on page 1'
+                    : 'Start this section on a fresh page'
+                }
+                className="w-3.5 h-3.5 accent-neutral-900 dark:accent-white cursor-pointer disabled:opacity-40"
+              />
+            </label>
+          </div>
+        </div>
+
+        {/* Sub-Section Containers Configuration (e.g. Prose, Poem, Grammar for English Section B) */}
+        {(() => {
+          const definedSubs = activeSection.subsections || [];
+          const existingQuestionSubs = Array.from(
+            new Set(
+              activeSection.questions
+                .map((q) => (q.subsection || '').trim())
+                .filter(Boolean)
+            )
+          );
+          const allSectionSubs = Array.from(new Set([...definedSubs, ...existingQuestionSubs]));
+          const hasAllEnglishSectionB = ENGLISH_SECTION_B_SUBSECTIONS.every((sub) =>
+            allSectionSubs.some(
+              (existing) => existing.toLowerCase() === sub.toLowerCase()
+            )
+          );
+
+          const handleEnableEnglishSubsections = () => {
+            const merged = Array.from(
+              new Set([...allSectionSubs, ...ENGLISH_SECTION_B_SUBSECTIONS])
+            );
+            onUpdateSection(activeSection.id, { subsections: merged });
+          };
+
+          const handleAddCustomSubsection = () => {
+            const cleaned = newSubsectionInput.trim();
+            if (!cleaned) return;
+            if (!allSectionSubs.some((s) => s.toLowerCase() === cleaned.toLowerCase())) {
+              onUpdateSection(activeSection.id, {
+                subsections: [...allSectionSubs, cleaned],
+              });
+            }
+            setNewSubsectionInput('');
+          };
+
+          const handleRemoveSubsection = (subToRemove: string) => {
+            const nextList = allSectionSubs.filter((s) => s !== subToRemove);
+            onUpdateSection(activeSection.id, {
+              subsections: nextList.length > 0 ? nextList : undefined,
+            });
+          };
+
+          return (
+            <div className="pt-2 border-t border-neutral-200 dark:border-neutral-800 space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <span className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
+                  Sub-Section Containers ({allSectionSubs.length})
+                </span>
+                {!hasAllEnglishSectionB && (
+                  <button
+                    type="button"
+                    onClick={handleEnableEnglishSubsections}
+                    className="px-2 py-0.5 rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-black hover:bg-neutral-100 dark:hover:bg-neutral-900 text-[10px] font-medium text-neutral-800 dark:text-neutral-200 flex items-center gap-1 transition cursor-pointer"
+                    title="Split this section into Prose, Poem, and Grammar containers"
+                  >
+                    <SplitSquareVertical className="w-3 h-3" />
+                    <span>Split Prose · Poem · Grammar</span>
+                  </button>
+                )}
+              </div>
+
+              {allSectionSubs.length > 0 && (
+                <div className="flex flex-wrap gap-1.5">
+                  {allSectionSubs.map((sub) => {
+                    const count = activeSection.questions.filter(
+                      (q) => (q.subsection || '').trim() === sub
+                    ).length;
+                    return (
+                      <span
+                        key={sub}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white dark:bg-black border border-neutral-300 dark:border-neutral-800 text-[10px] font-medium text-neutral-800 dark:text-neutral-200"
+                      >
+                        <span>{formatShortSubLabel(sub)}</span>
+                        <span className="font-mono text-[9px] text-neutral-500">
+                          ({count})
+                        </span>
+                        {count === 0 && (
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveSubsection(sub)}
+                            className="text-neutral-400 hover:text-neutral-900 dark:hover:text-white cursor-pointer"
+                            title={`Remove empty ${sub} container`}
+                          >
+                            <X className="w-2.5 h-2.5" />
+                          </button>
+                        )}
+                      </span>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="flex items-center gap-1.5">
+                <input
+                  type="text"
+                  value={newSubsectionInput}
+                  onChange={(e) => setNewSubsectionInput(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleAddCustomSubsection();
+                    }
+                  }}
+                  placeholder="Add container (e.g. Sub-Section IV (Drama))"
+                  className="flex-1 bg-white dark:bg-black border border-neutral-300 dark:border-neutral-800 rounded-lg px-2.5 py-1 text-[11px] text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
+                />
+                <button
+                  type="button"
+                  onClick={handleAddCustomSubsection}
+                  disabled={!newSubsectionInput.trim()}
+                  className="px-2.5 py-1 rounded-lg border border-neutral-300 dark:border-neutral-800 bg-white dark:bg-black hover:bg-neutral-100 dark:hover:bg-neutral-900 text-[11px] font-medium text-neutral-800 dark:text-neutral-200 disabled:opacity-40 cursor-pointer"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+          );
+        })()}
       </div>
 
       {/* Questions Bar with Low Density Controls */}
@@ -401,9 +657,18 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
         </div>
       </div>
 
-      {/* Question Accordion List with Drag & Drop */}
-      <div className="space-y-2">
-        {activeSection.questions.map((q, index) => {
+      {/* Question Accordion List (Grouped by Prose / Poem / Grammar Sub-Section Containers when defined) */}
+      {(() => {
+        const containerNames = Array.from(
+          new Set([
+            ...(activeSection.subsections || []).map((s) => s.trim()).filter(Boolean),
+            ...activeSection.questions
+              .map((q) => (q.subsection || '').trim())
+              .filter(Boolean),
+          ])
+        );
+
+        const renderQuestionCard = (q: Question, index: number) => {
           const isExpanded = !!expandedQuestionIds[q.id];
           const isDragging = draggedIndex === index;
           const isDragOver = dragOverIndex === index;
@@ -472,6 +737,16 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                   {q.marks || 1} M
                 </span>
 
+                {/* Subsection tag */}
+                {q.subsection && (
+                  <span
+                    className="hidden sm:inline text-[9px] font-medium text-neutral-700 dark:text-neutral-300 px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 shrink-0 truncate max-w-[110px]"
+                    title={`Sub-section: ${q.subsection}`}
+                  >
+                    {formatShortSubLabel(q.subsection)}
+                  </span>
+                )}
+
                 {/* Question Type tag */}
                 <span className="text-[9px] uppercase tracking-wider text-neutral-600 dark:text-neutral-400 px-1.5 py-0.5 rounded bg-neutral-200/80 dark:bg-neutral-900 shrink-0">
                   {q.type}
@@ -507,7 +782,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                   </button>
                 </div>
 
-                {/* Duplicate */}
+                {/* Replace from Question Bank */}
                 <button
                   onClick={() => setQuestionToReplace(q)}
                   className="p-1 text-neutral-400 hover:text-neutral-900 dark:text-neutral-500 dark:hover:text-white transition cursor-pointer"
@@ -627,6 +902,54 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                     )}
                   </div>
 
+                  {/* Optional Sub-Section Group */}
+                  <div className="space-y-1.5">
+                    <label className="block text-[10px] text-neutral-600 dark:text-neutral-400">
+                      Sub-Section Container
+                    </label>
+                    <div className="flex flex-wrap gap-1">
+                      {Array.from(
+                        new Set([...ENGLISH_SECTION_B_SUBSECTIONS, ...containerNames])
+                      ).map((subOption) => (
+                        <button
+                          key={subOption}
+                          type="button"
+                          onClick={() =>
+                            onUpdateQuestion(activeSection.id, q.id, {
+                              subsection: q.subsection === subOption ? undefined : subOption,
+                            })
+                          }
+                          className={`px-2 py-0.5 rounded text-[10px] font-medium border transition cursor-pointer ${
+                            q.subsection === subOption
+                              ? 'bg-neutral-900 text-white border-neutral-900 dark:bg-white dark:text-black dark:border-white'
+                              : 'bg-neutral-50 text-neutral-600 border-neutral-300 hover:border-neutral-500 dark:bg-neutral-950 dark:text-neutral-300 dark:border-neutral-800 dark:hover:border-neutral-600'
+                          }`}
+                        >
+                          {formatShortSubLabel(subOption)}
+                        </button>
+                      ))}
+                    </div>
+                    <input
+                      type="text"
+                      list={`subsection-presets-${activeSection.id}`}
+                      value={q.subsection || ''}
+                      onChange={(e) =>
+                        onUpdateQuestion(activeSection.id, q.id, {
+                          subsection: e.target.value || undefined,
+                        })
+                      }
+                      placeholder="e.g. Sub-Section I (Prose), Sub-Section II (Poem), Sub-Section III (Grammar)"
+                      className="w-full bg-neutral-50 dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-800 rounded-lg px-2.5 py-1 text-xs text-neutral-900 dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
+                    />
+                    <datalist id={`subsection-presets-${activeSection.id}`}>
+                      {Array.from(
+                        new Set([...ENGLISH_SECTION_B_SUBSECTIONS, ...containerNames])
+                      ).map((subOption) => (
+                        <option key={subOption} value={subOption} />
+                      ))}
+                    </datalist>
+                  </div>
+
                   {/* MCQ Options Editor */}
                   {q.type === 'mcq' && q.options && (
                     <div className="space-y-1.5 pt-1 border-t border-neutral-200 dark:border-neutral-800">
@@ -682,8 +1005,109 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
               )}
             </div>
           );
-        })}
-      </div>
+        };
+
+        if (containerNames.length > 0) {
+          const indexedQuestions = activeSection.questions.map((q, index) => ({ q, index }));
+          const unassigned = indexedQuestions.filter(
+            ({ q }) => !q.subsection || !containerNames.includes(q.subsection.trim())
+          );
+
+          return (
+            <div className="space-y-3">
+              {containerNames.map((subTitle) => {
+                const subItems = indexedQuestions.filter(
+                  ({ q }) => (q.subsection || '').trim() === subTitle
+                );
+                const subMarks = subItems.reduce((sum, { q }) => sum + (q.marks || 0), 0);
+                const shortTitle = formatShortSubLabel(subTitle);
+
+                return (
+                  <div
+                    key={subTitle}
+                    data-subsection-container={shortTitle}
+                    className="rounded-xl border border-neutral-300 dark:border-neutral-800 bg-white dark:bg-black overflow-hidden"
+                  >
+                    <div className="px-3 py-2 bg-neutral-100/90 dark:bg-neutral-950 border-b border-neutral-200 dark:border-neutral-800 flex flex-wrap items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <span className="px-1.5 py-0.5 rounded bg-neutral-900 text-white dark:bg-white dark:text-black text-[10px] font-bold uppercase tracking-wider shrink-0">
+                          {shortTitle}
+                        </span>
+                        <span className="text-[11px] font-semibold text-neutral-800 dark:text-neutral-200 truncate">
+                          {subTitle}
+                        </span>
+                        <span className="text-[10px] font-mono text-neutral-500 shrink-0">
+                          {subItems.length} Qs • {subMarks} M
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => onAddQuestion(activeSection.id, 'short', subTitle)}
+                          className="px-2 py-1 rounded-md bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200 text-[10px] font-semibold flex items-center gap-1 transition cursor-pointer"
+                          title={`Add Short Question to ${shortTitle}`}
+                        >
+                          <Plus className="w-3 h-3" />
+                          <span>Short</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onAddQuestion(activeSection.id, 'mcq', subTitle)}
+                          className="px-1.5 py-1 rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-black hover:bg-neutral-100 dark:hover:bg-neutral-900 text-[10px] font-medium text-neutral-700 dark:text-neutral-300 cursor-pointer"
+                          title={`Add MCQ to ${shortTitle}`}
+                        >
+                          +MCQ
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => onAddQuestion(activeSection.id, 'detailed', subTitle)}
+                          className="px-1.5 py-1 rounded-md border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-black hover:bg-neutral-100 dark:hover:bg-neutral-900 text-[10px] font-medium text-neutral-700 dark:text-neutral-300 cursor-pointer"
+                          title={`Add Detailed Question to ${shortTitle}`}
+                        >
+                          +Long
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="p-2 space-y-2">
+                      {subItems.length === 0 ? (
+                        <div className="py-3 px-2 rounded-lg border border-dashed border-neutral-200 dark:border-neutral-800 text-center text-[11px] text-neutral-500">
+                          No questions in {shortTitle} container yet. Click <span className="font-semibold text-neutral-800 dark:text-neutral-200">+ Short</span> above to add one.
+                        </div>
+                      ) : (
+                        subItems.map(({ q, index }) => renderQuestionCard(q, index))
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {unassigned.length > 0 && (
+                <div className="rounded-xl border border-dashed border-neutral-300 dark:border-neutral-800 bg-white dark:bg-black overflow-hidden">
+                  <div className="px-3 py-2 bg-neutral-50 dark:bg-neutral-950 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between gap-2">
+                    <span className="text-[11px] font-semibold text-neutral-700 dark:text-neutral-300">
+                      Unassigned Questions ({unassigned.length})
+                    </span>
+                    <span className="text-[10px] text-neutral-500">
+                      Expand a question to assign it to a container
+                    </span>
+                  </div>
+                  <div className="p-2 space-y-2">
+                    {unassigned.map(({ q, index }) => renderQuestionCard(q, index))}
+                  </div>
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        return (
+          <div className="space-y-2">
+            {activeSection.questions.map((q, index) => renderQuestionCard(q, index))}
+          </div>
+        );
+      })()}
 
       {/* Add Question & JSON Mass Add Buttons */}
       <div className="pt-2 space-y-2">

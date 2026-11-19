@@ -12,6 +12,7 @@ import {
   generatePaperFromPastPatternAI,
   generatePaperFromPastPatternWeighted,
   isSimilarToPastQuestion,
+  matchesSubsectionPattern,
   refinePaperWithAI,
   selectFromDatabaseForPatternAI,
   swapSingleQuestionFromBank,
@@ -85,6 +86,7 @@ export const PastPaperPatternModal: React.FC<PastPaperPatternModalProps> = ({
   // Manual step state
   const [manualSelectedKeys, setManualSelectedKeys] = useState<Set<string>>(new Set());
   const [manualSectionIdx, setManualSectionIdx] = useState<number>(0);
+  const [manualSubFilter, setManualSubFilter] = useState<string>('all');
   const [manualChapterFilter, setManualChapterFilter] = useState<number>(-1);
   const [manualSearch, setManualSearch] = useState('');
   const [excludePastQuestions, setExcludePastQuestions] = useState(true);
@@ -100,6 +102,7 @@ export const PastPaperPatternModal: React.FC<PastPaperPatternModalProps> = ({
     setActiveSectionTab(0);
     setManualSelectedKeys(new Set());
     setManualSectionIdx(0);
+    setManualSubFilter('all');
     setManualChapterFilter(-1);
     setManualSearch('');
     setExcludePastQuestions(true);
@@ -149,6 +152,7 @@ export const PastPaperPatternModal: React.FC<PastPaperPatternModalProps> = ({
       setSelectedUnitIndices(found.units.map((_, idx) => idx));
     }
     setManualSelectedKeys(new Set());
+    setManualSubFilter('all');
     setManualChapterFilter(-1);
     setResult(null);
   };
@@ -191,22 +195,29 @@ export const PastPaperPatternModal: React.FC<PastPaperPatternModalProps> = ({
 
   const activeManualPattern = pastPaper?.sectionPatterns[manualSectionIdx] || pastPaper?.sectionPatterns[0];
 
+  const activeManualSubObj = useMemo(() => {
+    if (!activeManualPattern?.subsectionPatterns || manualSubFilter === 'all') return null;
+    return activeManualPattern.subsectionPatterns.find((s) => s.title === manualSubFilter) || null;
+  }, [activeManualPattern, manualSubFilter]);
+
   const manualVisibleQuestions = useMemo(() => {
     const needle = manualSearch.trim().toLowerCase();
     return eligibleBankQuestions.filter((bq) => {
       if (activeManualPattern && bq.kind !== activeManualPattern.kind) return false;
+      if (activeManualSubObj && !matchesSubsectionPattern(bq, activeManualSubObj)) return false;
       if (manualChapterFilter !== -1 && bq.unitIndex !== manualChapterFilter) return false;
       if (!needle) return true;
       const haystack = [
         bq.question.text,
         bq.unitName,
+        bq.subsection || '',
         ...(bq.question.options || []).map((o) => o.text),
       ]
         .join(' ')
         .toLowerCase();
       return haystack.includes(needle);
     });
-  }, [eligibleBankQuestions, activeManualPattern, manualChapterFilter, manualSearch]);
+  }, [eligibleBankQuestions, activeManualPattern, activeManualSubObj, manualChapterFilter, manualSearch]);
 
   if (!isOpen || !pastPaper) return null;
 
@@ -377,11 +388,43 @@ export const PastPaperPatternModal: React.FC<PastPaperPatternModalProps> = ({
     );
 
     const next = new Set(manualSelectedKeys);
-    const currentCounts: Record<QuestionKind, number> = {
-      mcq: manualCountsByKind.mcq,
-      short: manualCountsByKind.short,
-      detailed: manualCountsByKind.detailed,
-    };
+    const currentSelected = allBankQuestions.filter((bq) => next.has(bq.key));
+
+    // Fill subsectioned sections first using their exact sub-section quotas
+    pastPaper.sectionPatterns.forEach((sp) => {
+      if (sp.subsectionPatterns && sp.subsectionPatterns.length > 0) {
+        sp.subsectionPatterns.forEach((sub) => {
+          let have = currentSelected.filter(
+            (bq) => next.has(bq.key) && bq.kind === sp.kind && matchesSubsectionPattern(bq, sub)
+          ).length;
+
+          const subEligible = eligibleBankQuestions.filter(
+            (bq) => !next.has(bq.key) && bq.kind === sp.kind && matchesSubsectionPattern(bq, sub)
+          );
+
+          for (const bq of subEligible) {
+            if (have >= sub.questionCount) break;
+            if (weightedTexts.has(bq.question.text.trim().toLowerCase())) {
+              next.add(bq.key);
+              have += 1;
+            }
+          }
+          for (const bq of subEligible) {
+            if (have >= sub.questionCount) break;
+            if (next.has(bq.key)) continue;
+            next.add(bq.key);
+            have += 1;
+          }
+        });
+      }
+    });
+
+    // Recompute totals after subsection fill and fill remaining non-subsectioned sections
+    const updatedSelected = allBankQuestions.filter((bq) => next.has(bq.key));
+    const currentCounts: Record<QuestionKind, number> = { mcq: 0, short: 0, detailed: 0 };
+    updatedSelected.forEach((bq) => {
+      currentCounts[bq.kind] += 1;
+    });
     const targets: Record<QuestionKind, number> = { mcq: 0, short: 0, detailed: 0 };
     pastPaper.sectionPatterns.forEach((sp) => {
       targets[sp.kind] += sp.questionCount;
@@ -395,7 +438,6 @@ export const PastPaperPatternModal: React.FC<PastPaperPatternModalProps> = ({
         currentCounts[bq.kind] += 1;
       }
     }
-    // Top up if weighted didn't cover already-checked overlap
     for (const bq of eligibleBankQuestions) {
       if (next.has(bq.key)) continue;
       if (currentCounts[bq.kind] >= targets[bq.kind]) continue;
@@ -478,34 +520,73 @@ export const PastPaperPatternModal: React.FC<PastPaperPatternModalProps> = ({
         <div className="flex-1 overflow-y-auto p-5 space-y-5">
           {/* Locked Pattern Overview */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-            {pastPaper.sectionPatterns.map((sp, idx) => (
-              <div
-                key={sp.name}
-                onClick={() => {
-                  if (step === 'manual') setManualSectionIdx(idx);
-                }}
-                className={`p-3 rounded-xl border space-y-1 transition ${
-                  step === 'manual' ? 'cursor-pointer' : ''
-                } ${
-                  step === 'manual' && manualSectionIdx === idx
-                    ? 'border-neutral-900 bg-neutral-100 dark:border-white dark:bg-neutral-900'
-                    : 'border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-black'
-                }`}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-bold">{sp.name}</span>
-                  <span className="text-[11px] font-mono font-semibold text-neutral-700 dark:text-neutral-300 tabular-nums">
-                    {step === 'manual'
-                      ? `${manualCountsByKind[sp.kind]}/${sp.questionCount} selected`
-                      : sp.marksBadge}
-                  </span>
+            {pastPaper.sectionPatterns.map((sp, idx) => {
+              const hasMixedMarks =
+                sp.marksPerQuestionList &&
+                sp.marksPerQuestionList.length > 0 &&
+                new Set(sp.marksPerQuestionList).size > 1;
+              const marksText = hasMixedMarks
+                ? `${sp.marksPerQuestionList!.join('/')}m`
+                : `${sp.marksPerQuestion}m each`;
+
+              return (
+                <div
+                  key={sp.name}
+                  onClick={() => {
+                    if (step === 'manual') {
+                      setManualSectionIdx(idx);
+                      setManualSubFilter('all');
+                    }
+                  }}
+                  className={`p-3 rounded-xl border space-y-1 transition ${
+                    step === 'manual' ? 'cursor-pointer' : ''
+                  } ${
+                    step === 'manual' && manualSectionIdx === idx
+                      ? 'border-neutral-900 bg-neutral-100 dark:border-white dark:bg-neutral-900'
+                      : 'border-neutral-200 bg-neutral-50 dark:border-neutral-800 dark:bg-black'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-bold">{sp.name}</span>
+                    <span className="text-[11px] font-mono font-semibold text-neutral-700 dark:text-neutral-300 tabular-nums">
+                      {step === 'manual'
+                        ? `${manualCountsByKind[sp.kind]}/${sp.questionCount} selected`
+                        : sp.marksBadge}
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-neutral-600 dark:text-neutral-400 tabular-nums">
+                    {sp.questionCount} {sp.kind.toUpperCase()}s · {marksText} · Attempt{' '}
+                    {sp.attemptCount === sp.questionCount ? 'all' : `any ${sp.attemptCount}`}
+                  </div>
+                  {sp.subsectionPatterns && sp.subsectionPatterns.length > 0 && (
+                    <div className="flex flex-wrap gap-1 pt-0.5">
+                      {sp.subsectionPatterns.map((sub) => {
+                        const shortTitle = sub.title
+                          .replace(/^Sub-Section\s+[IVX]+\s*\(/i, '')
+                          .replace(/\)$/, '');
+                        const subSelectedCount =
+                          step === 'manual'
+                            ? manualSelectedList.filter(
+                                (bq) => bq.kind === sp.kind && matchesSubsectionPattern(bq, sub)
+                              ).length
+                            : null;
+                        return (
+                          <span
+                            key={sub.title}
+                            className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white border border-neutral-200 text-neutral-700 dark:bg-neutral-950 dark:border-neutral-800 dark:text-neutral-300"
+                          >
+                            {shortTitle}:{' '}
+                            {subSelectedCount !== null
+                              ? `${subSelectedCount}/${sub.questionCount}`
+                              : sub.questionCount}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
-                <div className="text-[11px] text-neutral-600 dark:text-neutral-400 tabular-nums">
-                  {sp.questionCount} {sp.kind.toUpperCase()}s · {sp.marksPerQuestion}m each · Attempt{' '}
-                  {sp.attemptCount === sp.questionCount ? 'all' : `any ${sp.attemptCount}`}
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           {/* STEP 1: CHOICE SCREEN */}
@@ -890,58 +971,77 @@ export const PastPaperPatternModal: React.FC<PastPaperPatternModalProps> = ({
                     <div className="border border-neutral-200 dark:border-neutral-800 rounded-xl overflow-hidden bg-white dark:bg-black divide-y divide-neutral-200 dark:divide-neutral-800">
                       {activeSection.questions.map((q, qIdx) => {
                         const qMeta = result.questionMetaById?.[q.id];
+                        const prevSub =
+                          qIdx > 0 ? (activeSection.questions[qIdx - 1].subsection || '').trim() : '';
+                        const currSub = (q.subsection || '').trim();
+                        const showSubHeading = Boolean(currSub) && currSub !== prevSub;
+
                         return (
-                          <div key={q.id} className="p-3.5 space-y-1.5">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="text-xs leading-relaxed">
-                                <span className="font-bold mr-1.5">{q.number}</span>
-                                <span>{q.text}</span>
-                              </div>
-                              <div className="flex items-center gap-1.5 shrink-0">
-                                <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
-                                  {q.marks}m
-                                </span>
-                                {activeBank && (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleSwapQuestion(activeSectionTab, qIdx)}
-                                    className="px-2 py-1 bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-neutral-800 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:border-neutral-800 dark:text-neutral-200 rounded-md text-[11px] font-medium flex items-center gap-1 cursor-pointer"
-                                    title="Swap this question with another non-overlapping database question"
-                                  >
-                                    <Shuffle className="w-3 h-3" />
-                                    <span>Swap</span>
-                                  </button>
+                          <React.Fragment key={q.id}>
+                            {showSubHeading && (
+                              <div className="px-3.5 py-2 bg-neutral-100/80 dark:bg-neutral-900/70">
+                                <div className="text-[11px] font-bold uppercase tracking-wide text-neutral-900 dark:text-white">
+                                  {currSub}
+                                </div>
+                                {q.subsectionInstruction && (
+                                  <div className="text-[10px] text-neutral-600 dark:text-neutral-400">
+                                    {q.subsectionInstruction}
+                                  </div>
                                 )}
                               </div>
+                            )}
+                            <div className="p-3.5 space-y-1.5">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="text-xs leading-relaxed">
+                                  <span className="font-bold mr-1.5">{q.number}</span>
+                                  <span>{q.text}</span>
+                                </div>
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                  <span className="text-[11px] font-mono text-neutral-500 dark:text-neutral-400">
+                                    {q.marks}m
+                                  </span>
+                                  {activeBank && (
+                                    <button
+                                      type="button"
+                                      onClick={() => handleSwapQuestion(activeSectionTab, qIdx)}
+                                      className="px-2 py-1 bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-neutral-800 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:border-neutral-800 dark:text-neutral-200 rounded-md text-[11px] font-medium flex items-center gap-1 cursor-pointer"
+                                      title="Swap this question with another non-overlapping database question"
+                                    >
+                                      <Shuffle className="w-3 h-3" />
+                                      <span>Swap</span>
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+
+                              {q.options && q.options.length > 0 && (
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 pl-5 text-[11px] text-neutral-600 dark:text-neutral-400">
+                                  {q.options.map((opt) => (
+                                    <div key={opt.id}>
+                                      <span className="font-semibold mr-1">{opt.label}</span>
+                                      <span>{opt.text}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+
+                              {showAnswers && q.answerKey && (
+                                <div className="ml-5 text-[11px] text-neutral-600 dark:text-neutral-400">
+                                  <span className="font-semibold text-neutral-900 dark:text-white">
+                                    Key:{' '}
+                                  </span>
+                                  {q.answerKey}
+                                </div>
+                              )}
+
+                              {(qMeta?.unitName || qMeta?.reason) && (
+                                <div className="ml-5 text-[11px] text-neutral-500 dark:text-neutral-400">
+                                  {qMeta.unitName}
+                                  {qMeta.reason ? ` · ${qMeta.reason}` : ''}
+                                </div>
+                              )}
                             </div>
-
-                            {q.options && q.options.length > 0 && (
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 pl-5 text-[11px] text-neutral-600 dark:text-neutral-400">
-                                {q.options.map((opt) => (
-                                  <div key={opt.id}>
-                                    <span className="font-semibold mr-1">{opt.label}</span>
-                                    <span>{opt.text}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-
-                            {showAnswers && q.answerKey && (
-                              <div className="ml-5 text-[11px] text-neutral-600 dark:text-neutral-400">
-                                <span className="font-semibold text-neutral-900 dark:text-white">
-                                  Key:{' '}
-                                </span>
-                                {q.answerKey}
-                              </div>
-                            )}
-
-                            {(qMeta?.unitName || qMeta?.reason) && (
-                              <div className="ml-5 text-[11px] text-neutral-500 dark:text-neutral-400">
-                                {qMeta.unitName}
-                                {qMeta.reason ? ` · ${qMeta.reason}` : ''}
-                              </div>
-                            )}
-                          </div>
+                          </React.Fragment>
                         );
                       })}
                     </div>
@@ -1020,7 +1120,10 @@ export const PastPaperPatternModal: React.FC<PastPaperPatternModalProps> = ({
                           <button
                             key={sp.name}
                             type="button"
-                            onClick={() => setManualSectionIdx(idx)}
+                            onClick={() => {
+                              setManualSectionIdx(idx);
+                              setManualSubFilter('all');
+                            }}
                             className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition cursor-pointer flex items-center gap-1.5 ${
                               active
                                 ? 'bg-neutral-900 text-white dark:bg-white dark:text-black'
@@ -1060,6 +1163,52 @@ export const PastPaperPatternModal: React.FC<PastPaperPatternModalProps> = ({
                         </span>
                       </button>
                     </div>
+
+                    {/* Sub-Section Filter Pills when active section defines subsectionPatterns */}
+                    {activeManualPattern?.subsectionPatterns &&
+                      activeManualPattern.subsectionPatterns.length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500 mr-1">
+                            Sub-Sections:
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setManualSubFilter('all')}
+                            className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition cursor-pointer ${
+                              manualSubFilter === 'all'
+                                ? 'bg-neutral-900 text-white dark:bg-white dark:text-black'
+                                : 'bg-white text-neutral-600 hover:text-neutral-900 border border-neutral-200 dark:bg-neutral-950 dark:text-neutral-400 dark:hover:text-white dark:border-neutral-800'
+                            }`}
+                          >
+                            All Sub-Sections
+                          </button>
+                          {activeManualPattern.subsectionPatterns.map((sub) => {
+                            const selectedCount = manualSelectedList.filter(
+                              (bq) =>
+                                bq.kind === activeManualPattern.kind &&
+                                matchesSubsectionPattern(bq, sub)
+                            ).length;
+                            const isActive = manualSubFilter === sub.title;
+                            return (
+                              <button
+                                key={sub.title}
+                                type="button"
+                                onClick={() => setManualSubFilter(sub.title)}
+                                className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition cursor-pointer flex items-center gap-1.5 ${
+                                  isActive
+                                    ? 'bg-neutral-900 text-white dark:bg-white dark:text-black'
+                                    : 'bg-white text-neutral-600 hover:text-neutral-900 border border-neutral-200 dark:bg-neutral-950 dark:text-neutral-400 dark:hover:text-white dark:border-neutral-800'
+                                }`}
+                              >
+                                <span>{sub.title}</span>
+                                <span className="font-mono text-[10px] opacity-75">
+                                  {selectedCount}/{sub.questionCount}
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
 
                     {/* Chapter filter + Search */}
                     <div className="flex flex-col sm:flex-row gap-2">
@@ -1139,7 +1288,17 @@ export const PastPaperPatternModal: React.FC<PastPaperPatternModalProps> = ({
                                   {bq.question.answerKey}
                                 </div>
                               )}
-                              <div className="text-[10px] text-neutral-500">{bq.unitName}</div>
+                              <div className="flex flex-wrap items-center gap-2 text-[10px] text-neutral-500">
+                                <span>{bq.unitName}</span>
+                                {bq.subsection && (
+                                  <span className="px-1.5 py-0.2 rounded bg-neutral-100 border border-neutral-200 text-neutral-700 dark:bg-neutral-900 dark:border-neutral-800 dark:text-neutral-300 font-medium">
+                                    {bq.subsection}
+                                  </span>
+                                )}
+                                {bq.question.marks && bq.kind === 'detailed' && (
+                                  <span className="font-mono">[{bq.question.marks}m]</span>
+                                )}
+                              </div>
                             </div>
                           </div>
                         );

@@ -53,7 +53,16 @@ export function formatPaperAsPlainText(paper: ExamPaper): string {
     }
     lines.push('');
 
+    let prevSub = '';
     section.questions.forEach((q) => {
+      const currSub = (q.subsection || '').trim();
+      if (currSub && currSub !== prevSub) {
+        lines.push(currSub.toUpperCase());
+        if (q.subsectionInstruction) {
+          lines.push(q.subsectionInstruction);
+        }
+        prevSub = currSub;
+      }
       const marksLabel =
         settings.showQuestionMarks !== false && q.marks && q.type !== 'mcq'
           ? ` (${q.marks} Marks)`

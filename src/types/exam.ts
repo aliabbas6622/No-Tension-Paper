@@ -1,5 +1,40 @@
 export type QuestionType = 'mcq' | 'short' | 'detailed' | 'fill_blank' | 'true_false';
 
+export type TextFontKey = 'times' | 'classic' | 'cambria' | 'garamond' | 'sans' | 'mono';
+export type TextAlignOption = 'left' | 'center' | 'right';
+
+export interface TextElementStyle {
+  fontFamily?: TextFontKey;
+  fontSizePt?: number;
+  bold?: boolean;
+  italic?: boolean;
+  underline?: boolean;
+  uppercase?: boolean;
+  align?: TextAlignOption;
+  letterSpacing?: 'normal' | 'wide' | 'wider';
+  color?: string;
+}
+
+export interface HeaderElementStyles {
+  institutionName?: TextElementStyle;
+  paperCode?: TextElementStyle;
+  examinationTitle?: TextElementStyle;
+  examinationMonth?: TextElementStyle;
+  groupName?: TextElementStyle;
+  subjectTitle?: TextElementStyle;
+  metadataRow?: TextElementStyle;
+  generalInstructions?: TextElementStyle;
+}
+
+export interface SectionElementStyles {
+  title?: TextElementStyle;
+  subtitle?: TextElementStyle;
+  marksBadge?: TextElementStyle;
+  instruction?: TextElementStyle;
+  subsectionHeading?: TextElementStyle;
+  questionText?: TextElementStyle;
+}
+
 export interface MCQOption {
   id: string;
   label: string; // e.g. '(a)', '(b)', '(c)', '(d)'
@@ -12,10 +47,29 @@ export interface Question {
   type: QuestionType;
   text: string;
   marks?: number;
+  subsection?: string; // e.g. 'Sub-Section I (Prose)', 'Sub-Section II (Poem)', 'Sub-Section III (Grammar)'
+  subsectionInstruction?: string;
   options?: MCQOption[]; // For MCQs
   optionColumns?: 2 | 4 | 1;
   answerKey?: string;
   linesToLeave?: number;
+  style?: TextElementStyle;
+  optionsStyle?: TextElementStyle;
+}
+
+export const ENGLISH_SECTION_B_SUBSECTIONS = [
+  'Sub-Section I (Prose)',
+  'Sub-Section II (Poem)',
+  'Sub-Section III (Grammar)',
+] as const;
+
+export interface AddSectionOptions {
+  name?: string;
+  subtitle?: string;
+  marksBadge?: string;
+  instruction?: string;
+  subsections?: string[];
+  splitIntoEnglishSectionB?: boolean;
 }
 
 export interface ExamSection {
@@ -24,6 +78,9 @@ export interface ExamSection {
   subtitle: string; // e.g. '(MULTIPLE CHOICE QUESTIONS)'
   marksBadge: string; // e.g. '10 Marks' or '24 Marks'
   instruction: string; // e.g. 'Q1 Choose the best answer for each from the given options'
+  subsections?: string[]; // e.g. ['Sub-Section I (Prose)', 'Sub-Section II (Poem)', 'Sub-Section III (Grammar)']
+  startOnNewPage?: boolean;
+  styles?: SectionElementStyles;
   questions: Question[];
 }
 
@@ -39,20 +96,24 @@ export interface ExamHeader {
   generalInstructions?: string[];
   showDividerLine: boolean;
   paperCode?: string;
+  styles?: HeaderElementStyles;
 }
 
 export interface PaperSettings {
   paperSize: 'a4' | 'letter';
-  fontFamily: 'times' | 'sans' | 'classic';
+  fontFamily: TextFontKey;
+  headingFontFamily?: TextFontKey;
   fontSize: 'sm' | 'base' | 'lg';
   showMarksBadges: boolean;
   mcqColumns: 2 | 4;
+  newPagePerSection?: boolean;
   // Specific toggles requested by user
   showGeneralInstructions: boolean; // enable/disable general instructions
   showSectionInstructions: boolean; // enable/disable section notes ("Q1 Choose...")
   showEndOfPaper: boolean; // enable/disable "*** END OF EXAMINATION PAPER ***"
   showQuestionMarks: boolean; // enable/disable marks notes with each question
   showDividerMarker: boolean; // enable/disable '|' marker
+  endOfPaperStyle?: TextElementStyle;
 }
 
 export interface ExamPaper {
@@ -73,10 +134,15 @@ export interface CurriculumQuestionItem {
   question: string;
   options?: string[];
   answer?: string;
+  subsection?: string;
+  subsectionInstruction?: string;
+  marks?: number;
 }
 
 export interface CurriculumSectionItem {
   type: string;
+  subsection?: string;
+  subsectionInstruction?: string;
   questions: CurriculumQuestionItem[];
 }
 
@@ -142,6 +208,15 @@ export interface ScheduledEmailJob {
   errorMessage?: string;
 }
 
+export interface PastPaperSubsectionPattern {
+  title: string;
+  instruction?: string;
+  questionCount: number;
+  attemptCount?: number;
+  marksPerQuestion?: number;
+  matchHints?: string[];
+}
+
 export interface PastPaperSectionPattern {
   name: string;
   subtitle: string;
@@ -149,10 +224,12 @@ export interface PastPaperSectionPattern {
   questionCount: number;
   attemptCount: number;
   marksPerQuestion: number;
+  marksPerQuestionList?: number[];
   totalSectionMarks: number;
   marksBadge: string;
   instruction: string;
   numberingStyle?: 'roman' | 'decimal' | 'section-c-from-3';
+  subsectionPatterns?: PastPaperSubsectionPattern[];
 }
 
 export interface PastPaperRecord {

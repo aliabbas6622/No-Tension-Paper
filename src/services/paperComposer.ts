@@ -82,20 +82,62 @@ export function parseCurriculumOptions(optionsArr?: unknown): MCQOption[] | unde
   });
 }
 
+export function inferCurriculumSubsection(
+  sectionType?: string,
+  unitName?: string,
+  explicitSubsection?: string
+): string | undefined {
+  if (explicitSubsection && explicitSubsection.trim()) {
+    return explicitSubsection.trim();
+  }
+  const combined = `${sectionType || ''} ${unitName || ''}`.toLowerCase();
+  if (combined.includes('sub-section i') || /\bprose\b/.test(combined)) {
+    return 'Sub-Section I (Prose)';
+  }
+  if (
+    combined.includes('sub-section ii') ||
+    /\bpoem\b|\bpoetry\b|\bplay\b/.test(combined)
+  ) {
+    return 'Sub-Section II (Poem)';
+  }
+  if (combined.includes('sub-section iii') || /\bgrammar\b/.test(combined)) {
+    return 'Sub-Section III (Grammar)';
+  }
+  return undefined;
+}
+
 /** Convert one curriculum question into an editable paper question. */
 export function curriculumQuestionToQuestion(
   raw: CurriculumSectionItem['questions'][number],
   kind: QuestionKind,
-  index: number
+  index: number,
+  sectionMeta?: {
+    sectionType?: string;
+    unitName?: string;
+    subsection?: string;
+    subsectionInstruction?: string;
+  }
 ): Question {
   const options = kind === 'mcq' ? parseCurriculumOptions(raw.options) : undefined;
+  const subsection =
+    kind === 'short'
+      ? inferCurriculumSubsection(
+          sectionMeta?.sectionType,
+          sectionMeta?.unitName,
+          raw.subsection || sectionMeta?.subsection
+        )
+      : raw.subsection || sectionMeta?.subsection;
+  const subsectionInstruction =
+    raw.subsectionInstruction || sectionMeta?.subsectionInstruction;
 
   return {
     id: `q-bank-${Date.now()}-${index}-${Math.random().toString(36).substring(2, 7)}`,
     number: raw.question_number ? `${raw.question_number}.` : `${index + 1}.`,
     type: kind,
     text: raw.question || '',
-    marks: DEFAULT_KIND_MARKS[kind],
+    marks: typeof raw.marks === 'number' && raw.marks > 0 ? raw.marks : DEFAULT_KIND_MARKS[kind],
+    ...(subsection ? { subsection } : {}),
+    ...(subsectionInstruction ? { subsectionInstruction } : {}),
     ...(options ? { options, optionColumns: 2 as const } : {}),
     ...(raw.answer ? { answerKey: raw.answer } : {}),
   };
@@ -109,6 +151,7 @@ export interface BankQuestion {
   unitName: string;
   unitPages: string[];
   sectionType: string;
+  subsection?: string;
   kind: QuestionKind;
   isFillInTheBlank: boolean;
   question: Question;
@@ -130,13 +173,19 @@ export function buildBankQuestions(units: CurriculumUnitItem[]): BankQuestion[] 
     unit.sections.forEach((section, sectionIndex) => {
       const kind = classifyCurriculumSection(section);
       section.questions.forEach((raw, qIndex) => {
-        const qObj = curriculumQuestionToQuestion(raw, kind, qIndex);
+        const qObj = curriculumQuestionToQuestion(raw, kind, qIndex, {
+          sectionType: section.type,
+          unitName: unit.unit,
+          subsection: section.subsection,
+          subsectionInstruction: section.subsectionInstruction,
+        });
         out.push({
           key: `${unitIndex}|${sectionIndex}|${qIndex}`,
           unitIndex,
           unitName: unit.unit,
           unitPages: unit.pages || [],
           sectionType: section.type,
+          ...(qObj.subsection ? { subsection: qObj.subsection } : {}),
           kind,
           isFillInTheBlank: isFillInTheBlankItem(qObj.text, section.type),
           question: qObj,
@@ -372,16 +421,53 @@ export function replaceQuestionsInPaper(
         .slice(sIdx + 1)
         .some((other) => other.kind === sp.kind);
       const pool = remaining[sp.kind];
-      const taken = laterSameKind ? pool.splice(0, sp.questionCount) : pool.splice(0, pool.length);
+      let taken = laterSameKind ? pool.splice(0, sp.questionCount) : pool.splice(0, pool.length);
+
+      if (sp.subsectionPatterns && sp.subsectionPatterns.length > 0) {
+        const subOrder = sp.subsectionPatterns;
+        const bucketMap = new Map<string, Question[]>();
+        subOrder.forEach((sub) => bucketMap.set(sub.title, []));
+        const unmatched: Question[] = [];
+
+        taken.forEach((q) => {
+          const qSub = (q.subsection || '').toLowerCase();
+          const matchedSub = subOrder.find((sub) => {
+            if (qSub && qSub === sub.title.toLowerCase()) return true;
+            const hints = sub.matchHints || [sub.title.toLowerCase()];
+            return hints.some((h) => qSub.includes(h.toLowerCase()));
+          });
+          if (matchedSub) {
+            bucketMap.get(matchedSub.title)!.push({
+              ...q,
+              subsection: matchedSub.title,
+              ...(matchedSub.instruction && !q.subsectionInstruction
+                ? { subsectionInstruction: matchedSub.instruction }
+                : {}),
+            });
+          } else {
+            unmatched.push(q);
+          }
+        });
+
+        taken = [
+          ...subOrder.flatMap((sub) => bucketMap.get(sub.title) || []),
+          ...unmatched,
+        ];
+      }
 
       const formatted = taken.map((q, qIdx) => ({
         ...q,
         number: formatPatternNum(qIdx, sp.numberingStyle),
-        marks: sp.marksPerQuestion,
+        marks: sp.marksPerQuestionList?.[qIdx] ?? sp.marksPerQuestion,
       }));
 
       const totalSecMarks = formatted.reduce((sum, q) => sum + (q.marks || sp.marksPerQuestion), 0);
       const keepPatternBadge = formatted.length === sp.questionCount && sp.marksBadge;
+
+      const patternSubsections =
+        sp.subsectionPatterns && sp.subsectionPatterns.length > 0
+          ? sp.subsectionPatterns.map((sub) => sub.title)
+          : existing?.subsections;
 
       return {
         id: existing?.id || `sec-pp-man-${sIdx}-${Date.now()}`,
@@ -389,6 +475,9 @@ export function replaceQuestionsInPaper(
         subtitle: existing?.subtitle || sp.subtitle,
         marksBadge: keepPatternBadge ? sp.marksBadge : `${totalSecMarks} Marks`,
         instruction: existing?.instruction || sp.instruction,
+        ...(patternSubsections && patternSubsections.length > 0
+          ? { subsections: patternSubsections }
+          : {}),
         questions: formatted,
       };
     });

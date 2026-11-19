@@ -1,8 +1,13 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { ExamPaper, PastPaperPatternSeed, Question } from '../types/exam';
-import { QuestionBank, loadQuestionBanks, syncBundledQuestionBanks } from '../services/questionBank';
+import {
+  QuestionBank,
+  loadQuestionBanks,
+  seedBiekClass11EnglishToFirestore,
+  syncBundledQuestionBanks,
+} from '../services/questionBank';
 import { BankQuestion, QuestionKind, buildBankQuestions } from '../services/paperComposer';
-import { isSimilarToPastQuestion } from '../services/pastPaperPattern';
+import { isSimilarToPastQuestion, matchesSubsectionPattern } from '../services/pastPaperPattern';
 import { AppMode, ModeSwitcher } from './ModeSwitcher';
 import { AppTheme, ThemeToggleButton } from './ThemeToggleButton';
 import {
@@ -80,6 +85,7 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
   const [hasAutoSynced, setHasAutoSynced] = useState(false);
   const [search, setSearch] = useState('');
   const [kindFilter, setKindFilter] = useState<'all' | QuestionKind>('all');
+  const [subsectionFilter, setSubsectionFilter] = useState<string>('all');
   const [showAnswers, setShowAnswers] = useState(true);
   const [excludeSeedPastQs, setExcludeSeedPastQs] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
@@ -94,13 +100,19 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
       if (!mounted) return;
       setBanks(loaded);
       const subjectTitle = (currentPaper.header.subjectTitle || currentPaper.title || '').toLowerCase();
+      const cleanPaperSub = subjectTitle
+        .replace(/^subject:\s*/i, '')
+        .replace(/\(.*?\)/g, '')
+        .trim();
       const preferredBySeed = patternSeed?.questionBankId
         ? loaded.find((b) => b.id === patternSeed.questionBankId)
         : undefined;
       const preferredByPaper = loaded.find(
         (b) =>
           subjectTitle.includes(b.subjectName.toLowerCase()) ||
-          b.subjectName.toLowerCase().includes(subjectTitle)
+          b.subjectName.toLowerCase().includes(subjectTitle) ||
+          (b.category && subjectTitle.includes(b.category.toLowerCase())) ||
+          (cleanPaperSub.length >= 3 && b.subjectName.toLowerCase().includes(cleanPaperSub))
       );
       setActiveBankId(
         (prev) => prev || preferredBySeed?.id || preferredByPaper?.id || loaded[0]?.id || ''
@@ -121,6 +133,16 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
     () => (activeBank ? buildBankQuestions(activeBank.units) : []),
     [activeBank]
   );
+
+  const availableSubsections = useMemo(() => {
+    const set = new Set<string>();
+    allQuestions.forEach((bq) => {
+      if (!bq.isFillInTheBlank && bq.subsection) {
+        set.add(bq.subsection);
+      }
+    });
+    return Array.from(set).sort();
+  }, [allQuestions]);
 
   const paperQuestionNormalizedTexts = useMemo(() => {
     const set = new Set<string>();
@@ -185,12 +207,14 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
       }
       if (activeChapter !== ALL_CHAPTERS && bq.unitIndex !== activeChapter) return false;
       if (kindFilter !== 'all' && bq.kind !== kindFilter) return false;
+      if (subsectionFilter !== 'all' && bq.subsection !== subsectionFilter) return false;
       if (!needle) return true;
 
       const haystack = [
         bq.question.text,
         bq.sectionType,
         bq.unitName,
+        bq.subsection || '',
         ...(bq.question.options || []).map((o) => o.text),
       ]
         .join(' ')
@@ -198,7 +222,7 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
 
       return haystack.includes(needle);
     });
-  }, [allQuestions, activeChapter, kindFilter, search, patternSeed, excludeSeedPastQs]);
+  }, [allQuestions, activeChapter, kindFilter, subsectionFilter, search, patternSeed, excludeSeedPastQs]);
 
   const chapterKindCounts = useMemo(() => {
     const counts: Record<'all' | QuestionKind | 'blanks', number> = {
@@ -247,6 +271,7 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
     setActiveChapter(ALL_CHAPTERS);
     setSearch('');
     setKindFilter('all');
+    setSubsectionFilter('all');
     // Selection is scoped to one bank so the count always matches what is on screen.
     setSelectedKeys(new Set());
   };
@@ -312,6 +337,30 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
     }
   };
 
+  const handleSeedBiekEnglish = async () => {
+    setIsSyncing(true);
+    setStatus(null);
+    try {
+      const res = await seedBiekClass11EnglishToFirestore({ force: true });
+      const reloaded = await loadQuestionBanks();
+      setBanks(reloaded);
+      setActiveBankId(res.curriculumId);
+      setActiveChapter(ALL_CHAPTERS);
+      setSubsectionFilter('all');
+      setStatus({
+        text: `Seeded BIEK Class 11 English (${res.countsByCategory.Prose} Prose, ${res.countsByCategory.Poem} Poem, ${res.countsByCategory.Grammar} Grammar, ${res.countsByCategory.MCQ} MCQ, ${res.countsByCategory.Detailed} Detailed) to Firestore.`,
+        tone: 'ok',
+      });
+    } catch (err) {
+      setStatus({
+        text: 'Could not seed BIEK Class 11 English to Firestore — check connection or Firestore rules.',
+        tone: 'error',
+      });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   const paperQuestionCount = currentPaper.sections.reduce((a, s) => a + s.questions.length, 0);
 
   return (
@@ -356,6 +405,16 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
           )}
           <ThemeToggleButton theme={theme} onToggle={onToggleTheme} showLabel />
           <button
+            type="button"
+            onClick={handleSeedBiekEnglish}
+            disabled={isSyncing}
+            className="px-2.5 py-1.5 bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-neutral-800 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:border-neutral-800 dark:text-neutral-200 text-[11px] font-medium rounded-lg transition flex items-center gap-1.5 disabled:opacity-50 cursor-pointer whitespace-nowrap shrink-0"
+            title="Seed standard BIEK Class 11 English (Prose, Poem, Grammar) structure to Firestore"
+          >
+            <Database className="w-3.5 h-3.5" />
+            <span className="hidden md:inline">Seed BIEK English</span>
+          </button>
+          <button
             onClick={() => handleSync(true)}
             disabled={isSyncing}
             className="px-3 py-1.5 bg-neutral-100 hover:bg-neutral-200 border border-neutral-200 text-neutral-800 dark:bg-neutral-900 dark:hover:bg-neutral-800 dark:border-neutral-800 dark:text-neutral-200 text-[11px] font-medium rounded-lg transition flex items-center gap-1.5 disabled:opacity-50 cursor-pointer whitespace-nowrap shrink-0"
@@ -379,12 +438,31 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
               {patternSeed.year} Pattern Targets:
             </span>
             {patternSeed.sectionPatterns.map((sp) => {
-              const selectedCount = allQuestions.filter(
+              const selectedInSection = allQuestions.filter(
                 (q) => selectedKeys.has(q.key) && q.kind === sp.kind
-              ).length;
+              );
               return (
-                <span key={sp.name} className="font-mono tabular-nums">
-                  {sp.name}: {selectedCount}/{sp.questionCount}
+                <span key={sp.name} className="font-mono tabular-nums inline-flex items-center gap-1.5">
+                  <span>
+                    {sp.name}: {selectedInSection.length}/{sp.questionCount}
+                  </span>
+                  {sp.subsectionPatterns && sp.subsectionPatterns.length > 0 && (
+                    <span className="text-[10px] opacity-80">
+                      (
+                      {sp.subsectionPatterns
+                        .map((sub) => {
+                          const shortTitle = sub.title
+                            .replace(/^Sub-Section\s+[IVX]+\s*\(/i, '')
+                            .replace(/\)$/, '');
+                          const subSel = selectedInSection.filter((q) =>
+                            matchesSubsectionPattern(q, sub)
+                          ).length;
+                          return `${shortTitle} ${subSel}/${sub.questionCount}`;
+                        })
+                        .join(' · ')}
+                      )
+                    </span>
+                  )}
                 </span>
               );
             })}
@@ -626,6 +704,39 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
                   </button>
                 </div>
               </div>
+
+              {availableSubsections.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+                  <span className="text-[10px] font-semibold uppercase tracking-wider text-neutral-500 mr-1">
+                    Sub-Section:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setSubsectionFilter('all')}
+                    className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition cursor-pointer ${
+                      subsectionFilter === 'all'
+                        ? 'bg-neutral-900 text-white dark:bg-white dark:text-black'
+                        : 'bg-neutral-50 text-neutral-600 hover:text-neutral-900 border border-neutral-200 dark:bg-neutral-950 dark:text-neutral-400 dark:hover:text-white dark:border-neutral-800'
+                    }`}
+                  >
+                    All
+                  </button>
+                  {availableSubsections.map((sub) => (
+                    <button
+                      key={sub}
+                      type="button"
+                      onClick={() => setSubsectionFilter(sub)}
+                      className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition cursor-pointer ${
+                        subsectionFilter === sub
+                          ? 'bg-neutral-900 text-white dark:bg-white dark:text-black'
+                          : 'bg-neutral-50 text-neutral-600 hover:text-neutral-900 border border-neutral-200 dark:bg-neutral-950 dark:text-neutral-400 dark:hover:text-white dark:border-neutral-800'
+                      }`}
+                    >
+                      {sub}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {/* Scrollable question rows */}
@@ -665,6 +776,14 @@ export const BuilderMode: React.FC<BuilderModeProps> = ({
                             {inPaperKeys.has(bq.key) && (
                               <span className="text-[10px] font-medium text-indigo-600 dark:text-indigo-400">
                                 In Paper
+                              </span>
+                            )}
+                            {bq.subsection && (
+                              <span
+                                className="text-[9px] font-medium px-1.5 py-0.5 rounded border border-neutral-200 bg-neutral-50 text-neutral-700 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-300"
+                                title={bq.subsection}
+                              >
+                                {bq.subsection.replace(/^Sub-Section\s+[IVX]+\s*\(/i, '').replace(/\)$/, '')}
                               </span>
                             )}
                             <span

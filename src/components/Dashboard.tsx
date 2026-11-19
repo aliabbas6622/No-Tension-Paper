@@ -174,7 +174,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
     [customTemplates]
   );
 
-  const categories = ['All', 'Computer Science', 'Math', 'Science', 'History', 'Saved'];
+  const categories = ['All', 'Computer Science', 'Math', 'Science', 'History', 'English', 'Saved'];
 
   const filteredTemplates = useMemo(() => {
     return allTemplates.filter((t) => {

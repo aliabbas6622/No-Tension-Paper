@@ -2,9 +2,13 @@ import {
   RefinePaperRequestBody,
   classifyErrorStatus,
   executeRefinePaper,
-} from '../../lib/aiHandlers';
+} from './_handlers.js';
 
 async function readJsonBody(req: any): Promise<RefinePaperRequestBody> {
+  if (Buffer.isBuffer(req.body)) {
+    const rawBuf = req.body.toString('utf8').trim();
+    return rawBuf ? JSON.parse(rawBuf) : {};
+  }
   if (req.body && typeof req.body === 'object') return req.body;
   if (typeof req.body === 'string' && req.body.trim()) {
     return JSON.parse(req.body);

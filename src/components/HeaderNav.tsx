@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ExamPaper } from '../types/exam';
+import { AddSectionOptions, ExamPaper } from '../types/exam';
 import { AppMode, ModeSwitcher } from './ModeSwitcher';
 import { AppTheme, ThemeToggleButton } from './ThemeToggleButton';
 import {
@@ -28,7 +28,8 @@ interface HeaderNavProps {
   onSwitchMode?: (mode: AppMode) => void;
   activeSectionId: string;
   onSelectSection: (id: string) => void;
-  onAddSection: () => void;
+  onAddSection: (options?: AddSectionOptions) => void;
+  onOpenAddSectionModal?: () => void;
   onOpenDashboard: () => void;
   onOpenTemplates: () => void;
   onOpenSettings: () => void;
@@ -55,6 +56,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   activeSectionId,
   onSelectSection,
   onAddSection,
+  onOpenAddSectionModal,
   onOpenDashboard,
   onOpenTemplates,
   onOpenSettings,
@@ -198,13 +200,31 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
 
               <button
                 onClick={() => {
-                  onAddSection();
                   setIsSectionDropdownOpen(false);
+                  if (onOpenAddSectionModal) {
+                    onOpenAddSectionModal();
+                  } else {
+                    onAddSection();
+                  }
                 }}
                 className="w-full text-left px-3 py-2 text-neutral-700 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-300 dark:hover:text-white dark:hover:bg-neutral-900 flex items-center gap-1.5 cursor-pointer font-medium"
               >
                 <Plus className="w-3.5 h-3.5 text-neutral-500 dark:text-neutral-400" />
-                <span>Add New Section</span>
+                <span>Add New Section...</span>
+              </button>
+              <button
+                onClick={() => {
+                  setIsSectionDropdownOpen(false);
+                  onAddSection({
+                    name: 'SECTION "B"',
+                    subtitle: '(SHORT ANSWER QUESTIONS)',
+                    splitIntoEnglishSectionB: true,
+                  });
+                }}
+                className="w-full text-left px-3 py-1.5 text-[11px] text-neutral-600 hover:text-neutral-900 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-white dark:hover:bg-neutral-900 flex items-center gap-1.5 cursor-pointer"
+              >
+                <Plus className="w-3 h-3 text-neutral-500 dark:text-neutral-400" />
+                <span className="truncate">Add English Sec B (Prose · Poem · Grammar)</span>
               </button>
             </div>
           )}

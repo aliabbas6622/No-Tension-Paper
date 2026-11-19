@@ -334,6 +334,113 @@ export async function seedCurriculumSubjectsToFirestore(
   return { seeded, skipped, failed };
 }
 
+export interface BiekEnglishSeedResult {
+  curriculumId: string;
+  templateId: string;
+  seededCurriculum: boolean;
+  seededTemplate: boolean;
+  categories: ['Prose', 'Poem', 'Grammar'];
+  countsByCategory: {
+    Prose: number;
+    Poem: number;
+    Grammar: number;
+    MCQ: number;
+    Detailed: number;
+    Total: number;
+  };
+  unitsCount: number;
+}
+
+export async function seedBiekEnglishClass11StructureToFirestore(
+  payload: {
+    bank: SeedableQuestionBank & {
+      subSectionCategories: ['Prose', 'Poem', 'Grammar'];
+      board?: string;
+    };
+    template: SubjectTemplate;
+    countsByCategory: BiekEnglishSeedResult['countsByCategory'];
+  },
+  options: { force?: boolean } = {}
+): Promise<BiekEnglishSeedResult> {
+  const user = auth.currentUser;
+  const userId = user?.uid || 'guest';
+  const now = new Date().toISOString();
+  const { bank, template, countsByCategory } = payload;
+
+  const curriculumPath = `curriculum_subjects/${bank.id}`;
+  const templatePath = `custom_templates/${template.id}`;
+
+  let seededCurriculum = false;
+  let seededTemplate = false;
+
+  try {
+    let shouldWriteCurriculum = Boolean(options.force);
+    if (!shouldWriteCurriculum) {
+      const existingCurr = await getDoc(doc(db, 'curriculum_subjects', bank.id));
+      shouldWriteCurriculum = !existingCurr.exists();
+    }
+
+    if (shouldWriteCurriculum) {
+      await setDoc(
+        doc(db, 'curriculum_subjects', bank.id),
+        stripUndefinedDeep({
+          id: bank.id,
+          userId,
+          classGrade: bank.classGrade,
+          subjectName: bank.subjectName,
+          group: bank.group,
+          category: bank.category,
+          board: bank.board || 'BIEK Karachi',
+          description: bank.description || '',
+          subSectionCategories: bank.subSectionCategories,
+          curriculumAnswers: bank.curriculumAnswers,
+          updatedAt: now,
+          ...(options.force ? {} : { createdAt: now }),
+        }),
+        { merge: true }
+      );
+      seededCurriculum = true;
+    }
+  } catch (err) {
+    handleFirestoreError(err, OperationType.WRITE, curriculumPath);
+  }
+
+  try {
+    let shouldWriteTemplate = Boolean(options.force);
+    if (!shouldWriteTemplate) {
+      const existingTpl = await getDoc(doc(db, 'custom_templates', template.id));
+      shouldWriteTemplate = !existingTpl.exists();
+    }
+
+    if (shouldWriteTemplate) {
+      await setDoc(
+        doc(db, 'custom_templates', template.id),
+        stripUndefinedDeep({
+          ...template,
+          isBuiltIn: false,
+          userId,
+          updatedAt: now,
+          createdAt: now,
+        }),
+        { merge: true }
+      );
+      seededTemplate = true;
+    }
+  } catch (err) {
+    handleFirestoreError(err, OperationType.WRITE, templatePath);
+  }
+
+  return {
+    curriculumId: bank.id,
+    templateId: template.id,
+    seededCurriculum,
+    seededTemplate,
+    categories: ['Prose', 'Poem', 'Grammar'],
+    countsByCategory,
+    unitsCount: bank.curriculumAnswers.length,
+  };
+}
+
 // 10. Delete Curriculum Subject Record
 export async function deleteCurriculumSubjectFromFirestore(subjectId: string): Promise<void> {
   const path = `curriculum_subjects/${subjectId}`;

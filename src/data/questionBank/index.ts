@@ -1,5 +1,6 @@
 import type { CurriculumUnitItem } from '../../types/exam';
 import computerScienceClass11 from './computer-science-class11.json';
+import englishClass11 from './english-class11.json';
 
 /**
  * A reusable, chapter-based question bank. The `units` array is exactly the
@@ -28,5 +29,15 @@ export const BUNDLED_QUESTION_BANKS: QuestionBankSubject[] = [
     description:
       'Board-syllabus chapters with MCQs, fill in the blanks, short and detailed questions, each with a model answer.',
     units: computerScienceClass11.curriculum_answers as CurriculumUnitItem[],
+  },
+  {
+    id: 'curr-english-class-11',
+    classGrade: 'Class 11',
+    subjectName: 'English (Compulsory)',
+    group: 'COMPULSORY (ALL GROUPS)',
+    category: 'English',
+    description:
+      'BIEK / Sindh Board Class 11 English bank organized across Prose, Poetry & Play, Grammar, and Composition with Section B sub-sections and model answers.',
+    units: englishClass11.curriculum_answers as CurriculumUnitItem[],
   },
 ];

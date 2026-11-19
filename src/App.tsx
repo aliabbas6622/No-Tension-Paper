@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
+  AddSectionOptions,
+  ENGLISH_SECTION_B_SUBSECTIONS,
   ExamPaper,
   ExamHeader,
   ExamSection,
@@ -47,7 +49,10 @@ import {
   refreshSectionMarksBadge,
   replaceQuestionsInPaper,
 } from './services/paperComposer';
-import { syncBundledQuestionBanks } from './services/questionBank';
+import {
+  seedBiekClass11EnglishToFirestore,
+  syncBundledQuestionBanks,
+} from './services/questionBank';
 import { exportPaperToWord } from './services/wordExport';
 import { downloadPaperAsPDF, printPaperDirect } from './services/pdfExport';
 import {
@@ -122,6 +127,13 @@ export default function App() {
   const [activePatternSeed, setActivePatternSeed] = useState<PastPaperPatternSeed | null>(null);
   const [isAIRefinerOpen, setIsAIRefinerOpen] = useState<boolean>(false);
   const [builderCameFromPreview, setBuilderCameFromPreview] = useState<boolean>(false);
+  const [isAddSectionModalOpen, setIsAddSectionModalOpen] = useState<boolean>(false);
+  const [addSecName, setAddSecName] = useState<string>('');
+  const [addSecSubtitle, setAddSecSubtitle] = useState<string>('');
+  const [addSecInstruction, setAddSecInstruction] = useState<string>('');
+  const [addSecSplitEnglish, setAddSecSplitEnglish] = useState<boolean>(false);
+  const [addSecSubsections, setAddSecSubsections] = useState<string[]>([]);
+  const [addSecNewSubInput, setAddSecNewSubInput] = useState<string>('');
 
   const [driveModalConfig, setDriveModalConfig] = useState<{
     targetPaper?: ExamPaper;
@@ -258,6 +270,17 @@ export default function App() {
           }
         })
         .catch((err) => console.warn('Question bank seed notice:', err));
+
+      seedBiekClass11EnglishToFirestore()
+        .then((res) => {
+          if (res.seededCurriculum || res.seededTemplate) {
+            console.info(
+              'Seeded BIEK Class 11 English structure to Firestore:',
+              res.categories.join(', ')
+            );
+          }
+        })
+        .catch((err) => console.warn('BIEK English Firestore seed notice:', err));
     };
 
     syncWithFirestore();
@@ -391,8 +414,7 @@ export default function App() {
     }
   };
 
-  // Add Section (picks first unused letter so deleting middle sections never duplicates letters)
-  const handleAddSection = () => {
+  const getNextUnusedSectionLetter = useCallback(() => {
     const sectionLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
     const usedLetters = new Set(
       paper.sections
@@ -402,26 +424,108 @@ export default function App() {
         })
         .filter(Boolean)
     );
-    const nextLetter =
+    return (
       sectionLetters.find((letter) => !usedLetters.has(letter)) ||
-      `${paper.sections.length + 1}`;
+      `${paper.sections.length + 1}`
+    );
+  }, [paper.sections]);
+
+  const isCurrentPaperEnglish =
+    paper.subjectCategory === 'English' ||
+    /english/i.test(paper.header.subjectTitle || paper.title || '');
+
+  const handleOpenAddSectionModal = () => {
+    const nextLetter = getNextUnusedSectionLetter();
+    const shouldDefaultSplit = isCurrentPaperEnglish && nextLetter === 'B';
+    setAddSecName(`SECTION "${nextLetter}"`);
+    setAddSecSubtitle(
+      shouldDefaultSplit ? '(SHORT ANSWER QUESTIONS)' : '(ADDITIONAL QUESTIONS)'
+    );
+    setAddSecInstruction(
+      shouldDefaultSplit
+        ? 'Q2. Attempt TEN part-questions in all from Sub-Section I (Prose), Sub-Section II (Poem), and Sub-Section III (Grammar).'
+        : 'Note: Attempt all questions from this section.'
+    );
+    setAddSecSplitEnglish(shouldDefaultSplit);
+    setAddSecSubsections(shouldDefaultSplit ? [...ENGLISH_SECTION_B_SUBSECTIONS] : []);
+    setAddSecNewSubInput('');
+    setIsAddSectionModalOpen(true);
+  };
+
+  // Add Section (picks first unused letter and supports defining English Prose/Poem/Grammar sub-sections)
+  const handleAddSection = (options?: AddSectionOptions) => {
+    const nextLetter = getNextUnusedSectionLetter();
+    const resolvedName = options?.name?.trim() || `SECTION "${nextLetter}"`;
+    const isTargetSectionB = /["']?B["']?$/i.test(resolvedName.trim()) || nextLetter === 'B';
+
+    const shouldSplitEnglishB =
+      Boolean(options?.splitIntoEnglishSectionB) ||
+      (!options && isCurrentPaperEnglish && isTargetSectionB);
+
+    const customSubsections = Array.isArray(options?.subsections)
+      ? Array.from(new Set(options.subsections.map((s) => s.trim()).filter(Boolean)))
+      : [];
+
+    const resolvedSubsections =
+      customSubsections.length > 0
+        ? customSubsections
+        : shouldSplitEnglishB
+        ? [...ENGLISH_SECTION_B_SUBSECTIONS]
+        : [];
+
+    const roman = ['i.', 'ii.', 'iii.', 'iv.', 'v.', 'vi.', 'vii.', 'viii.', 'ix.', 'x.'];
+    const starterHintForSub = (subTitle: string): string => {
+      const lower = subTitle.toLowerCase();
+      if (lower.includes('prose')) {
+        return 'Answer the following Prose short question with relevant textual context:';
+      }
+      if (lower.includes('poem') || lower.includes('poetry') || lower.includes('play')) {
+        return 'Answer the following Poem / Play question based on central idea or poetic lines:';
+      }
+      if (lower.includes('grammar')) {
+        return 'Solve the following Grammar item (voice, narration, preposition, or idiom):';
+      }
+      return `Answer the following question for ${subTitle}:`;
+    };
 
     const now = Date.now();
+    const starterQuestions: Question[] =
+      resolvedSubsections.length > 0
+        ? resolvedSubsections.map((subTitle, idx) => ({
+            id: `q-${now}-${idx}`,
+            number: roman[idx] || `${idx + 1}.`,
+            type: 'short',
+            subsection: subTitle,
+            text: starterHintForSub(subTitle),
+            marks: 4,
+          }))
+        : [
+            {
+              id: 'q-' + now,
+              number: 'i.',
+              type: 'short',
+              text: 'Answer the following question with relevant details:',
+              marks: 5,
+            },
+          ];
+
+    const computedMarksTotal = starterQuestions.reduce((sum, q) => sum + (q.marks || 0), 0);
     const newSection: ExamSection = {
       id: 'section-' + now,
-      name: `SECTION "${nextLetter}"`,
-      subtitle: '(ADDITIONAL QUESTIONS)',
-      marksBadge: '5 Marks',
-      instruction: 'Note: Attempt all questions from this section.',
-      questions: [
-        {
-          id: 'q-' + now,
-          number: 'i.',
-          type: 'short',
-          text: 'Answer the following question with relevant details:',
-          marks: 5,
-        },
-      ],
+      name: resolvedName,
+      subtitle:
+        options?.subtitle?.trim() ||
+        (resolvedSubsections.length > 0
+          ? '(SHORT ANSWER QUESTIONS)'
+          : '(ADDITIONAL QUESTIONS)'),
+      marksBadge: options?.marksBadge?.trim() || `${computedMarksTotal} Marks`,
+      instruction:
+        options?.instruction?.trim() ||
+        (resolvedSubsections.length > 0
+          ? `Note: Attempt questions across ${resolvedSubsections.join(', ')}.`
+          : 'Note: Attempt all questions from this section.'),
+      ...(resolvedSubsections.length > 0 ? { subsections: resolvedSubsections } : {}),
+      questions: starterQuestions,
     };
 
     updatePaper({
@@ -430,6 +534,11 @@ export default function App() {
       updatedAt: new Date().toISOString(),
     });
     setActiveSectionId(newSection.id);
+    if (resolvedSubsections.length > 0) {
+      showNotification(
+        `Added ${newSection.name} with ${resolvedSubsections.length} sub-section containers.`
+      );
+    }
   };
 
   // Drag and drop reordering
@@ -453,12 +562,20 @@ export default function App() {
     });
   };
 
-  // Add question
-  const handleAddQuestion = (sectionId: string, type: QuestionType) => {
+  // Add question (supports targeting a specific Prose / Poem / Grammar container)
+  const handleAddQuestion = (
+    sectionId: string,
+    type: QuestionType,
+    targetSubsection?: string
+  ) => {
     const targetSection = paper.sections.find((s) => s.id === sectionId);
     if (!targetSection) return;
 
     const nextNumber = nextQuestionNumber(targetSection.questions);
+    const resolvedSubsection =
+      targetSubsection !== undefined
+        ? targetSubsection.trim() || undefined
+        : targetSection.questions[targetSection.questions.length - 1]?.subsection;
 
     const ts = createLocalId('q');
     const newQuestion: Question = {
@@ -469,9 +586,12 @@ export default function App() {
         type === 'mcq'
           ? 'Enter your new multiple choice question here:'
           : type === 'short'
-          ? 'Explain the following concept with brief examples:'
+          ? resolvedSubsection
+            ? `Enter ${resolvedSubsection} short question here:`
+            : 'Explain the following concept with brief examples:'
           : 'Discuss the following topic in detail with analytical proofs:',
       marks: type === 'mcq' ? 1 : type === 'short' ? 4 : 8,
+      ...(resolvedSubsection ? { subsection: resolvedSubsection } : {}),
       optionColumns: 2,
       ...(type === 'mcq'
         ? {
@@ -487,9 +607,33 @@ export default function App() {
 
     const updatedSections = paper.sections.map((sec) => {
       if (sec.id !== sectionId) return sec;
+      const nextQuestions = [...sec.questions];
+      if (resolvedSubsection) {
+        // Insert right after the last question belonging to the same sub-section container
+        let lastMatchIdx = -1;
+        nextQuestions.forEach((q, idx) => {
+          if ((q.subsection || '').trim() === resolvedSubsection) {
+            lastMatchIdx = idx;
+          }
+        });
+        if (lastMatchIdx >= 0) {
+          nextQuestions.splice(lastMatchIdx + 1, 0, newQuestion);
+        } else {
+          nextQuestions.push(newQuestion);
+        }
+      } else {
+        nextQuestions.push(newQuestion);
+      }
+
+      const nextSubsections =
+        resolvedSubsection && sec.subsections && !sec.subsections.includes(resolvedSubsection)
+          ? [...sec.subsections, resolvedSubsection]
+          : sec.subsections;
+
       return refreshSectionMarksBadge({
         ...sec,
-        questions: [...sec.questions, newQuestion],
+        ...(nextSubsections ? { subsections: nextSubsections } : {}),
+        questions: nextQuestions,
       });
     });
 
@@ -1068,6 +1212,7 @@ export default function App() {
             activeSectionId={activeSectionId}
             onSelectSection={setActiveSectionId}
             onAddSection={handleAddSection}
+            onOpenAddSectionModal={handleOpenAddSectionModal}
             onOpenDashboard={() => setViewMode('dashboard')}
             onOpenTemplates={() => setIsTemplateModalOpen(true)}
             onOpenSettings={() => setIsSettingsModalOpen(true)}
@@ -1146,6 +1291,7 @@ export default function App() {
               <PaperPreview
                 paper={paper}
                 onPrint={handlePrintPDF}
+                onUpdatePaper={updatePaper}
                 onOpenAIRefiner={() => setIsAIRefinerOpen(true)}
                 onBackToQuestionBank={() => {
                   setBuilderCameFromPreview(true);
@@ -1329,6 +1475,197 @@ export default function App() {
           setViewMode('builder');
         }}
       />
+
+      {isAddSectionModalOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 no-print"
+          onClick={() => setIsAddSectionModalOpen(false)}
+        >
+          <div
+            className="w-full max-w-md rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 text-neutral-900 dark:text-white shadow-2xl overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="px-4 py-3 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between">
+              <div>
+                <h3 className="text-xs font-bold uppercase tracking-wider">Add New Section</h3>
+                <p className="text-[11px] text-neutral-500">
+                  Configure section details and optional English sub-section containers
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsAddSectionModalOpen(false)}
+                className="p-1 text-neutral-500 hover:text-neutral-900 dark:hover:text-white cursor-pointer"
+                aria-label="Close Add Section modal"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-4 space-y-3 text-xs">
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label className="block text-[10px] font-medium text-neutral-500 mb-1">
+                    Section Title
+                  </label>
+                  <input
+                    type="text"
+                    value={addSecName}
+                    onChange={(e) => setAddSecName(e.target.value)}
+                    placeholder='SECTION "B"'
+                    className="w-full bg-neutral-50 dark:bg-black border border-neutral-300 dark:border-neutral-800 rounded-lg px-2.5 py-1.5 text-xs font-semibold focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-medium text-neutral-500 mb-1">
+                    Subtitle
+                  </label>
+                  <input
+                    type="text"
+                    value={addSecSubtitle}
+                    onChange={(e) => setAddSecSubtitle(e.target.value)}
+                    placeholder="(SHORT ANSWER QUESTIONS)"
+                    className="w-full bg-neutral-50 dark:bg-black border border-neutral-300 dark:border-neutral-800 rounded-lg px-2.5 py-1.5 text-xs focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-medium text-neutral-500 mb-1">
+                  Section Instruction
+                </label>
+                <input
+                  type="text"
+                  value={addSecInstruction}
+                  onChange={(e) => setAddSecInstruction(e.target.value)}
+                  className="w-full bg-neutral-50 dark:bg-black border border-neutral-300 dark:border-neutral-800 rounded-lg px-2.5 py-1.5 text-xs focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
+                />
+              </div>
+
+              {/* English Prose / Poem / Grammar Split Toggle */}
+              <div className="rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-black p-3 space-y-2.5">
+                <label className="flex items-start gap-2.5 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={addSecSplitEnglish}
+                    onChange={(e) => {
+                      const next = e.target.checked;
+                      setAddSecSplitEnglish(next);
+                      if (next) {
+                        setAddSecSubsections([...ENGLISH_SECTION_B_SUBSECTIONS]);
+                        if (addSecSubtitle === '(ADDITIONAL QUESTIONS)') {
+                          setAddSecSubtitle('(SHORT ANSWER QUESTIONS)');
+                        }
+                        if (
+                          addSecInstruction ===
+                          'Note: Attempt all questions from this section.'
+                        ) {
+                          setAddSecInstruction(
+                            'Q2. Attempt TEN part-questions in all from Sub-Section I (Prose), Sub-Section II (Poem), and Sub-Section III (Grammar).'
+                          );
+                        }
+                      } else {
+                        setAddSecSubsections([]);
+                      }
+                    }}
+                    className="mt-0.5 w-3.5 h-3.5 accent-neutral-900 dark:accent-white cursor-pointer"
+                  />
+                  <div>
+                    <div className="text-xs font-semibold text-neutral-900 dark:text-white">
+                      Split Section B into Prose, Poem &amp; Grammar containers
+                    </div>
+                    <div className="text-[10px] text-neutral-500">
+                      Creates Sub-Section I (Prose), Sub-Section II (Poem), and Sub-Section III (Grammar) in the editor
+                    </div>
+                  </div>
+                </label>
+
+                {addSecSubsections.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    {addSecSubsections.map((sub) => (
+                      <span
+                        key={sub}
+                        className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 text-[10px] font-medium"
+                      >
+                        <span>{sub}</span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setAddSecSubsections((prev) => prev.filter((item) => item !== sub))
+                          }
+                          className="text-neutral-400 hover:text-neutral-900 dark:hover:text-white cursor-pointer"
+                        >
+                          <X className="w-2.5 h-2.5" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+
+                <div className="flex items-center gap-1.5">
+                  <input
+                    type="text"
+                    value={addSecNewSubInput}
+                    onChange={(e) => setAddSecNewSubInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const val = addSecNewSubInput.trim();
+                        if (val && !addSecSubsections.includes(val)) {
+                          setAddSecSubsections((prev) => [...prev, val]);
+                          setAddSecNewSubInput('');
+                        }
+                      }
+                    }}
+                    placeholder="Add custom sub-section (e.g. Sub-Section IV (Drama))"
+                    className="flex-1 bg-white dark:bg-neutral-950 border border-neutral-300 dark:border-neutral-800 rounded-lg px-2.5 py-1 text-[11px] focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
+                  />
+                  <button
+                    type="button"
+                    disabled={!addSecNewSubInput.trim()}
+                    onClick={() => {
+                      const val = addSecNewSubInput.trim();
+                      if (val && !addSecSubsections.includes(val)) {
+                        setAddSecSubsections((prev) => [...prev, val]);
+                        setAddSecNewSubInput('');
+                      }
+                    }}
+                    className="px-2.5 py-1 rounded-lg border border-neutral-300 dark:border-neutral-800 bg-white dark:bg-neutral-950 text-[11px] font-medium disabled:opacity-40 cursor-pointer"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div className="px-4 py-3 border-t border-neutral-200 dark:border-neutral-800 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setIsAddSectionModalOpen(false)}
+                className="px-3 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-800 text-xs font-medium text-neutral-600 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-900 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  handleAddSection({
+                    name: addSecName,
+                    subtitle: addSecSubtitle,
+                    instruction: addSecInstruction,
+                    splitIntoEnglishSectionB: addSecSplitEnglish,
+                    subsections: addSecSubsections,
+                  });
+                  setIsAddSectionModalOpen(false);
+                }}
+                className="px-3.5 py-1.5 rounded-lg bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200 text-xs font-semibold cursor-pointer"
+              >
+                Create Section
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

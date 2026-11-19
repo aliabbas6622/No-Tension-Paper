@@ -295,6 +295,7 @@ export async function selectQuestionsWithAI(params: {
         unitIndex: c.unitIndex,
         unitName: c.unitName,
         sectionType: c.sectionType,
+        ...(c.subsection ? { subsection: c.subsection } : {}),
         kind: c.kind,
         text: c.question.text,
         optionsPreview: c.question.options?.map((o) => `${o.label} ${o.text}`),
@@ -364,6 +365,15 @@ function toRomanOrDecimal(idx: number): string {
   return roman[idx] || `${idx + 1}.`;
 }
 
+function subsectionSortRank(sub?: string): number {
+  const s = (sub || '').toLowerCase();
+  if (!s) return 99;
+  if (s.includes('sub-section i') || s.includes('prose')) return 1;
+  if (s.includes('sub-section ii') || s.includes('poem') || s.includes('poetry') || s.includes('play')) return 2;
+  if (s.includes('sub-section iii') || s.includes('grammar')) return 3;
+  return 50;
+}
+
 function cloneQuestionForPaper(
   item: SelectedReviewQuestion,
   indexInSection: number
@@ -410,7 +420,13 @@ export function buildPaperFromReview(params: {
   const newSections: ExamSection[] = [];
 
   for (const cfg of sectionConfigs) {
-    const items = reviewedItems.filter((item) => item.bankQuestion.kind === cfg.kind);
+    const items = reviewedItems
+      .filter((item) => item.bankQuestion.kind === cfg.kind)
+      .sort(
+        (a, b) =>
+          subsectionSortRank(a.bankQuestion.subsection) -
+          subsectionSortRank(b.bankQuestion.subsection)
+      );
     if (items.length === 0) continue;
 
     const sectionMarks = items.reduce((sum, item) => sum + (item.marks || 0), 0);

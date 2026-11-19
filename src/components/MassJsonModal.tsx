@@ -71,6 +71,7 @@ export const MassJsonModal: React.FC<MassJsonModalProps> = ({
   const exportableQuestions = section.questions.map((q) => ({
     number: q.number,
     type: q.type,
+    ...(q.subsection ? { subsection: q.subsection } : {}),
     text: q.text,
     marks: q.marks || (q.type === 'mcq' ? 1 : q.type === 'short' ? 4 : 8),
     ...(q.type === 'mcq' && q.options
@@ -251,6 +252,7 @@ export const MassJsonModal: React.FC<MassJsonModalProps> = ({
           id: 'q-mass-' + Date.now() + '-' + i,
           number: item.number || romanNumerals[i] || `${i + 1}.`,
           type: qType,
+          ...(item.subsection ? { subsection: String(item.subsection).trim() } : {}),
           text: resolvedText.trim(),
           marks: Number(item.marks) || (qType === 'mcq' ? 1 : qType === 'short' ? 4 : 8),
           optionColumns: item.optionColumns === 4 ? 4 : 2,

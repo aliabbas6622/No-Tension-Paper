@@ -1,4 +1,9 @@
-import { ExamPaper, PastPaperRecord, PastPaperSectionPattern } from '../types/exam';
+import {
+  ExamPaper,
+  PastPaperRecord,
+  PastPaperSectionPattern,
+  PastPaperSubsectionPattern,
+} from '../types/exam';
 
 export const CUSTOM_PAST_PAPERS_STORAGE_KEY = 'exam_maker_custom_past_papers_v1';
 
@@ -496,6 +501,577 @@ const CS_2025_EXAM_PAPER: ExamPaper = {
   updatedAt: '2025-05-01T00:00:00.000Z',
 };
 
+const ENG_CLASS11_SECTION_PATTERNS: PastPaperSectionPattern[] = [
+  {
+    name: 'SECTION "A"',
+    subtitle: '(MULTIPLE CHOICE QUESTIONS)',
+    kind: 'mcq',
+    questionCount: 20,
+    attemptCount: 20,
+    marksPerQuestion: 1,
+    totalSectionMarks: 20,
+    marksBadge: '20 Marks',
+    instruction:
+      'NOTE: i) This section consists of 20 part questions and all are to be answered. Each part question carries 1 mark. ii) Write only the correct option in full against the proper question number.\n1. Choose the correct answer for each from the given options:',
+    numberingStyle: 'roman',
+  },
+  {
+    name: 'SECTION "B"',
+    subtitle: '(SHORT ANSWER QUESTIONS)',
+    kind: 'short',
+    questionCount: 13,
+    attemptCount: 10,
+    marksPerQuestion: 4,
+    totalSectionMarks: 40,
+    marksBadge: '40 Marks',
+    instruction:
+      'NOTE: Attempt any TEN part-questions in all, selecting at least THREE from Prose, THREE from Poem, and THREE from Grammar. All part-questions carry equal marks (4 marks each).\n2. Answer the following part questions:',
+    numberingStyle: 'roman',
+    subsectionPatterns: [
+      {
+        title: 'Sub-Section I (Prose)',
+        questionCount: 4,
+        marksPerQuestion: 4,
+        matchHints: ['prose'],
+      },
+      {
+        title: 'Sub-Section II (Poem)',
+        questionCount: 4,
+        marksPerQuestion: 4,
+        matchHints: ['poem', 'poetry', 'play'],
+      },
+      {
+        title: 'Sub-Section III (Grammar)',
+        questionCount: 5,
+        marksPerQuestion: 4,
+        matchHints: ['grammar'],
+      },
+    ],
+  },
+  {
+    name: 'SECTION "C"',
+    subtitle: '(DETAILED ANSWER QUESTIONS)',
+    kind: 'detailed',
+    questionCount: 3,
+    attemptCount: 3,
+    marksPerQuestion: 15,
+    marksPerQuestionList: [15, 10, 15],
+    totalSectionMarks: 40,
+    marksBadge: '40 Marks',
+    instruction: 'NOTE: Attempt all THREE questions from this section as per marks shown against each.',
+    numberingStyle: 'section-c-from-3',
+  },
+];
+
+const ENG_CLASS11_EXAM_PAPER: ExamPaper = {
+  id: 'past-paper-eng-biek-class11',
+  title: 'English (Compulsory) Class 11 (BIEK Pattern)',
+  classGrade: 'Class 11',
+  subjectCategory: 'English',
+  header: {
+    examinationTitle: 'INTERMEDIATE EXAMINATION (CLASS XI)',
+    examinationMonth: 'ANNUAL BOARD PATTERN PAPER',
+    groupName: '(COMPULSORY — ALL GROUPS)',
+    subjectTitle: 'SUBJECT: ENGLISH (NORMAL PAPER-I)',
+    institutionName: '',
+    date: '2025',
+    duration: '3 Hours',
+    maxMarks: '100',
+    showDividerLine: true,
+    paperCode: 'ENG-XI-BIEK',
+    generalInstructions: [
+      'Section A (20 Marks): Attempt all 20 Multiple Choice Questions (1 mark each).',
+      'Section B (40 Marks): Attempt any TEN short part-questions across Prose, Poem, and Grammar (4 marks each).',
+      'Section C (40 Marks): Attempt all THREE detailed composition and reading tasks.',
+    ],
+  },
+  settings: {
+    paperSize: 'a4',
+    fontFamily: 'times',
+    fontSize: 'base',
+    showMarksBadges: true,
+    mcqColumns: 2,
+    showGeneralInstructions: true,
+    showSectionInstructions: true,
+    showEndOfPaper: true,
+    showQuestionMarks: true,
+    showDividerMarker: true,
+  },
+  sections: [
+    {
+      id: 'pp-eng11-sec-a',
+      name: 'SECTION "A"',
+      subtitle: '(MULTIPLE CHOICE QUESTIONS)',
+      marksBadge: '20 Marks',
+      instruction: ENG_CLASS11_SECTION_PATTERNS[0].instruction,
+      questions: [
+        {
+          id: 'pp-eng11-mcq-1',
+          number: 'i.',
+          type: 'mcq',
+          text: 'Quaid-e-Azam emphasized that religion in Pakistan is a personal matter and has nothing to do with:',
+          marks: 1,
+          optionColumns: 2,
+          answerKey: '(c) The business of the State',
+          options: [
+            { id: 'pp-e11-m1a', label: '(a)', text: 'Private conscience' },
+            { id: 'pp-e11-m1b', label: '(b)', text: 'Places of worship' },
+            { id: 'pp-e11-m1c', label: '(c)', text: 'The business of the State' },
+            { id: 'pp-e11-m1d', label: '(d)', text: 'Moral values' },
+          ],
+        },
+        {
+          id: 'pp-eng11-mcq-2',
+          number: 'ii.',
+          type: 'mcq',
+          text: 'The destruction of natural habitats primarily endangers global:',
+          marks: 1,
+          optionColumns: 2,
+          answerKey: '(b) Biodiversity',
+          options: [
+            { id: 'pp-e11-m2a', label: '(a)', text: 'Urban concrete' },
+            { id: 'pp-e11-m2b', label: '(b)', text: 'Biodiversity' },
+            { id: 'pp-e11-m2c', label: '(c)', text: 'Plastic trade' },
+            { id: 'pp-e11-m2d', label: '(d)', text: 'Mineral mining' },
+          ],
+        },
+        {
+          id: 'pp-eng11-mcq-3',
+          number: 'iii.',
+          type: 'mcq',
+          text: 'In "Managing Change", clinging fearfully to outdated customs leaves a person:',
+          marks: 1,
+          optionColumns: 2,
+          answerKey: '(a) Unprepared for future challenges',
+          options: [
+            { id: 'pp-e11-m3a', label: '(a)', text: 'Unprepared for future challenges' },
+            { id: 'pp-e11-m3b', label: '(b)', text: 'Guaranteed early promotion' },
+            { id: 'pp-e11-m3c', label: '(c)', text: 'Immune to economic shifts' },
+            { id: 'pp-e11-m3d', label: '(d)', text: 'Free from responsibility' },
+          ],
+        },
+        {
+          id: 'pp-eng11-mcq-4',
+          number: 'iv.',
+          type: 'mcq',
+          text: 'Strong passwords and cautious link-checking protect digital users from:',
+          marks: 1,
+          optionColumns: 2,
+          answerKey: '(d) Cyber fraud and data theft',
+          options: [
+            { id: 'pp-e11-m4a', label: '(a)', text: 'Hardware overheating' },
+            { id: 'pp-e11-m4b', label: '(b)', text: 'Battery aging' },
+            { id: 'pp-e11-m4c', label: '(c)', text: 'Keyboard wear' },
+            { id: 'pp-e11-m4d', label: '(d)', text: 'Cyber fraud and data theft' },
+          ],
+        },
+        {
+          id: 'pp-eng11-mcq-5',
+          number: 'v.',
+          type: 'mcq',
+          text: 'Defacing public walls or wasting clean water in shared spaces shows a lack of:',
+          marks: 1,
+          optionColumns: 2,
+          answerKey: '(b) Civic responsibility',
+          options: [
+            { id: 'pp-e11-m5a', label: '(a)', text: 'Artistic flair' },
+            { id: 'pp-e11-m5b', label: '(b)', text: 'Civic responsibility' },
+            { id: 'pp-e11-m5c', label: '(c)', text: 'Commercial skill' },
+            { id: 'pp-e11-m5d', label: '(d)', text: 'Academic degrees' },
+          ],
+        },
+        {
+          id: 'pp-eng11-mcq-6',
+          number: 'vi.',
+          type: 'mcq',
+          text: 'According to "Choosing Career", consulting parents, teachers, and career counselors helps avoid:',
+          marks: 1,
+          optionColumns: 2,
+          answerKey: '(c) Hasty and mismatched decisions',
+          options: [
+            { id: 'pp-e11-m6a', label: '(a)', text: 'University scholarships' },
+            { id: 'pp-e11-m6b', label: '(b)', text: 'Skill development' },
+            { id: 'pp-e11-m6c', label: '(c)', text: 'Hasty and mismatched decisions' },
+            { id: 'pp-e11-m6d', label: '(d)', text: 'Hard work' },
+          ],
+        },
+        {
+          id: 'pp-eng11-mcq-7',
+          number: 'vii.',
+          type: 'mcq',
+          text: 'Ranikot Fort in Sindh is widely celebrated as the world’s largest:',
+          marks: 1,
+          optionColumns: 2,
+          answerKey: '(b) Historical fort wall complex',
+          options: [
+            { id: 'pp-e11-m7a', label: '(a)', text: 'Underground subway' },
+            { id: 'pp-e11-m7b', label: '(b)', text: 'Historical fort wall complex' },
+            { id: 'pp-e11-m7c', label: '(c)', text: 'Modern seaport' },
+            { id: 'pp-e11-m7d', label: '(d)', text: 'Observatory tower' },
+          ],
+        },
+        {
+          id: 'pp-eng11-mcq-8',
+          number: 'viii.',
+          type: 'mcq',
+          text: 'In "The Character of a Happy Life", whom does the happy man refuse to envy?',
+          marks: 1,
+          optionColumns: 2,
+          answerKey: '(a) Those raised by chance or wicked means',
+          options: [
+            { id: 'pp-e11-m8a', label: '(a)', text: 'Those raised by chance or wicked means' },
+            { id: 'pp-e11-m8b', label: '(b)', text: 'His own teachers' },
+            { id: 'pp-e11-m8c', label: '(c)', text: 'Quiet scholars' },
+            { id: 'pp-e11-m8d', label: '(d)', text: 'Honest laborers' },
+          ],
+        },
+        {
+          id: 'pp-eng11-mcq-9',
+          number: 'ix.',
+          type: 'mcq',
+          text: 'The repeated opening advice in Edgar Guest’s poem urges the reader when things go wrong:',
+          marks: 1,
+          optionColumns: 2,
+          answerKey: '(c) Rest if you must, but do not quit',
+          options: [
+            { id: 'pp-e11-m9a', label: '(a)', text: 'Abandon the goal immediately' },
+            { id: 'pp-e11-m9b', label: '(b)', text: 'Blame friends for bad luck' },
+            { id: 'pp-e11-m9c', label: '(c)', text: 'Rest if you must, but do not quit' },
+            { id: 'pp-e11-m9d', label: '(d)', text: 'Hide from responsibility' },
+          ],
+        },
+        {
+          id: 'pp-eng11-mcq-10',
+          number: 'x.',
+          type: 'mcq',
+          text: 'In "Ozymandias", the final lines describe "the lone and level sands" stretching:',
+          marks: 1,
+          optionColumns: 2,
+          answerKey: '(b) Far away around the decayed wreck',
+          options: [
+            { id: 'pp-e11-m10a', label: '(a)', text: 'Into a bustling capital' },
+            { id: 'pp-e11-m10b', label: '(b)', text: 'Far away around the decayed wreck' },
+            { id: 'pp-e11-m10c', label: '(c)', text: 'Toward a royal garden' },
+            { id: 'pp-e11-m10d', label: '(d)', text: 'Beneath towering palaces' },
+          ],
+        },
+        {
+          id: 'pp-eng11-mcq-11',
+          number: 'xi.',
+          type: 'mcq',
+          text: 'In "Good Timber", the "broken branches" and "scars" on a mountain tree symbolize:',
+          marks: 1,
+          optionColumns: 2,
+          answerKey: '(d) Hardships that forge noble character',
+          options: [
+            { id: 'pp-e11-m11a', label: '(a)', text: 'Useless decay' },
+            { id: 'pp-e11-m11b', label: '(b)', text: 'Lack of sunlight' },
+            { id: 'pp-e11-m11c', label: '(c)', text: 'Forest fires only' },
+            { id: 'pp-e11-m11d', label: '(d)', text: 'Hardships that forge noble character' },
+          ],
+        },
+        {
+          id: 'pp-eng11-mcq-12',
+          number: 'xii.',
+          type: 'mcq',
+          text: 'William Wordsworth’s poem "Lucy Gray" is written in the form of a:',
+          marks: 1,
+          optionColumns: 4,
+          answerKey: '(b) Ballad',
+          options: [
+            { id: 'pp-e11-m12a', label: '(a)', text: 'Sonnet' },
+            { id: 'pp-e11-m12b', label: '(b)', text: 'Ballad' },
+            { id: 'pp-e11-m12c', label: '(c)', text: 'Elegy' },
+            { id: 'pp-e11-m12d', label: '(d)', text: 'Ode' },
+          ],
+        },
+        {
+          id: 'pp-eng11-mcq-13',
+          number: 'xiii.',
+          type: 'mcq',
+          text: 'King John became jealous of the Abbot of Canterbury because of the Abbot’s:',
+          marks: 1,
+          optionColumns: 2,
+          answerKey: '(a) Wealthy hospitality and grand household',
+          options: [
+            { id: 'pp-e11-m13a', label: '(a)', text: 'Wealthy hospitality and grand household' },
+            { id: 'pp-e11-m13b', label: '(b)', text: 'Foreign military alliances' },
+            { id: 'pp-e11-m13c', label: '(c)', text: 'Poetry collections' },
+            { id: 'pp-e11-m13d', label: '(d)', text: 'Fleet of merchant ships' },
+          ],
+        },
+        {
+          id: 'pp-eng11-mcq-14',
+          number: 'xiv.',
+          type: 'mcq',
+          text: 'In "A Visit to a Small Planet", John Randolph wishes to marry:',
+          marks: 1,
+          optionColumns: 4,
+          answerKey: '(c) Ellen Spelding',
+          options: [
+            { id: 'pp-e11-m14a', label: '(a)', text: 'Mrs. Powers' },
+            { id: 'pp-e11-m14b', label: '(b)', text: 'Rosemary' },
+            { id: 'pp-e11-m14c', label: '(c)', text: 'Ellen Spelding' },
+            { id: 'pp-e11-m14d', label: '(d)', text: 'Clarissa' },
+          ],
+        },
+        {
+          id: 'pp-eng11-mcq-15',
+          number: 'xv.',
+          type: 'mcq',
+          text: 'Choose the correct synonym of "resilient":',
+          marks: 1,
+          optionColumns: 4,
+          answerKey: '(b) Adaptable',
+          options: [
+            { id: 'pp-e11-m15a', label: '(a)', text: 'Fragile' },
+            { id: 'pp-e11-m15b', label: '(b)', text: 'Adaptable' },
+            { id: 'pp-e11-m15c', label: '(c)', text: 'Stubborn' },
+            { id: 'pp-e11-m15d', label: '(d)', text: 'Timid' },
+          ],
+        },
+        {
+          id: 'pp-eng11-mcq-16',
+          number: 'xvi.',
+          type: 'mcq',
+          text: 'Select the correct passive form: "The students planted fifty saplings in the courtyard."',
+          marks: 1,
+          optionColumns: 2,
+          answerKey: '(c) Fifty saplings were planted by the students in the courtyard.',
+          options: [
+            { id: 'pp-e11-m16a', label: '(a)', text: 'Fifty saplings are planted by the students in the courtyard.' },
+            { id: 'pp-e11-m16b', label: '(b)', text: 'Fifty saplings have planted by the students in the courtyard.' },
+            { id: 'pp-e11-m16c', label: '(c)', text: 'Fifty saplings were planted by the students in the courtyard.' },
+            { id: 'pp-e11-m16d', label: '(d)', text: 'Fifty saplings will be planted by the students in the courtyard.' },
+          ],
+        },
+        {
+          id: 'pp-eng11-mcq-17',
+          number: 'xvii.',
+          type: 'mcq',
+          text: 'Identify the figure of speech in "The wind whispered secrets through the tall pines."',
+          marks: 1,
+          optionColumns: 4,
+          answerKey: '(b) Personification',
+          options: [
+            { id: 'pp-e11-m17a', label: '(a)', text: 'Simile' },
+            { id: 'pp-e11-m17b', label: '(b)', text: 'Personification' },
+            { id: 'pp-e11-m17c', label: '(c)', text: 'Hyperbole' },
+            { id: 'pp-e11-m17d', label: '(d)', text: 'Allusion' },
+          ],
+        },
+        {
+          id: 'pp-eng11-mcq-18',
+          number: 'xviii.',
+          type: 'mcq',
+          text: 'Choose the accurate preposition: "We must abide ___ the traffic laws for everyone’s safety."',
+          marks: 1,
+          optionColumns: 4,
+          answerKey: '(a) by',
+          options: [
+            { id: 'pp-e11-m18a', label: '(a)', text: 'by' },
+            { id: 'pp-e11-m18b', label: '(b)', text: 'for' },
+            { id: 'pp-e11-m18c', label: '(c)', text: 'into' },
+            { id: 'pp-e11-m18d', label: '(d)', text: 'upon' },
+          ],
+        },
+        {
+          id: 'pp-eng11-mcq-19',
+          number: 'xix.',
+          type: 'mcq',
+          text: 'Which sentence is punctuated correctly?',
+          marks: 1,
+          optionColumns: 2,
+          answerKey: '(b) "Honesty," said the mentor, "builds lasting trust."',
+          options: [
+            { id: 'pp-e11-m19a', label: '(a)', text: '"Honesty said the mentor builds lasting trust."' },
+            { id: 'pp-e11-m19b', label: '(b)', text: '"Honesty," said the mentor, "builds lasting trust."' },
+            { id: 'pp-e11-m19c', label: '(c)', text: 'Honesty, "said the mentor", builds lasting trust.' },
+            { id: 'pp-e11-m19d', label: '(d)', text: '"Honesty" said the mentor "builds lasting trust".' },
+          ],
+        },
+        {
+          id: 'pp-eng11-mcq-20',
+          number: 'xx.',
+          type: 'mcq',
+          text: 'Choose the correct indirect form: He said, "I have completed my assignment."',
+          marks: 1,
+          optionColumns: 2,
+          answerKey: '(b) He said that he had completed his assignment.',
+          options: [
+            { id: 'pp-e11-m20a', label: '(a)', text: 'He said that he has completed his assignment.' },
+            { id: 'pp-e11-m20b', label: '(b)', text: 'He said that he had completed his assignment.' },
+            { id: 'pp-e11-m20c', label: '(c)', text: 'He told that I completed my assignment.' },
+            { id: 'pp-e11-m20d', label: '(d)', text: 'He says he had completed my assignment.' },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'pp-eng11-sec-b',
+      name: 'SECTION "B"',
+      subtitle: '(SHORT ANSWER QUESTIONS)',
+      marksBadge: '40 Marks',
+      instruction: ENG_CLASS11_SECTION_PATTERNS[1].instruction,
+      subsections: ['Sub-Section I (Prose)', 'Sub-Section II (Poem)', 'Sub-Section III (Grammar)'],
+      questions: [
+        {
+          id: 'pp-eng11-b1',
+          number: 'i.',
+          type: 'short',
+          subsection: 'Sub-Section I (Prose)',
+          text: 'What warning did Quaid-e-Azam issue against jobbery, nepotism, and favoritism in his 11 August 1947 speech?',
+          marks: 4,
+          answerKey: 'He declared he would never tolerate jobbery or nepotism and vowed to crush anyone exerting undue influence for favors, ensuring merit and fairness.',
+        },
+        {
+          id: 'pp-eng11-b2',
+          number: 'ii.',
+          type: 'short',
+          subsection: 'Sub-Section I (Prose)',
+          text: 'Why is conserving freshwater wetlands and forests vital for climate stability in Pakistan?',
+          marks: 4,
+          answerKey: 'Wetlands recharge groundwater and buffer floods, while forests absorb carbon dioxide, regulate temperatures, and prevent soil erosion.',
+        },
+        {
+          id: 'pp-eng11-b3',
+          number: 'iii.',
+          type: 'short',
+          subsection: 'Sub-Section I (Prose)',
+          text: 'How can students verify online news before believing or forwarding it on social platforms?',
+          marks: 4,
+          answerKey: 'By checking official sources, inspecting publication dates, reading beyond sensational headlines, and cross-checking facts with reputable outlets.',
+        },
+        {
+          id: 'pp-eng11-b4',
+          number: 'iv.',
+          type: 'short',
+          subsection: 'Sub-Section I (Prose)',
+          text: 'In what ways do self-grooming and courteous communication enhance an individual’s social and workplace standing?',
+          marks: 4,
+          answerKey: 'Clean presentation, active listening, polite speech, and punctual habits earn trust, create positive first impressions, and strengthen collaboration.',
+        },
+        {
+          id: 'pp-eng11-b5',
+          number: 'v.',
+          type: 'short',
+          subsection: 'Sub-Section II (Poem)',
+          text: 'What qualities keep the happy man free from servile fears and public flattery in "The Character of a Happy Life"?',
+          marks: 4,
+          answerKey: 'His conscience serves as a retreat, simple truth guides his life, and he relies neither on rumors nor the favor of princes.',
+        },
+        {
+          id: 'pp-eng11-b6',
+          number: 'vi.',
+          type: 'short',
+          subsection: 'Sub-Section II (Poem)',
+          text: 'What irony does P.B. Shelley create through the inscription on Ozymandias’ pedestal?',
+          marks: 4,
+          answerKey: 'The inscription commands the mighty to tremble at his grand empire, yet nothing remains around the broken statue except boundless empty desert.',
+        },
+        {
+          id: 'pp-eng11-b7',
+          number: 'vii.',
+          type: 'short',
+          subsection: 'Sub-Section II (Poem)',
+          text: 'Why did the shepherd risk his life to appear before King John on the Abbot of Canterbury’s behalf?',
+          marks: 4,
+          answerKey: 'Moved by loyalty to his kind master, the shepherd disguised himself in the Abbot’s robe and used quick wit to save both the Abbot’s life and wealth.',
+        },
+        {
+          id: 'pp-eng11-b8',
+          number: 'viii.',
+          type: 'short',
+          subsection: 'Sub-Section II (Poem)',
+          text: 'How does Gore Vidal portray Kreton as an affectionate yet detached observer of human civilization?',
+          marks: 4,
+          answerKey: 'Kreton treats humanity like fascinating characters in an entertaining drama—polite and charmed by their emotions yet untouched by panic or aggression.',
+        },
+        {
+          id: 'pp-eng11-b9',
+          number: 'ix.',
+          type: 'short',
+          subsection: 'Sub-Section III (Grammar)',
+          text: 'Change the voice of the following: (a) The librarian issued three rare books to me. (b) Do not waste precious time during examinations.',
+          marks: 4,
+          answerKey: '(a) Three rare books were issued to me by the librarian. (b) Let precious time not be wasted during examinations.',
+        },
+        {
+          id: 'pp-eng11-b10',
+          number: 'x.',
+          type: 'short',
+          subsection: 'Sub-Section III (Grammar)',
+          text: 'Change into indirect narration: (a) The principal said to us, "Discipline is the secret of achievement." (b) She asked her cousin, "Where did you buy this novel?"',
+          marks: 4,
+          answerKey: '(a) The principal told us that discipline is the secret of achievement. (b) She asked her cousin where he had bought that novel.',
+        },
+        {
+          id: 'pp-eng11-b11',
+          number: 'xi.',
+          type: 'short',
+          subsection: 'Sub-Section III (Grammar)',
+          text: 'Fill in the blanks with appropriate prepositions: (a) He congratulated me ___ my board scholarship. (b) The cottage sits ___ the foot of the hills. (c) Always remain faithful ___ your principles.',
+          marks: 4,
+          answerKey: '(a) on (b) at (c) to',
+        },
+        {
+          id: 'pp-eng11-b12',
+          number: 'xii.',
+          type: 'short',
+          subsection: 'Sub-Section III (Grammar)',
+          text: 'Use any TWO of the following idioms in sentences: (a) burn the midnight oil (b) make both ends meet (c) once and for all.',
+          marks: 4,
+          answerKey: '(a) Students burn the midnight oil before annual exams. (b) Honest families budget wisely to make both ends meet. (c) Let us settle this dispute once and for all.',
+        },
+        {
+          id: 'pp-eng11-b13',
+          number: 'xiii.',
+          type: 'short',
+          subsection: 'Sub-Section III (Grammar)',
+          text: 'Do as directed: (a) Although he was tired, he finished the chapter. (Rewrite using "Despite") (b) How inspiring the lecture was! (Change into assertive)',
+          marks: 4,
+          answerKey: '(a) Despite being tired, he finished the chapter. (b) The lecture was very inspiring.',
+        },
+      ],
+    },
+    {
+      id: 'pp-eng11-sec-c',
+      name: 'SECTION "C"',
+      subtitle: '(DETAILED ANSWER QUESTIONS)',
+      marksBadge: '40 Marks',
+      instruction: ENG_CLASS11_SECTION_PATTERNS[2].instruction,
+      questions: [
+        {
+          id: 'pp-eng11-c1',
+          number: '3.',
+          type: 'detailed',
+          text: 'Read the following unseen passage carefully, make a precis of about one-third of its length with a suitable title, and answer the questions below:\n"Discipline is the quiet architecture behind every lasting achievement. Talent may spark initial excitement, yet without daily consistency even brilliant minds scatter their energy across unfinished goals. Students who manage their hours calmly, separate study time from digital distractions, and review errors patiently develop confidence that carries them steadily from classrooms into professional life."\n(a) Suggest a suitable title and write a precis. (b) Why is talent alone insufficient without discipline? (c) Give three habits of disciplined students mentioned in the passage.',
+          marks: 15,
+          answerKey: 'Title: Discipline as the Foundation of Success. Precis: Lasting achievement depends more on steady discipline than raw talent; students who plan time, limit digital distractions, and learn from mistakes build lasting confidence. Talent fades without consistency; habits include calm time management, avoiding distractions, and patient review.',
+        },
+        {
+          id: 'pp-eng11-c2',
+          number: '4.',
+          type: 'detailed',
+          text: 'Write a formal application to the Principal of your college requesting permission to set up a Student Environmental Club and tree-plantation drive on campus.',
+          marks: 10,
+          answerKey: 'Formal college application format with To: The Principal, clear subject, persuasive rationale explaining environmental benefits and student volunteering, and courteous closing.',
+        },
+        {
+          id: 'pp-eng11-c3',
+          number: '5.',
+          type: 'detailed',
+          text: 'Write a well-organized essay (250–300 words) on any ONE of the following topics:\n(a) Role of Civic Sense in Building Clean Cities\n(b) Digital Literacy for Modern Youth\n(c) Importance of Time Management for Students',
+          marks: 15,
+          answerKey: 'Coherent introduction with thesis, well-developed body paragraphs with concrete examples, clear transitions, accurate grammar, and strong conclusion.',
+        },
+      ],
+    },
+  ],
+  createdAt: '2025-05-01T00:00:00.000Z',
+  updatedAt: '2025-05-01T00:00:00.000Z',
+};
+
 export const BUNDLED_PAST_PAPERS: PastPaperRecord[] = [
   {
     id: 'past-cs-2025-science-general',
@@ -515,6 +1091,22 @@ export const BUNDLED_PAST_PAPERS: PastPaperRecord[] = [
     ],
     sectionPatterns: CS_2025_SECTION_PATTERNS,
     paper: CS_2025_EXAM_PAPER,
+    createdAt: '2025-05-01T00:00:00.000Z',
+    isBuiltIn: true,
+  },
+  {
+    id: 'past-eng-biek-class11',
+    title: 'English Class 11 (BIEK Pattern)',
+    year: '2025',
+    subject: 'English',
+    classGrade: 'Class 11',
+    boardOrGroup: 'BIEK Karachi (All Groups)',
+    category: 'English',
+    description:
+      'Standard 100-mark Class 11 English Compulsory paper: 20 MCQs (20 Marks), Section B with Prose, Poem & Grammar sub-sections — attempt any 10 of 13 (40 Marks), and Section C Detailed Composition & Precis (40 Marks).',
+    questionBankId: 'curr-english-class-11',
+    sectionPatterns: ENG_CLASS11_SECTION_PATTERNS,
+    paper: ENG_CLASS11_EXAM_PAPER,
     createdAt: '2025-05-01T00:00:00.000Z',
     isBuiltIn: true,
   },
@@ -569,6 +1161,9 @@ export function createPastPaperRecordFromPaper(
 
     const marksPerQuestion =
       sec.questions[0]?.marks || (kind === 'mcq' ? 1 : kind === 'detailed' ? 10 : 3);
+    const questionMarksList = sec.questions.map((q) => q.marks || marksPerQuestion);
+    const hasMixedMarks = questionMarksList.some((m) => m !== marksPerQuestion);
+
     const badgeDigits = parseInt((sec.marksBadge || '').replace(/[^0-9]/g, ''), 10);
     const totalSectionMarks =
       Number.isFinite(badgeDigits) && badgeDigits > 0
@@ -579,6 +1174,32 @@ export function createPastPaperRecordFromPaper(
         ? Math.min(sec.questions.length, Math.max(1, Math.round(totalSectionMarks / marksPerQuestion)))
         : sec.questions.length;
 
+    const subsectionPatterns: PastPaperSubsectionPattern[] = [];
+    sec.questions.forEach((q) => {
+      const subTitle = (q.subsection || '').trim();
+      if (!subTitle) return;
+      const existingSub = subsectionPatterns.find((s) => s.title === subTitle);
+      if (existingSub) {
+        existingSub.questionCount += 1;
+      } else {
+        const lower = subTitle.toLowerCase();
+        const hints = lower.includes('prose')
+          ? ['prose']
+          : lower.includes('poem') || lower.includes('poetry')
+          ? ['poem', 'poetry', 'play']
+          : lower.includes('grammar')
+          ? ['grammar']
+          : [lower];
+        subsectionPatterns.push({
+          title: subTitle,
+          ...(q.subsectionInstruction ? { instruction: q.subsectionInstruction } : {}),
+          questionCount: 1,
+          marksPerQuestion: q.marks || marksPerQuestion,
+          matchHints: hints,
+        });
+      }
+    });
+
     return {
       name: sec.name,
       subtitle: sec.subtitle,
@@ -586,6 +1207,7 @@ export function createPastPaperRecordFromPaper(
       questionCount: sec.questions.length,
       attemptCount,
       marksPerQuestion,
+      ...(hasMixedMarks ? { marksPerQuestionList: questionMarksList } : {}),
       totalSectionMarks,
       marksBadge: sec.marksBadge || `${totalSectionMarks} Marks`,
       instruction: sec.instruction || '',
@@ -593,6 +1215,7 @@ export function createPastPaperRecordFromPaper(
         kind === 'detailed' && sec.questions[0]?.number?.trim().startsWith('3')
           ? 'section-c-from-3'
           : 'roman',
+      ...(subsectionPatterns.length > 0 ? { subsectionPatterns } : {}),
     };
   });
 

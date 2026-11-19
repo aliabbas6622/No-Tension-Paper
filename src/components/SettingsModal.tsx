@@ -1,6 +1,7 @@
 import React from 'react';
-import { PaperSettings } from '../types/exam';
-import { X, Sliders, CheckSquare, Square, Type, FileText } from 'lucide-react';
+import { PaperSettings, TextFontKey } from '../types/exam';
+import { FONT_OPTIONS } from '../services/paperStyles';
+import { X, Sliders } from 'lucide-react';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -19,9 +20,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 dark:bg-black/80 backdrop-blur-xs p-4">
-      <div className="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 w-full max-w-md rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 text-neutral-900 dark:text-white">
+      <div className="bg-white dark:bg-black border border-neutral-200 dark:border-neutral-800 w-full max-w-md rounded-xl shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150 text-neutral-900 dark:text-white max-h-[90vh] flex flex-col">
         {/* Modal Header */}
-        <div className="flex items-center justify-between px-5 py-3.5 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 shrink-0">
           <div className="flex items-center gap-2">
             <Sliders className="w-4 h-4 text-neutral-900 dark:text-white" />
             <h3 className="font-semibold text-sm">Paper Display & Print Settings</h3>
@@ -36,12 +37,30 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         {/* Modal Body */}
-        <div className="p-5 space-y-5 text-xs">
-          {/* Section Visibility Toggles requested by user */}
-          <div className="space-y-3">
+        <div className="p-5 space-y-5 text-xs overflow-y-auto">
+          {/* Section Visibility & Pagination Toggles */}
+          <div className="space-y-2.5">
             <div className="font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider text-[10px]">
-              Paper Elements Visibility
+              Paper Elements & Pagination
             </div>
+
+            {/* New Page Per Section */}
+            <label className="flex items-center justify-between p-2.5 rounded-lg border border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-900 cursor-pointer transition">
+              <div>
+                <div className="font-medium text-neutral-900 dark:text-white">New Page Per Section</div>
+                <div className="text-[11px] text-neutral-500 dark:text-neutral-400">
+                  Start each section on a fresh page in preview, PDF, and Word
+                </div>
+              </div>
+              <input
+                type="checkbox"
+                checked={settings.newPagePerSection === true}
+                onChange={(e) =>
+                  onUpdateSettings({ newPagePerSection: e.target.checked })
+                }
+                className="w-4 h-4 accent-neutral-900 dark:accent-white cursor-pointer"
+              />
+            </label>
 
             {/* General Instructions */}
             <label className="flex items-center justify-between p-2.5 rounded-lg border border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-900 cursor-pointer transition">
@@ -61,7 +80,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               />
             </label>
 
-            {/* Section Instructions (notes like "Q1 Choose the best answer...") */}
+            {/* Section Instructions */}
             <label className="flex items-center justify-between p-2.5 rounded-lg border border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-900 cursor-pointer transition">
               <div>
                 <div className="font-medium text-neutral-900 dark:text-white">Section Instructions & Notes</div>
@@ -79,7 +98,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               />
             </label>
 
-            {/* Notes with each question (marks notes) */}
+            {/* Notes with each question */}
             <label className="flex items-center justify-between p-2.5 rounded-lg border border-neutral-200 hover:bg-neutral-50 dark:border-neutral-800 dark:hover:bg-neutral-900 cursor-pointer transition">
               <div>
                 <div className="font-medium text-neutral-900 dark:text-white">Question Marks / Notes</div>
@@ -135,31 +154,61 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
           </div>
 
           {/* Typography & Page Size */}
-          <div className="space-y-3 pt-2 border-t border-neutral-200 dark:border-neutral-800">
+          <div className="space-y-3 pt-3 border-t border-neutral-200 dark:border-neutral-800">
             <div className="font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider text-[10px]">
               Print Typography & Layout
             </div>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-[11px] text-neutral-600 dark:text-neutral-400 mb-1">Font Style</label>
+                <label className="block text-[11px] text-neutral-600 dark:text-neutral-400 mb-1">
+                  Body Font
+                </label>
                 <select
                   value={settings.fontFamily || 'times'}
                   onChange={(e) =>
                     onUpdateSettings({
-                      fontFamily: e.target.value as 'times' | 'sans' | 'classic',
+                      fontFamily: e.target.value as TextFontKey,
                     })
                   }
                   className="w-full bg-neutral-50 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-800 rounded-lg p-2 text-xs text-neutral-900 dark:text-white focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
                 >
-                  <option value="times">Times New Roman (Board Style)</option>
-                  <option value="classic">Classic Serif (Georgia)</option>
-                  <option value="sans">Modern Sans (Clean)</option>
+                  {FONT_OPTIONS.map((opt) => (
+                    <option key={opt.key} value={opt.key}>
+                      {opt.label}
+                    </option>
+                  ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-[11px] text-neutral-600 dark:text-neutral-400 mb-1">Paper Size</label>
+                <label className="block text-[11px] text-neutral-600 dark:text-neutral-400 mb-1">
+                  Headings Font
+                </label>
+                <select
+                  value={settings.headingFontFamily || ''}
+                  onChange={(e) =>
+                    onUpdateSettings({
+                      headingFontFamily: e.target.value
+                        ? (e.target.value as TextFontKey)
+                        : undefined,
+                    })
+                  }
+                  className="w-full bg-neutral-50 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-800 rounded-lg p-2 text-xs text-neutral-900 dark:text-white focus:outline-hidden focus:border-neutral-900 dark:focus:border-white"
+                >
+                  <option value="">Match Body Font</option>
+                  {FONT_OPTIONS.map((opt) => (
+                    <option key={opt.key} value={opt.key}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] text-neutral-600 dark:text-neutral-400 mb-1">
+                  Paper Size
+                </label>
                 <select
                   value={settings.paperSize || 'a4'}
                   onChange={(e) =>
@@ -173,12 +222,40 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   <option value="letter">Letter (8.5x11 in)</option>
                 </select>
               </div>
+
+              <div>
+                <label className="block text-[11px] text-neutral-600 dark:text-neutral-400 mb-1">
+                  Base Text Size
+                </label>
+                <div className="grid grid-cols-3 gap-1 bg-neutral-100 dark:bg-neutral-900 p-1 rounded-lg border border-neutral-200 dark:border-neutral-800">
+                  {(
+                    [
+                      { key: 'sm', label: 'Small' },
+                      { key: 'base', label: 'Medium' },
+                      { key: 'lg', label: 'Large' },
+                    ] as const
+                  ).map((sz) => (
+                    <button
+                      key={sz.key}
+                      type="button"
+                      onClick={() => onUpdateSettings({ fontSize: sz.key })}
+                      className={`py-1 rounded text-[11px] font-medium transition cursor-pointer ${
+                        (settings.fontSize || 'base') === sz.key
+                          ? 'bg-neutral-900 text-white dark:bg-white dark:text-black'
+                          : 'text-neutral-600 dark:text-neutral-400 hover:text-neutral-900 dark:hover:text-white'
+                      }`}
+                    >
+                      {sz.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Modal Footer */}
-        <div className="px-5 py-3 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 flex justify-end">
+        <div className="px-5 py-3 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-950 flex justify-end shrink-0">
           <button
             onClick={onClose}
             className="px-4 py-1.5 bg-neutral-900 text-white hover:bg-neutral-800 dark:bg-white dark:text-black font-semibold text-xs rounded-lg dark:hover:bg-neutral-200 transition cursor-pointer"

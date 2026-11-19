@@ -7,6 +7,7 @@ export interface CandidatePayload {
   unitIndex: number;
   unitName: string;
   sectionType?: string;
+  subsection?: string;
   kind: QuestionKind;
   text: string;
   optionsPreview?: string[];
@@ -15,6 +16,11 @@ export interface CandidatePayload {
 export interface SectionRequestPayload {
   kind: QuestionKind;
   count: number;
+  marksPerQuestionList?: number[];
+  subsectionPatterns?: Array<{
+    title: string;
+    count: number;
+  }>;
 }
 
 export interface ChapterWeightPayload {
@@ -47,7 +53,13 @@ export interface GenerateFromPatternRequestBody {
     questionCount: number;
     attemptCount: number;
     marksPerQuestion: number;
+    marksPerQuestionList?: number[];
     totalSectionMarks: number;
+    subsectionPatterns?: Array<{
+      title: string;
+      questionCount: number;
+      marksPerQuestion?: number;
+    }>;
   }>;
 }
 
@@ -55,6 +67,7 @@ export interface PaperQuestionPayload {
   id: string;
   number: string;
   type: QuestionKind;
+  subsection?: string;
   text: string;
   marks?: number;
   options?: Array<{ id: string; label: string; text: string }>;
@@ -354,8 +367,18 @@ export async function executeSelectQuestions(body: SelectQuestionsRequestBody) {
           ? ` | Options: ${c.optionsPreview.join(' ; ')}`
           : '';
       const srcTag = c.sectionType ? ` | type="${c.sectionType}"` : '';
-      return `[key="${c.key}" | kind=${c.kind}${srcTag} | unit="${c.unitName}"] ${c.text.slice(0, 260)}${opts}`;
+      const subTag = c.subsection ? ` | subsection="${c.subsection}"` : '';
+      return `[key="${c.key}" | kind=${c.kind}${subTag}${srcTag} | unit="${c.unitName}"] ${c.text.slice(0, 260)}${opts}`;
     })
+    .join('\n');
+
+  const subsectionInstructions = sections
+    .filter((sec) => Array.isArray(sec.subsectionPatterns) && sec.subsectionPatterns.length > 0)
+    .map((sec) =>
+      sec.subsectionPatterns!
+        .map((sub) => `  - Within kind=${sec.kind}, pick ${sub.count} matching "${sub.title}"`)
+        .join('\n')
+    )
     .join('\n');
 
   const prompt = [
@@ -365,6 +388,9 @@ export async function executeSelectQuestions(body: SelectQuestionsRequestBody) {
     `- mcq (Section A - Multiple Choice): ${requestedByKind.mcq}`,
     `- short (Section B - Short Answer): ${requestedByKind.short}`,
     `- detailed (Section C - Detailed / Essay): ${requestedByKind.detailed}`,
+    subsectionInstructions
+      ? `\nREQUIRED SUB-SECTION DISTRIBUTION (MUST MATCH EXACTLY USING candidate \`subsection\`):\n${subsectionInstructions}`
+      : '',
     '',
     'SELECTED CHAPTERS & TARGET WEIGHTAGE:',
     chapterSummary || '- Equal distribution across provided chapters',
@@ -498,10 +524,19 @@ export async function executeGenerateFromPattern(body: GenerateFromPatternReques
 
   const avoidList = Array.isArray(body.avoidQuestions) ? body.avoidQuestions.slice(0, 60) : [];
   const patternDesc = sectionPatterns
-    .map(
-      (sp, idx) =>
-        `${idx + 1}. ${sp.name} ${sp.subtitle} [kind=${sp.kind}]: generate EXACTLY ${sp.questionCount} questions (${sp.marksPerQuestion} marks each; students attempt ${sp.attemptCount} for ${sp.totalSectionMarks} total section marks).`
-    )
+    .map((sp, idx) => {
+      const subDesc =
+        Array.isArray(sp.subsectionPatterns) && sp.subsectionPatterns.length > 0
+          ? ` Sub-sections required in exact order: ${sp.subsectionPatterns
+              .map((s) => `${s.questionCount} under "${s.title}"`)
+              .join(', ')} (set each question's \`subsection\` field verbatim to its sub-section title).`
+          : '';
+      const marksDesc =
+        Array.isArray(sp.marksPerQuestionList) && sp.marksPerQuestionList.length > 0
+          ? `marks per question in order: [${sp.marksPerQuestionList.join(', ')}]`
+          : `${sp.marksPerQuestion} marks each`;
+      return `${idx + 1}. ${sp.name} ${sp.subtitle} [kind=${sp.kind}]: generate EXACTLY ${sp.questionCount} questions (${marksDesc}; students attempt ${sp.attemptCount} for ${sp.totalSectionMarks} total section marks).${subDesc}`;
+    })
     .join('\n');
 
   const prompt = [
@@ -513,7 +548,7 @@ export async function executeGenerateFromPattern(body: GenerateFromPatternReques
     '',
     body.focusPrompt?.trim()
       ? `TEACHER GUIDANCE (MUST FOLLOW STRICTLY):\n${body.focusPrompt.trim()}\n`
-      : 'TEACHER GUIDANCE:\nCover core syllabus units broadly (computer systems, memory/storage, operating systems, data communication/networks, number systems/logic gates, IoT/software engineering). Do not generate fill-in-the-blank items unless explicitly requested.\n',
+      : `TEACHER GUIDANCE:\nCover core syllabus units for ${body.subject || 'this subject'} broadly at ${body.classGrade || 'Class 11'} level. Do not generate fill-in-the-blank items unless explicitly requested.\n`,
     'DO NOT REPEAT OR CLOSELY PARAPHRASE ANY OF THESE PAST PAPER QUESTIONS:',
     avoidList.map((q, i) => `- (${i + 1}) ${q}`).join('\n'),
   ].join('\n');
@@ -522,7 +557,7 @@ export async function executeGenerateFromPattern(body: GenerateFromPatternReques
   const response = await generateContentWithRetry(ai, {
     contents: prompt,
     config: {
-      systemInstruction: `You are a senior board examination paper setter. You MUST output ALL ${sectionPatterns.length} requested sections in the \`sections\` array in exact order, with the exact requested \`questionCount\` items in \`questions\` for each section. Write fresh, original, syllabus-aligned exam questions while strictly avoiding repeating any of the provided past paper questions or violating teacher constraints. Never write fill-in-the-blank questions unless requested. For MCQ sections, always provide 4 concise options (without prefix letters) and an accurate answerKey. For short and detailed sections, provide concise answerKey points.`,
+      systemInstruction: `You are a senior board examination paper setter. You MUST output ALL ${sectionPatterns.length} requested sections in the \`sections\` array in exact order, with the exact requested \`questionCount\` items in \`questions\` for each section. When a section specifies sub-sections, set \`subsection\` verbatim on every question in that section in exact order. Write fresh, original, syllabus-aligned exam questions while strictly avoiding repeating any of the provided past paper questions or violating teacher constraints. Never write fill-in-the-blank questions unless requested. For MCQ sections, always provide 4 concise options (without prefix letters) and an accurate answerKey. For short and detailed sections, provide concise answerKey points.`,
       responseMimeType: 'application/json',
       responseSchema: {
         type: Type.OBJECT,
@@ -546,6 +581,10 @@ export async function executeGenerateFromPattern(body: GenerateFromPatternReques
                   items: {
                     type: Type.OBJECT,
                     properties: {
+                      subsection: {
+                        type: Type.STRING,
+                        description: 'Sub-section title when requested by the pattern (e.g. Sub-Section I (Prose)).',
+                      },
                       text: { type: Type.STRING },
                       options: {
                         type: Type.ARRAY,
@@ -572,7 +611,7 @@ export async function executeGenerateFromPattern(body: GenerateFromPatternReques
     rationale?: string;
     sections?: Array<{
       kind: string;
-      questions: Array<{ text: string; options?: string[]; answerKey?: string }>;
+      questions: Array<{ text: string; subsection?: string; options?: string[]; answerKey?: string }>;
     }>;
   };
 
@@ -608,18 +647,25 @@ export async function executeGenerateFromPattern(body: GenerateFromPatternReques
 
   const completedSections: Array<{
     kind: QuestionKind;
-    questions: Array<{ text: string; options?: string[]; answerKey?: string }>;
+    questions: Array<{ text: string; subsection?: string; options?: string[]; answerKey?: string }>;
   }> = await Promise.all(
     prelimSections.map(async ({ sp, existingQs }) => {
       const qs = [...existingQs];
       const missingCount = sp.questionCount - qs.length;
       if (missingCount > 0) {
         const alreadyTexts = [...avoidList, ...qs.map((q) => q.text)].slice(0, 75);
+        const subHint =
+          Array.isArray(sp.subsectionPatterns) && sp.subsectionPatterns.length > 0
+            ? `Sub-sections for this section: ${sp.subsectionPatterns
+                .map((s) => `${s.questionCount} in "${s.title}"`)
+                .join(', ')}. Include \`subsection\` on each item.`
+            : '';
 
         const fillPrompt = [
           `Subject: ${body.subject || 'Computer Science'} (${body.classGrade || 'Class 11'}, ${body.boardOrGroup || 'General Group'})`,
           `Section: ${sp.name} ${sp.subtitle} [type=${sp.kind}]`,
           `Generate EXACTLY ${missingCount} fresh, distinct \`${sp.kind}\` examination question(s) (${sp.marksPerQuestion} marks each).`,
+          subHint,
           body.focusPrompt?.trim() ? `Teacher guidance: ${body.focusPrompt.trim()}` : '',
           alreadyTexts.length > 0
             ? `Do NOT repeat or paraphrase any of these:\n${alreadyTexts.map((t) => `- ${t}`).join('\n')}`
@@ -642,6 +688,7 @@ export async function executeGenerateFromPattern(body: GenerateFromPatternReques
                     items: {
                       type: Type.OBJECT,
                       properties: {
+                        subsection: { type: Type.STRING },
                         text: { type: Type.STRING },
                         options: {
                           type: Type.ARRAY,
@@ -659,7 +706,12 @@ export async function executeGenerateFromPattern(body: GenerateFromPatternReques
           });
 
           const fillParsed = JSON.parse((fillResp.text ?? '{}').trim()) as {
-            questions?: Array<{ text: string; options?: string[]; answerKey?: string }>;
+            questions?: Array<{
+              text: string;
+              subsection?: string;
+              options?: string[];
+              answerKey?: string;
+            }>;
           };
           if (Array.isArray(fillParsed.questions)) {
             for (const fq of fillParsed.questions) {
@@ -716,8 +768,9 @@ export async function executeRefinePaper(body: RefinePaperRequestBody) {
             q.options && q.options.length > 0
               ? ` | options: ${q.options.map((o) => `${o.label} ${o.text}`).join(' ; ')}`
               : '';
+          const sub = q.subsection ? ` | subsection="${q.subsection}"` : '';
           const ans = q.answerKey ? ` | key: ${q.answerKey}` : '';
-          return `  - [id="${q.id}" | num="${q.number}" | type=${q.type} | marks=${q.marks ?? 1}] ${q.text}${opts}${ans}`;
+          return `  - [id="${q.id}" | num="${q.number}" | type=${q.type}${sub} | marks=${q.marks ?? 1}] ${q.text}${opts}${ans}`;
         })
         .join('\n');
       return `Section ${sIdx + 1}: id="${sec.id}" | name="${sec.name}" | subtitle="${sec.subtitle}" | instruction="${sec.instruction}"\n${qs}`;
@@ -731,7 +784,8 @@ export async function executeRefinePaper(body: RefinePaperRequestBody) {
         c.optionsPreview && c.optionsPreview.length > 0
           ? ` | Options: ${c.optionsPreview.join(' ; ')}`
           : '';
-      return `[bankKey="${c.key}" | kind=${c.kind} | unit="${c.unitName}"] ${c.text.slice(0, 220)}${opts}`;
+      const subTag = c.subsection ? ` | subsection="${c.subsection}"` : '';
+      return `[bankKey="${c.key}" | kind=${c.kind}${subTag} | unit="${c.unitName}"] ${c.text.slice(0, 220)}${opts}`;
     })
     .join('\n');
 
@@ -745,7 +799,7 @@ export async function executeRefinePaper(body: RefinePaperRequestBody) {
     '',
     `TEACHER EDIT INSTRUCTION:\n"${instruction}"`,
     '',
-    'CURRENT PAPER SECTIONS & QUESTIONS (preserve untouched questions with their existing id/text/options/answerKey):',
+    'CURRENT PAPER SECTIONS & QUESTIONS (preserve untouched questions with their existing id/subsection/text/options/answerKey):',
     currentPaperSnapshot,
     '',
     avoidList.length > 0
@@ -761,7 +815,7 @@ export async function executeRefinePaper(body: RefinePaperRequestBody) {
     contents: prompt,
     config: {
       systemInstruction:
-        'You are an interactive examination paper editor assistant. Apply ONLY the teacher instruction cleanly to the current paper while keeping all unaffected sections, questions, marks, and formatting intact. Strictly honor negative constraints (e.g. removing fill-in-the-blank items if asked). Return ALL sections in full order so nothing gets lost. When replacing/adding a question from the database pool, set `bankKey` verbatim and match its `type` (`mcq`, `short`, `detailed`). When keeping an existing unchanged question, preserve its `id`, `text`, `type`, `marks`, `options`, and `answerKey`. For newly written/edited MCQs, provide 4 concise option strings (without prefix letters) and `answerKey`.',
+        'You are an interactive examination paper editor assistant. Apply ONLY the teacher instruction cleanly to the current paper while keeping all unaffected sections, questions, sub-sections (`subsection`), marks, and formatting intact. Strictly honor negative constraints (e.g. removing fill-in-the-blank items if asked). Return ALL sections in full order so nothing gets lost. When replacing/adding a question from the database pool, set `bankKey` verbatim, preserve its `subsection` if present, and match its `type` (`mcq`, `short`, `detailed`). When keeping an existing unchanged question, preserve its `id`, `subsection`, `text`, `type`, `marks`, `options`, and `answerKey`. For newly written/edited MCQs, provide 4 concise option strings (without prefix letters) and `answerKey`.',
       responseMimeType: 'application/json',
       responseSchema: {
         type: Type.OBJECT,
@@ -794,6 +848,10 @@ export async function executeRefinePaper(body: RefinePaperRequestBody) {
                         type: Type.STRING,
                         description: 'mcq, short, or detailed',
                       },
+                      subsection: {
+                        type: Type.STRING,
+                        description: 'Optional sub-section title (e.g. Sub-Section I (Prose)). Preserve existing subsection when present.',
+                      },
                       text: { type: Type.STRING },
                       marks: { type: Type.NUMBER },
                       options: {
@@ -817,7 +875,7 @@ export async function executeRefinePaper(body: RefinePaperRequestBody) {
   });
 
   const rawText = (response.text ?? '{}').trim();
-  const parsed = JSON.parse(rawText) as {
+  let parsed: {
     summary?: string;
     sections?: Array<{
       id?: string;
@@ -828,13 +886,23 @@ export async function executeRefinePaper(body: RefinePaperRequestBody) {
         id?: string;
         bankKey?: string;
         type: string;
+        subsection?: string;
         text: string;
         marks?: number;
         options?: string[];
         answerKey?: string;
       }>;
     }>;
-  };
+  } = {};
+
+  try {
+    parsed = JSON.parse(rawText);
+  } catch {
+    throw new ApiRouteError(
+      502,
+      'AI returned an incomplete response while editing the paper. Please tap Retry.'
+    );
+  }
 
   return {
     summary:
